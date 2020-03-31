@@ -1,0 +1,10 @@
+version: "2"
+domain: cluster.x-k8s.io
+repo: github.com/microsoft/cluster-api-provider-azurestackhci
+resources:
+- group: infrastructure
+  version: v1alpha2
+  kind: AzureStackHCICluster
+- group: infrastructure
+  version: v1alpha2
+  kind: AzureStackHCIMachine
