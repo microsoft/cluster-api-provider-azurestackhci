@@ -17,7 +17,6 @@ limitations under the License.
 package v1alpha2
 
 import (
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -36,8 +35,8 @@ type AzureStackHCIClusterSpec struct {
 
 	Location string `json:"location"`
 
-	// LoadBalancerRef may be used to enable a control plane load balancer for this cluster.
-	LoadBalancerRef *corev1.ObjectReference `json:"loadBalancerRef,omitempty"`
+	// LoadBalancer is used to declare the LoadBalancerSpec if a LoadBalancer is desired for the AzureStackHCICluster.
+	LoadBalancer *LoadBalancerSpec `json:"loadBalancer,omitempty"`
 }
 
 // AzureStackHCIClusterStatus defines the observed state of AzureStackHCICluster

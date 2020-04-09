@@ -22,8 +22,6 @@ spec:
   networkSpec:
     vnet:
       name: "${VNET_NAME}"
-  loadBalancerRef:
-    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha2
-    kind: LoadBalancer
-    namespace: default
-    name: ${LOAD_BALANCER_NAME}
+  loadBalancer:
+    sshPublicKey: ${SSH_PUBLIC_KEY}
+    imageReference: ${CAPH_DISK_NAME}

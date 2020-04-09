@@ -40,7 +40,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	apitypes "k8s.io/apimachinery/pkg/types"
 	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/client-go/tools/record"
@@ -235,7 +234,7 @@ func (r *AzureStackHCIMachineReconciler) reconcileNormal(machineScope *scope.Mac
 
 	if vm.Status.VMState == nil {
 		machineScope.Info("Waiting for VM controller to set vm state")
-		return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
+		return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 10}, nil
 	}
 
 	// changed to avoid using dereference in function param for deep copying
@@ -283,13 +282,9 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineNormal(machineSc
 			vm.Spec.SubnetName = azurestackhci.GenerateNodeSubnetName(clusterScope.Name())
 		case infrav1.ControlPlane:
 			vm.Spec.SubnetName = azurestackhci.GenerateControlPlaneSubnetName(clusterScope.Name())
-			backendPoolName, err := r.GetBackendPoolName(machineScope, clusterScope)
-			if err != nil {
-				return err
-			} else if backendPoolName != "" {
-				vm.Spec.BackendPoolName = backendPoolName
+			if clusterScope.LoadBalancer() != nil {
+				vm.Spec.BackendPoolName = azurestackhci.GenerateBackendPoolName(clusterScope.Name())
 			}
-
 		default:
 			return errors.Errorf("unknown value %s for label `set` on machine %s, unable to create virtual machine resource", role, machineScope.Name())
 		}
@@ -405,26 +400,6 @@ func (r *AzureStackHCIMachineReconciler) AzureStackHCIClusterToAzureStackHCIMach
 	}
 
 	return result
-}
-
-// GetBackendPoolName finds the clusters load balancer and gets its backend pool name
-func (r *AzureStackHCIMachineReconciler) GetBackendPoolName(machineScope *scope.MachineScope, clusterScope *scope.ClusterScope) (string, error) {
-	if clusterScope.LoadBalancerRef() == nil {
-		clusterScope.Info("Omitting backend pool name for control plane machine nic since AzureStackHCICluster.Spec.LoadBalancerRef is nil")
-		return "", nil
-	}
-
-	// find the load balancer
-	loadBalancer := &infrav1.LoadBalancer{}
-	loadBalancerNamespacedName := types.NamespacedName{
-		Namespace: clusterScope.AzureStackHCICluster.Spec.LoadBalancerRef.Namespace,
-		Name:      clusterScope.AzureStackHCICluster.Spec.LoadBalancerRef.Name,
-	}
-	if err := r.Get(clusterScope.Context, loadBalancerNamespacedName, loadBalancer); err != nil {
-		return "", err
-	}
-
-	return loadBalancer.Spec.BackendPoolName, nil
 }
 
 // Pick image from the machine configuration, or use a default one.
