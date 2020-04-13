@@ -13,10 +13,10 @@ spec:
     spec:
       containers:
       - args:
-        - --metrics-addr=127.0.0.1:8080
+        - --metrics-addr=127.0.0.1:8082
         - --v=4
         - --enable-leader-election
         - --bootstrap-token-ttl=30m
-        image: us.gcr.io/k8s-artifacts-prod/capi-kubeadm/cluster-api-kubeadm-controller:v0.1.2
+        image: us.gcr.io/k8s-artifacts-prod/capi-kubeadm/cluster-api-kubeadm-controller:v0.1.6
         imagePullPolicy: Always
         name: manager

@@ -111,7 +111,7 @@ func main() {
 
 	flag.IntVar(&azureStackHCIVirtualMachineConcurrency,
 		"azurestackhci-virtual-machine-concurrency",
-		10,
+		5,
 		"Number of AzureStackHCIVirtualMachines to process simultaneously",
 	)
 
