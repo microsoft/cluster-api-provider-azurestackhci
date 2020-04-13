@@ -20,6 +20,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/to"
@@ -410,6 +411,15 @@ func (r *LoadBalancerReconciler) reconcileDeleteLoadBalancer(loadBalancerScope *
 }
 
 func (r *LoadBalancerReconciler) formatLoadBalancerCloudInit(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) *string {
+
+	// Temp until lbagent is ready
+	binarylocation := os.Getenv("BINARY_LOCATION")
+	if binarylocation == "" {
+		// Default
+		binarylocation = "http://10.231.110.37/AzureEdge/0.7"
+		loadBalancerScope.Info("Failed to obtain binary location from env. Using default value.", "binarylocation", binarylocation)
+	}
+
 	ret := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf(`
 #cloud-config
 packages:
@@ -462,7 +472,7 @@ runcmd:
   systemctl start hv_kvp_daemon
   # WSSD Setup
   mkdir -p /opt/wssd/k8s
-  curl -o /opt/wssd/k8s/wssdcloudctl http://10.231.110.37/AzureEdge/0.7/wssdcloudctl
+  curl -o /opt/wssd/k8s/wssdcloudctl %[4]s/wssdcloudctl
   chmod 755 /opt/wssd/k8s/wssdcloudctl
   export WSSD_DEBUG_MODE=on
   crontab /root/crontab.input
@@ -470,6 +480,6 @@ runcmd:
   systemctl start haproxy
   #TODO: only open up ports that are needed.  This would have to be moved to the cronjob.
   systemctl stop iptables
-`, clusterScope.CloudAgentFqdn, clusterScope.GetResourceGroup(), loadBalancerScope.Name())))
+`, clusterScope.CloudAgentFqdn, clusterScope.GetResourceGroup(), loadBalancerScope.Name(), binarylocation)))
 	return &ret
 }

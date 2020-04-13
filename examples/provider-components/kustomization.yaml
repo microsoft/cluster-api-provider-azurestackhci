@@ -6,4 +6,5 @@ resources:
 - provider-components-azurestackhci.yaml
 patchesStrategicMerge:
 - manager_tolerations_patch.yaml
+- manager_networking_patch.yaml
 - kubeadm_token_patch.yaml

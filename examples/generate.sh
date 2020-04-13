@@ -125,6 +125,9 @@ fi
 export CLOUDAGENT_FQDN_B64="$(echo -n "$CLOUDAGENT_FQDN" | base64 | tr -d '\n')"
 export WSSD_DEBUG_MODE_B64="$(echo -n "$WSSD_DEBUG_MODE" | base64 | tr -d '\n')"
 
+# Temp until lbagent work is complete.
+export BINARY_LOCATION_B64="$(echo -n "$BINARY_LOCATION" | base64 | tr -d '\n')"
+
 # Prepare environment for generation of management cluster yamls
 export CLUSTER_NAME="${MANAGEMENT_CLUSTER_NAME}"
 export LOAD_BALANCER_NAME=${MANAGEMENT_CLUSTER_LB_NAME}
@@ -167,11 +170,11 @@ kustomize build "${SOURCE_DIR}/machinedeployment" | envsubst >> "${MACHINEDEPLOY
 echo "Generated ${MACHINEDEPLOYMENT_GENERATED_FILE}"
 
 # Generate Cluster API provider components file.
-curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v0.2.4/cluster-api-components.yaml > "${COMPONENTS_CLUSTER_API_GENERATED_FILE}"
+curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v0.2.10/cluster-api-components.yaml > "${COMPONENTS_CLUSTER_API_GENERATED_FILE}"
 echo "Downloaded ${COMPONENTS_CLUSTER_API_GENERATED_FILE}"
 
 # Generate Kubeadm Bootstrap Provider components file.
-curl -L https://github.com/kubernetes-sigs/cluster-api-bootstrap-provider-kubeadm/releases/download/v0.1.2/bootstrap-components.yaml > "${COMPONENTS_KUBEADM_GENERATED_FILE}"
+curl -L https://github.com/kubernetes-sigs/cluster-api-bootstrap-provider-kubeadm/releases/download/v0.1.6/bootstrap-components.yaml > "${COMPONENTS_KUBEADM_GENERATED_FILE}"
 echo "Downloaded ${COMPONENTS_KUBEADM_GENERATED_FILE}"
 
 # Generate AzureStackHCI Infrastructure Provider components file.

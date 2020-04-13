@@ -6,7 +6,6 @@ require (
 	github.com/Azure/go-autorest/autorest/to v0.3.0
 	github.com/blang/semver v3.5.0+incompatible
 	github.com/go-logr/logr v0.1.0
-	github.com/microsoft/cluster-api-provider-azurestackhci v0.0.10
 	github.com/microsoft/moc v0.8.0-alpha.2
 	github.com/microsoft/moc-sdk-for-go v0.8.0-alpha.2
 	github.com/pkg/errors v0.9.1
