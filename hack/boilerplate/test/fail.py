@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-# Copyright 2015 The Kubernetes Authors.
-#
+# Copyright 2020 The Kubernetes Authors.
+# Portions Copyright © Microsoft Corporation.
 # failed
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
