@@ -70,7 +70,7 @@ func NewLoadBalancerScope(params LoadBalancerScopeParams) (*LoadBalancerScope, e
 	}, nil
 }
 
-// LoadBalancerScope defines a scope defined around a machine.
+// LoadBalancerScope defines a scope defined around a LoadBalancer.
 type LoadBalancerScope struct {
 	logr.Logger
 	client      client.Client
@@ -136,7 +136,17 @@ func (l *LoadBalancerScope) SetErrorReason(v capierrors.MachineStatusError) {
 	l.LoadBalancer.Status.ErrorReason = &v
 }
 
-// SetLoadBalancerAddress sets the Address field of the Load Balancer Status.
+// SetAddress sets the Address field of the Load Balancer Status.
 func (l *LoadBalancerScope) SetAddress(address string) {
 	l.LoadBalancer.Status.Address = address
+}
+
+// SetPort sets the Port field of the Load Balancer Status.
+func (l *LoadBalancerScope) SetPort(port int32) {
+	l.LoadBalancer.Status.Port = port
+}
+
+// GetPort returns the Port field of the Load Balancer Status.
+func (l *LoadBalancerScope) GetPort() int32 {
+	return l.LoadBalancer.Status.Port
 }

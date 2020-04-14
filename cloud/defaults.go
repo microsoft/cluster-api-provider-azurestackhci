@@ -124,6 +124,16 @@ func GenerateOSDiskName(machineName string) string {
 	return fmt.Sprintf("%s_OSDisk", machineName)
 }
 
+// GenerateLoadBalancerName generates the name of a load balancer based on the name of a cluster.
+func GenerateLoadBalancerName(clusterName string) string {
+	return fmt.Sprintf("%s-load-balancer", clusterName)
+}
+
+// GenerateBackendPoolName generates the name of a backend pool based on the name of a cluster.
+func GenerateBackendPoolName(clusterName string) string {
+	return fmt.Sprintf("%s-backend-pool", clusterName)
+}
+
 // GetDefaultImageName gets the name of the image to use for the provided version of Kubernetes.
 func getDefaultImageName(k8sVersion string) (string, error) {
 	version, err := semver.ParseTolerant(k8sVersion)

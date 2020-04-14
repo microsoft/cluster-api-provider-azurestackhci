@@ -26,11 +26,9 @@ spec:
   networkSpec:
     vnet:
       name: "${AZURESTACKHCI_VNET_NAME}"
-  loadBalancerRef:
-    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
-    kind: LoadBalancer
-    namespace: default
-    name: ${AZURESTACKHCI_LOAD_BALANCER_NAME}
+  loadBalancer:
+    sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY}
+    vmSize: "${AZURESTACKHCI_LOAD_BALANCER_MACHINE_TYPE}"
   version: "${KUBERNETES_VERSION}"
 ---
 kind: KubeadmControlPlane
@@ -169,16 +167,6 @@ spec:
         save_iptables_config
         patch_node_providerid
   version: "${KUBERNETES_VERSION}"
----
-kind: LoadBalancer
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
-metadata:
-  name: ${AZURESTACKHCI_LOAD_BALANCER_NAME}
-spec:
-  location: "westus"
-  sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY}
-  backendPoolName: ${AZURESTACKHCI_BACKEND_POOL_NAME}
-  vmSize: "${AZURESTACKHCI_LOAD_BALANCER_MACHINE_TYPE}"
 ---
 kind: AzureStackHCIMachineTemplate
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3

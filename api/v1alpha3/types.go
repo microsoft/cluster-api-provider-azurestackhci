@@ -66,12 +66,6 @@ const (
 	Node string = "node"
 )
 
-// Network encapsulates Azure networking resources.
-type Network struct {
-	// APIServerLB is the Kubernetes API server load balancer.
-	APIServerLB LoadBalancer `json:"apiServerLb,omitempty"`
-}
-
 // NetworkSpec encapsulates all things related to Azure network.
 type NetworkSpec struct {
 	// Vnet is the configuration for the Azure virtual network.

@@ -20,7 +20,7 @@ package converters
 import (
 	"github.com/Azure/go-autorest/autorest/to"
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
-	"github.com/microsoft/wssdcloud-sdk-for-go/services/compute"
+	"github.com/microsoft/moc-sdk-for-go/services/compute"
 )
 
 // SDKToVM converts an SDK VirtualMachine to the provider VM type.

@@ -24,11 +24,11 @@ import (
 	"github.com/go-logr/logr"
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
+	"github.com/microsoft/moc-sdk-for-go/services/security"
+	"github.com/microsoft/moc-sdk-for-go/services/security/authentication"
 	"github.com/microsoft/moc/pkg/auth"
 	"github.com/microsoft/moc/pkg/config"
 	"github.com/microsoft/moc/pkg/marshal"
-	"github.com/microsoft/wssdcloud-sdk-for-go/services/security"
-	"github.com/microsoft/wssdcloud-sdk-for-go/services/security/authentication"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -125,11 +125,6 @@ func (s *ClusterScope) GetAuthorizer() auth.Authorizer {
 	return s.Authorizer
 }
 
-// Network returns the cluster network object.
-func (s *ClusterScope) Network() *infrav1.Network {
-	return &s.AzureStackHCICluster.Status.Network
-}
-
 // Vnet returns the cluster Vnet.
 func (s *ClusterScope) Vnet() *infrav1.VnetSpec {
 	return &s.AzureStackHCICluster.Spec.NetworkSpec.Vnet
@@ -192,8 +187,8 @@ func (s *ClusterScope) APIServerPort() int32 {
 	return 6443
 }
 
-func (s *ClusterScope) LoadBalancerRef() *corev1.ObjectReference {
-	return s.AzureStackHCICluster.Spec.LoadBalancerRef
+func (s *ClusterScope) LoadBalancer() *infrav1.LoadBalancerSpec {
+	return s.AzureStackHCICluster.Spec.LoadBalancer
 }
 
 // GetNamespaceOrDefault returns the default namespace if given empty

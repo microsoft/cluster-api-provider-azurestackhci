@@ -37,15 +37,6 @@ spec:
             type: object
           spec:
             properties:
-              availabilityZone:
-                properties:
-                  enabled:
-                    type: boolean
-                  id:
-                    type: string
-                type: object
-              backendPoolName:
-                type: string
               image:
                 description: 'Image defines information about the image to use for
                   VM creation. There are three ways to specify an image: by ID, by
@@ -74,15 +65,11 @@ spec:
                   version:
                     type: string
                 type: object
-              location:
-                type: string
               sshPublicKey:
                 type: string
               vmSize:
                 type: string
             required:
-            - backendPoolName
-            - location
             - sshPublicKey
             - vmSize
             type: object
@@ -121,6 +108,10 @@ spec:
                   during the reconciliation of Machines can be added as events to
                   the Machine object and/or logged in the controller's output."
                 type: string
+              port:
+                description: Port is the port of the loadbalancer frontend.
+                format: int32
+                type: integer
               ready:
                 type: boolean
               vmState:

@@ -35,13 +35,12 @@ import (
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/secrets"
-	"github.com/microsoft/wssdcloud-sdk-for-go/services/security/keyvault"
+	"github.com/microsoft/moc-sdk-for-go/services/security/keyvault"
 
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	apitypes "k8s.io/apimachinery/pkg/types"
 	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/client-go/tools/record"
@@ -209,6 +208,7 @@ func (r *AzureStackHCIMachineReconciler) reconcileNormal(machineScope *scope.Mac
 
 	if err != nil {
 		if apierrors.IsAlreadyExists(err) {
+			clusterScope.Info("AzureStackHCIVirtualMachine already exists")
 			return reconcile.Result{}, nil
 		}
 		return reconcile.Result{}, err
@@ -277,13 +277,9 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineNormal(machineSc
 			vm.Spec.SubnetName = azurestackhci.GenerateNodeSubnetName(clusterScope.Name())
 		case infrav1.ControlPlane:
 			vm.Spec.SubnetName = azurestackhci.GenerateControlPlaneSubnetName(clusterScope.Name())
-			backendPoolName, err := r.GetBackendPoolName(machineScope, clusterScope)
-			if err != nil {
-				return err
-			} else if backendPoolName != "" {
-				vm.Spec.BackendPoolName = backendPoolName
+			if clusterScope.LoadBalancer() != nil {
+				vm.Spec.BackendPoolName = azurestackhci.GenerateBackendPoolName(clusterScope.Name())
 			}
-
 		default:
 			return errors.Errorf("unknown value %s for label `set` on machine %s, unable to create virtual machine resource", role, machineScope.Name())
 		}
@@ -319,10 +315,7 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineNormal(machineSc
 	}
 
 	if _, err := controllerutil.CreateOrUpdate(clusterScope.Context, r.Client, vm, mutateFn); err != nil {
-		if apierrors.IsAlreadyExists(err) {
-			clusterScope.Info("AzureStackHCIVirtualMachine already exists")
-			return nil, err
-		}
+		return nil, err
 	}
 
 	return vm, nil
@@ -416,26 +409,6 @@ func (r *AzureStackHCIMachineReconciler) AzureStackHCIClusterToAzureStackHCIMach
 	}
 
 	return result
-}
-
-// GetBackendPoolName finds the clusters load balancer and gets its backend pool name
-func (r *AzureStackHCIMachineReconciler) GetBackendPoolName(machineScope *scope.MachineScope, clusterScope *scope.ClusterScope) (string, error) {
-	if clusterScope.LoadBalancerRef() == nil {
-		clusterScope.Info("Omitting backend pool name for control plane machine nic since AzureStackHCICluster.Spec.LoadBalancerRef is nil")
-		return "", nil
-	}
-
-	// find the load balancer
-	loadBalancer := &infrav1.LoadBalancer{}
-	loadBalancerNamespacedName := types.NamespacedName{
-		Namespace: clusterScope.AzureStackHCICluster.Spec.LoadBalancerRef.Namespace,
-		Name:      clusterScope.AzureStackHCICluster.Spec.LoadBalancerRef.Name,
-	}
-	if err := r.Get(clusterScope.Context, loadBalancerNamespacedName, loadBalancer); err != nil {
-		return "", err
-	}
-
-	return loadBalancer.Spec.BackendPoolName, nil
 }
 
 // Pick image from the machine configuration, or use a default one.

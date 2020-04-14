@@ -27,7 +27,7 @@ import (
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/networkinterfaces"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/secrets"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/virtualmachines"
-	sdk_compute "github.com/microsoft/wssdcloud-sdk-for-go/services/compute"
+	sdk_compute "github.com/microsoft/moc-sdk-for-go/services/compute"
 	"github.com/pkg/errors"
 	"k8s.io/klog"
 )

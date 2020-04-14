@@ -18,7 +18,6 @@ limitations under the License.
 package v1alpha3
 
 import (
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
 )
@@ -38,8 +37,8 @@ type AzureStackHCIClusterSpec struct {
 
 	Location string `json:"location"`
 
-	// LoadBalancerRef may be used to enable a control plane load balancer for this cluster.
-	LoadBalancerRef *corev1.ObjectReference `json:"loadBalancerRef,omitempty"`
+	// LoadBalancer is used to declare the LoadBalancerSpec if a LoadBalancer is desired for the AzureStackHCICluster.
+	LoadBalancer *LoadBalancerSpec `json:"loadBalancer,omitempty"`
 
 	// ControlPlaneEndpoint represents the endpoint used to communicate with the control plane.
 	// +optional
@@ -51,8 +50,6 @@ type AzureStackHCIClusterSpec struct {
 
 // AzureStackHCIClusterStatus defines the observed state of AzureStackHCICluster
 type AzureStackHCIClusterStatus struct {
-	Network Network `json:"network,omitempty"`
-
 	Bastion VM `json:"bastion,omitempty"`
 
 	// Ready is true when the provider resource is ready.
