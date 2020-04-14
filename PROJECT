@@ -3,8 +3,17 @@ domain: cluster.x-k8s.io
 repo: github.com/microsoft/cluster-api-provider-azurestackhci
 resources:
 - group: infrastructure
-  version: v1alpha2
+  version: v1alpha3
   kind: AzureStackHCICluster
 - group: infrastructure
-  version: v1alpha2
+  version: v1alpha3
   kind: AzureStackHCIMachine
+- group: infrastructure
+  version: v1alpha3
+  kind: AzureStackHCIMachineTemplate
+- group: infrastructure
+  version: v1alpha3
+  kind: AzureStackHCIVirtualMachine
+- group: infrastructure
+  version: v1alpha3
+  kind: LoadBalancer

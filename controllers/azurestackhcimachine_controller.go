@@ -29,12 +29,12 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/go-logr/logr"
-	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha2"
+	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
 	winapi "github.com/microsoft/cluster-api-provider-azurestackhci/api/windows"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/secrets"
-	"github.com/microsoft/moc-sdk-for-go/services/security/keyvault"
+	"github.com/microsoft/wssdcloud-sdk-for-go/services/security/keyvault"
 
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
@@ -44,7 +44,7 @@ import (
 	apitypes "k8s.io/apimachinery/pkg/types"
 	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/client-go/tools/record"
-	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha2"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
 	capierrors "sigs.k8s.io/cluster-api/errors"
 	"sigs.k8s.io/cluster-api/util"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -88,6 +88,7 @@ func (r *AzureStackHCIMachineReconciler) SetupWithManager(mgr ctrl.Manager, opti
 // +kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=azurestackhcimachines/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=cluster.x-k8s.io,resources=machines;machines/status,verbs=get;list;watch
 // +kubebuilder:rbac:groups="",resources=events,verbs=get;list;watch;create;update;patch
+// +kubebuilder:rbac:groups="",resources=secrets;,verbs=get;list;watch
 
 func (r *AzureStackHCIMachineReconciler) Reconcile(req ctrl.Request) (_ ctrl.Result, reterr error) {
 	ctx := context.TODO()
@@ -180,15 +181,16 @@ func (r *AzureStackHCIMachineReconciler) Reconcile(req ctrl.Request) (_ ctrl.Res
 func (r *AzureStackHCIMachineReconciler) reconcileNormal(machineScope *scope.MachineScope, clusterScope *scope.ClusterScope) (reconcile.Result, error) {
 	machineScope.Info("Reconciling AzureStackHCIMachine")
 	// If the AzureStackHCIMachine is in an error state, return early.
-	if machineScope.AzureStackHCIMachine.Status.ErrorReason != nil || machineScope.AzureStackHCIMachine.Status.ErrorMessage != nil {
+	if machineScope.AzureStackHCIMachine.Status.FailureReason != nil || machineScope.AzureStackHCIMachine.Status.FailureMessage != nil {
 		machineScope.Info("Error state detected, skipping reconciliation")
 		return reconcile.Result{}, nil
 	}
 
-	// If the AzureStackHCIMachine doesn't have our finalizer, add it.
-	// with controller-runtime 0.4.0 you can do this with AddFinalizer
-	if !util.Contains(machineScope.AzureStackHCIMachine.Finalizers, infrav1.MachineFinalizer) {
-		machineScope.AzureStackHCIMachine.Finalizers = append(machineScope.AzureStackHCIMachine.Finalizers, infrav1.MachineFinalizer)
+	// If the AzureMachine doesn't have our finalizer, add it.
+	controllerutil.AddFinalizer(machineScope.AzureStackHCIMachine, infrav1.MachineFinalizer)
+	// Register the finalizer immediately to avoid orphaning Azure resources on delete
+	if err := machineScope.PatchObject(); err != nil {
+		return reconcile.Result{}, err
 	}
 
 	if !machineScope.Cluster.Status.InfrastructureReady {
@@ -197,18 +199,9 @@ func (r *AzureStackHCIMachineReconciler) reconcileNormal(machineScope *scope.Mac
 	}
 
 	// Make sure bootstrap data is available and populated.
-	if machineScope.Machine.Spec.Bootstrap.Data == nil {
-		machineScope.Info("Bootstrap data is not yet available")
+	if machineScope.Machine.Spec.Bootstrap.DataSecretName == nil {
+		machineScope.Info("Bootstrap data secret reference is not yet available")
 		return reconcile.Result{}, nil
-	}
-
-	if machineScope.AzureStackHCIMachine.Spec.OSDisk.OSType == "Windows" {
-		//populate bootstrap data
-		windowsBootstrap, err := r.getWindowsBootstrapData(clusterScope)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-		machineScope.Machine.Spec.Bootstrap.Data = &windowsBootstrap
 	}
 
 	vm, err := r.reconcileVirtualMachineNormal(machineScope, clusterScope)
@@ -248,8 +241,8 @@ func (r *AzureStackHCIMachineReconciler) reconcileNormal(machineScope *scope.Mac
 	case infrav1.VMStateUpdating:
 		machineScope.Info("Machine VM is updating", "name", vm.Name)
 	default:
-		machineScope.SetErrorReason(capierrors.UpdateMachineError)
-		machineScope.SetErrorMessage(errors.Errorf("AzureStackHCI VM state %q is unexpected", *machineScope.GetVMState()))
+		machineScope.SetFailureReason(capierrors.UpdateMachineError)
+		machineScope.SetFailureMessage(errors.Errorf("AzureStackHCI VM state %q is unexpected", *machineScope.GetVMState()))
 	}
 
 	return reconcile.Result{}, nil
@@ -294,7 +287,21 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineNormal(machineSc
 			return errors.Errorf("unknown value %s for label `set` on machine %s, unable to create virtual machine resource", role, machineScope.Name())
 		}
 
-		image, err := getVMImage(machineScope)
+		var bootstrapData string
+		if machineScope.AzureStackHCIMachine.Spec.OSDisk.OSType == "Windows" {
+			//populate bootstrap data
+			bootstrapData, err = r.getWindowsBootstrapData(clusterScope)
+			if err != nil {
+				return err
+			}
+		} else {
+			bootstrapData, err = machineScope.GetBootstrapData()
+			if err != nil {
+				return errors.Wrap(err, "failed to retrieve bootstrap data")
+			}
+		}
+
+		image, err := r.getVMImage(machineScope)
 		if err != nil {
 			return errors.Wrap(err, "failed to get VM image")
 		}
@@ -305,7 +312,7 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineNormal(machineSc
 		machineScope.AzureStackHCIMachine.Spec.OSDisk.DeepCopyInto(&vm.Spec.OSDisk)
 		vm.Spec.Location = machineScope.AzureStackHCIMachine.Spec.Location
 		vm.Spec.SSHPublicKey = machineScope.AzureStackHCIMachine.Spec.SSHPublicKey
-		vm.Spec.BootstrapData = machineScope.Machine.Spec.Bootstrap.Data
+		vm.Spec.BootstrapData = &bootstrapData
 
 		return nil
 	}
@@ -327,9 +334,12 @@ func (r *AzureStackHCIMachineReconciler) reconcileDelete(machineScope *scope.Mac
 		return reconcile.Result{}, err
 	}
 
-	machineScope.AzureStackHCIMachine.Finalizers = util.Filter(machineScope.AzureStackHCIMachine.Finalizers, infrav1.MachineFinalizer)
-	// can use this method in controller runtime v0.4.0
-	// controllerutil.RemoveFinalizer(machineScope.AzureStackHCIMachine, infrav1.MachineFinalizer)
+	defer func() {
+		if reterr == nil {
+			// VM is deleted so remove the finalizer.
+			controllerutil.RemoveFinalizer(machineScope.AzureStackHCIMachine, infrav1.MachineFinalizer)
+		}
+	}()
 
 	return reconcile.Result{}, nil
 }
@@ -390,7 +400,7 @@ func (r *AzureStackHCIMachineReconciler) AzureStackHCIClusterToAzureStackHCIMach
 		return result
 	}
 
-	labels := map[string]string{clusterv1.MachineClusterLabelName: cluster.Name}
+	labels := map[string]string{clusterv1.ClusterLabelName: cluster.Name}
 	machineList := &clusterv1.MachineList{}
 	if err := r.List(context.TODO(), machineList, client.InNamespace(c.Namespace), client.MatchingLabels(labels)); err != nil {
 		log.Error(err, "failed to list Machines")
@@ -428,7 +438,7 @@ func (r *AzureStackHCIMachineReconciler) GetBackendPoolName(machineScope *scope.
 }
 
 // Pick image from the machine configuration, or use a default one.
-func getVMImage(scope *scope.MachineScope) (*infrav1.Image, error) {
+func (r *AzureStackHCIMachineReconciler) getVMImage(scope *scope.MachineScope) (*infrav1.Image, error) {
 	// Use custom image if provided
 	if scope.AzureStackHCIMachine.Spec.Image.Name != nil {
 		scope.Info("Using custom image name for machine", "machine", scope.AzureStackHCIMachine.GetName(), "imageName", scope.AzureStackHCIMachine.Spec.Image.Name)

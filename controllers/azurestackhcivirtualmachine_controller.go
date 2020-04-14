@@ -23,21 +23,23 @@ import (
 	"github.com/pkg/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/record"
 	capierrors "sigs.k8s.io/cluster-api/errors"
-	"sigs.k8s.io/cluster-api/util"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha2"
+	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
 )
 
 // AzureStackHCIVirtualMachineReconciler reconciles a AzureStackHCIVirtualMachine object
 type AzureStackHCIVirtualMachineReconciler struct {
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log      logr.Logger
+	Scheme   *runtime.Scheme
+	Recorder record.EventRecorder
 }
 
 // SetupWithManager registers the controller with the k8s manager
@@ -109,14 +111,16 @@ func (r *AzureStackHCIVirtualMachineReconciler) findVM(scope *scope.VirtualMachi
 func (r *AzureStackHCIVirtualMachineReconciler) reconcileNormal(ctx context.Context, virtualMachineScope *scope.VirtualMachineScope) (reconcile.Result, error) {
 	virtualMachineScope.Info("Reconciling AzureStackHCIVirtualMachine")
 	// If the AzureStackHCIVirtualMachine is in an error state, return early.
-	if virtualMachineScope.AzureStackHCIVirtualMachine.Status.ErrorReason != nil || virtualMachineScope.AzureStackHCIVirtualMachine.Status.ErrorMessage != nil {
+	if virtualMachineScope.AzureStackHCIVirtualMachine.Status.FailureReason != nil || virtualMachineScope.AzureStackHCIVirtualMachine.Status.FailureMessage != nil {
 		virtualMachineScope.Info("Error state detected, skipping reconciliation")
 		return reconcile.Result{}, nil
 	}
 
 	// If the AzureStackHCIVirtualMachine doesn't have our finalizer, add it.
-	if !util.Contains(virtualMachineScope.AzureStackHCIVirtualMachine.Finalizers, infrav1.VirtualMachineFinalizer) {
-		virtualMachineScope.AzureStackHCIVirtualMachine.Finalizers = append(virtualMachineScope.AzureStackHCIVirtualMachine.Finalizers, infrav1.VirtualMachineFinalizer)
+	controllerutil.AddFinalizer(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VirtualMachineFinalizer)
+	// Register the finalizer immediately to avoid orphaning resources on delete
+	if err := virtualMachineScope.PatchObject(); err != nil {
+		return reconcile.Result{}, err
 	}
 
 	ams := newAzureStackHCIVirtualMachineService(virtualMachineScope)
@@ -146,8 +150,8 @@ func (r *AzureStackHCIVirtualMachineReconciler) reconcileNormal(ctx context.Cont
 	case infrav1.VMStateUpdating:
 		virtualMachineScope.Info("Machine VM is updating", "name", virtualMachineScope.Name())
 	default:
-		virtualMachineScope.SetErrorReason(capierrors.UpdateMachineError)
-		virtualMachineScope.SetErrorMessage(errors.Errorf("AzureStackHCI VM state %q is unexpected", vm.State))
+		virtualMachineScope.SetFailureReason(capierrors.UpdateMachineError)
+		virtualMachineScope.SetFailureMessage(errors.Errorf("AzureStackHCI VM state %q is unexpected", vm.State))
 	}
 
 	return reconcile.Result{}, nil
@@ -181,7 +185,8 @@ func (r *AzureStackHCIVirtualMachineReconciler) reconcileDelete(virtualMachineSc
 
 	defer func() {
 		if reterr == nil {
-			virtualMachineScope.AzureStackHCIVirtualMachine.Finalizers = util.Filter(virtualMachineScope.AzureStackHCIVirtualMachine.Finalizers, infrav1.VirtualMachineFinalizer)
+			// VM is deleted so remove the finalizer.
+			controllerutil.RemoveFinalizer(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VirtualMachineFinalizer)
 		}
 	}()
 

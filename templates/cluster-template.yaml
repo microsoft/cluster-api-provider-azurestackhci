@@ -1,0 +1,343 @@
+---
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: ${CLUSTER_NAME}
+spec:
+  clusterNetwork:
+    pods:
+      cidrBlocks: ["${AZURESTACKHCI_POD_CIDR}"]
+  infrastructureRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+    kind: AzureStackHCICluster
+    name: ${CLUSTER_NAME}
+  controlPlaneRef:
+    kind: KubeadmControlPlane
+    apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+    name: "${CLUSTER_NAME}-control-plane"
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+kind: AzureStackHCICluster
+metadata:
+  name: ${CLUSTER_NAME}
+spec:
+  resourceGroup: "${AZURESTACKHCI_CLUSTER_RESOURCE_GROUP}"
+  location: "westus"
+  networkSpec:
+    vnet:
+      name: "${AZURESTACKHCI_VNET_NAME}"
+  loadBalancerRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+    kind: LoadBalancer
+    namespace: default
+    name: ${AZURESTACKHCI_LOAD_BALANCER_NAME}
+  version: "${KUBERNETES_VERSION}"
+---
+kind: KubeadmControlPlane
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+metadata:
+  name: "${CLUSTER_NAME}-control-plane"
+spec:
+  replicas: ${CONTROL_PLANE_MACHINE_COUNT}
+  infrastructureTemplate:
+    kind: AzureStackHCIMachineTemplate
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+    name: "${CLUSTER_NAME}-control-plane"
+  kubeadmConfigSpec:
+    useExperimentalRetryJoin: true
+    initConfiguration:
+      nodeRegistration:
+        name: '{{ ds.meta_data["local_hostname"] }}'
+    joinConfiguration:
+      nodeRegistration:
+        name: '{{ ds.meta_data["local_hostname"] }}'
+    clusterConfiguration:
+      apiServer:
+        timeoutForControlPlane: 20m
+      controllerManager:
+        extraArgs:
+          terminated-pod-gc-threshold: "10"
+    preKubeadmCommands:
+    - bash -c /tmp/kubeadm-bootstrap.sh
+    postKubeadmCommands:
+    - bash -c /tmp/kubeadm-postinstall.sh
+    files:
+    - path: /etc/rc.d/init.d/azurestackhci_boot.sh
+      owner: root:root
+      permissions: '0755'
+      content: |
+        #!/bin/bash
+        iptables-restore -v -w < /etc/sysconfig/iptables
+    - path: /etc/systemd/system/azurestackhci_boot.service
+      owner: root:root
+      permissions: '0644'
+      content: |
+        [Unit]
+        Description=azurestackhci_boot
+        After=network.target
+        
+        [Service]
+        Type=simple
+        ExecStart=/etc/rc.d/init.d/azurestackhci_boot.sh
+        TimeoutStartSec=0
+        
+        [Install]
+        WantedBy=default.target
+    - path: /tmp/kubeadm-bootstrap.sh
+      owner: "root:root"
+      permissions: "0744"
+      content: |
+        #!/bin/bash
+  
+        set -eux
+  
+        function os_setup {
+          command -v "awk" >/dev/null 2>&1 || tdnf install -y awk
+        }
+  
+        function dockerd_prereq() {
+          swapoff -a
+          modprobe overlay
+          modprobe br_netfilter
+  
+          cat > /etc/sysctl.d/99-sysctl-kubernetes-cri.conf <<EOF
+        net.bridge.bridge-nf-call-iptables  = 1
+        net.ipv4.ip_forward                 = 1
+        net.bridge.bridge-nf-call-ip6tables = 1
+        EOF
+  
+          iptables -P INPUT ACCEPT
+          iptables -P OUTPUT ACCEPT
+          iptables -P FORWARD ACCEPT
+  
+          sysctl --system
+        }
+  
+        function systemctl_config() {
+          systemctl daemon-reload
+          systemctl enable docker
+          systemctl restart docker
+          systemctl enable azurestackhci_boot
+        }
+  
+        function kubernetes_install() {
+          K8S_VERSION="v${KUBERNETES_VERSION}"
+          KUBEADM_VERSION="v${KUBERNETES_VERSION}"
+          # tdnf install -y kubernetes-v${KUBERNETES_VERSION} kubernetes-kubeadm-v${KUBERNETES_VERSION} kubernetes-pause-v${KUBERNETES_VERSION}
+  
+          cat > /etc/sysctl.d/90-kubelet.conf << EOF
+        vm.overcommit_memory=1
+        kernel.panic=10
+        kernel.panic_on_oops=1
+        EOF
+          sysctl -p /etc/sysctl.d/90-kubelet.conf
+          sudo swapoff -a
+        }
+  
+        os_setup
+        dockerd_prereq
+        systemctl_config
+        kubernetes_install
+    - path: /tmp/kubeadm-postinstall.sh
+      owner: "root:root"
+      permissions: "0744"
+      content: |
+        #!/bin/bash
+  
+        set -euxo pipefail
+
+        function flannel_install() {
+          KUBECONFIG=/etc/kubernetes/admin.conf kubectl apply -f /etc/kubernetes/cni/kube-flannel.yml
+        }
+  
+        # Temp, this responsibility will move to caph
+        function patch_node_providerid() {
+          for value in {1..10}
+          do
+            sleep 1
+            echo "Patch ProviderID (attempt $value)..."
+            KUBECONFIG=/etc/kubernetes/admin.conf kubectl patch node {{ ds.meta_data["local_hostname"] }} -p $'spec:\n providerID: azurestackhci:////{{ ds.meta_data["local_hostname"] }}' >/dev/null 2>&1 || continue
+            break
+          done
+        }
+  
+        function save_iptables_config() {
+          iptables-save > /etc/sysconfig/iptables
+        }
+  
+        flannel_install
+        save_iptables_config
+        patch_node_providerid
+  version: "${KUBERNETES_VERSION}"
+---
+kind: LoadBalancer
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+metadata:
+  name: ${AZURESTACKHCI_LOAD_BALANCER_NAME}
+spec:
+  location: "westus"
+  sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY}
+  backendPoolName: ${AZURESTACKHCI_BACKEND_POOL_NAME}
+  vmSize: "${AZURESTACKHCI_LOAD_BALANCER_MACHINE_TYPE}"
+---
+kind: AzureStackHCIMachineTemplate
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+metadata:
+  name: "${CLUSTER_NAME}-control-plane"
+spec:
+  template:
+    spec:
+      location: "westus"
+      vmSize: ${AZURESTACKHCI_CONTROL_PLANE_MACHINE_TYPE}
+      sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY}
+---
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: MachineDeployment
+metadata:
+  name: "${CLUSTER_NAME}-md-0"
+spec:
+  clusterName: "${CLUSTER_NAME}"
+  replicas: ${WORKER_MACHINE_COUNT}
+  selector:
+    matchLabels:
+  template:
+    spec:
+      clusterName: "${CLUSTER_NAME}"
+      version: "${KUBERNETES_VERSION}"
+      bootstrap:
+        configRef:
+          name: "${CLUSTER_NAME}-md-0"
+          apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
+          kind: KubeadmConfigTemplate
+      infrastructureRef:
+        name: "${CLUSTER_NAME}-md-0"
+        apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+        kind: AzureStackHCIMachineTemplate
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+kind: AzureStackHCIMachineTemplate
+metadata:
+  name: "${CLUSTER_NAME}-md-0"
+spec:
+  template:
+    spec:
+      location: "westus"
+      vmSize: ${AZURESTACKHCI_NODE_MACHINE_TYPE}
+      sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY}
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
+kind: KubeadmConfigTemplate
+metadata:
+  name: "${CLUSTER_NAME}-md-0"
+spec:
+  template:
+    spec:
+      joinConfiguration:
+        nodeRegistration:
+          name: '{{ ds.meta_data["local_hostname"] }}'
+      preKubeadmCommands:
+        - bash -c /tmp/kubeadm-bootstrap.sh
+      postKubeadmCommands:
+        - bash -c /tmp/kubeadm-postinstall.sh
+      files:
+        - path: /etc/rc.d/init.d/azurestackhci_boot.sh
+          owner: root:root
+          permissions: '0755'
+          content: |
+            #!/bin/bash
+            iptables-restore -v -w < /etc/sysconfig/iptables
+        - path: /etc/systemd/system/azurestackhci_boot.service
+          owner: root:root
+          permissions: '0644'
+          content: |
+            [Unit]
+            Description=azurestackhci_boot
+            After=network.target
+            
+            [Service]
+            Type=simple
+            ExecStart=/etc/rc.d/init.d/azurestackhci_boot.sh
+            TimeoutStartSec=0
+            
+            [Install]
+            WantedBy=default.target
+        - path: /tmp/kubeadm-postinstall.sh
+          owner: "root:root"
+          permissions: "0744"
+          content: |
+            #!/bin/bash
+
+            set -euxo pipefail
+
+            # Temp, this responsibility will move to caph
+            function patch_node_providerid() {
+              for value in {1..10}
+              do
+                sleep 1
+                echo "Patch ProviderID (attempt $value)..."
+                KUBECONFIG=/etc/kubernetes/kubelet.conf kubectl patch node {{ ds.meta_data["local_hostname"] }} -p $'spec:\n providerID: azurestackhci:////{{ ds.meta_data["local_hostname"] }}' >/dev/null 2>&1 || continue
+                break
+              done
+            }
+
+            function save_iptables_config() {
+              iptables-save > /etc/sysconfig/iptables
+            }
+
+            save_iptables_config
+            patch_node_providerid
+        - path: /tmp/kubeadm-bootstrap.sh
+          owner: "root:root"
+          permissions: "0744"
+          content: |
+            #!/bin/bash
+
+            set -eux
+
+            function os_setup {
+              command -v "awk" >/dev/null 2>&1 || tdnf install -y awk
+            }
+
+            function dockerd_prereq() {
+              swapoff -a
+              modprobe overlay
+              modprobe br_netfilter
+
+              cat > /etc/sysctl.d/99-sysctl-kubernetes-cri.conf <<EOF
+            net.bridge.bridge-nf-call-iptables  = 1
+            net.ipv4.ip_forward                 = 1
+            net.bridge.bridge-nf-call-ip6tables = 1
+            EOF
+
+              iptables -P INPUT ACCEPT
+              iptables -P OUTPUT ACCEPT
+              iptables -P FORWARD ACCEPT
+
+              sysctl --system
+            }
+
+            function systemctl_config() {
+              systemctl daemon-reload
+              systemctl enable docker
+              systemctl restart docker
+              systemctl enable azurestackhci_boot
+            }
+
+            function kubernetes_install() {
+              K8S_VERSION="v${KUBERNETES_VERSION}"
+              KUBEADM_VERSION="v${KUBERNETES_VERSION}"
+              # tdnf install -y kubernetes-v${KUBERNETES_VERSION} kubernetes-kubeadm-v${KUBERNETES_VERSION} kubernetes-pause-v${KUBERNETES_VERSION}
+
+              cat > /etc/sysctl.d/90-kubelet.conf << EOF
+            vm.overcommit_memory=1
+            kernel.panic=10
+            kernel.panic_on_oops=1
+            EOF
+              sysctl -p /etc/sysctl.d/90-kubelet.conf
+              sudo swapoff -a
+            }
+
+            os_setup
+            dockerd_prereq
+            systemctl_config
+            kubernetes_install

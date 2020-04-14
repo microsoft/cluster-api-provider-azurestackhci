@@ -21,20 +21,19 @@ import (
 	"os"
 
 	"github.com/go-logr/logr"
-	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha2"
+	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
-	"github.com/microsoft/moc-sdk-for-go/services/security"
-	"github.com/microsoft/moc-sdk-for-go/services/security/authentication"
 	"github.com/microsoft/moc/pkg/auth"
 	"github.com/microsoft/moc/pkg/config"
 	"github.com/microsoft/moc/pkg/marshal"
+	"github.com/microsoft/wssdcloud-sdk-for-go/services/security"
+	"github.com/microsoft/wssdcloud-sdk-for-go/services/security/authentication"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/klog/klogr"
-	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha2"
-	"sigs.k8s.io/cluster-api/util"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
 	"sigs.k8s.io/cluster-api/util/patch"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -69,9 +68,9 @@ func NewClusterScope(params ClusterScopeParams) (*ClusterScope, error) {
 		params.Logger = klogr.New()
 	}
 
-	agentFqdn := os.Getenv("CLOUDAGENT_FQDN")
+	agentFqdn := os.Getenv("AZURESTACKHCI_CLOUDAGENT_FQDN")
 	if agentFqdn == "" {
-		return nil, errors.New("error creating azurestackhci services. Environment variable CLOUDAGENT_FQDN is not set")
+		return nil, errors.New("error creating azurestackhci services. Environment variable AZURESTACKHCI_CLOUDAGENT_FQDN is not set")
 	}
 	params.AzureStackHCIClients.CloudAgentFqdn = agentFqdn
 
@@ -140,11 +139,6 @@ func (s *ClusterScope) Subnets() infrav1.Subnets {
 	return s.AzureStackHCICluster.Spec.NetworkSpec.Subnets
 }
 
-// SecurityGroups returns the cluster security groups as a map, it creates the map if empty.
-func (s *ClusterScope) SecurityGroups() map[infrav1.SecurityGroupRole]infrav1.SecurityGroup {
-	return s.AzureStackHCICluster.Status.Network.SecurityGroups
-}
-
 // Name returns the cluster name.
 func (s *ClusterScope) Name() string {
 	return s.Cluster.Name
@@ -175,8 +169,13 @@ func (s *ClusterScope) Location() string {
 // ListOptionsLabelSelector returns a ListOptions with a label selector for clusterName.
 func (s *ClusterScope) ListOptionsLabelSelector() client.ListOption {
 	return client.MatchingLabels(map[string]string{
-		clusterv1.MachineClusterLabelName: s.Cluster.Name,
+		clusterv1.ClusterLabelName: s.Cluster.Name,
 	})
+}
+
+// PatchObject persists the cluster configuration and status.
+func (s *ClusterScope) PatchObject() error {
+	return s.patchHelper.Patch(context.TODO(), s.AzureStackHCICluster)
 }
 
 // Close closes the current scope persisting the cluster configuration and status.
@@ -194,6 +193,14 @@ func (s *ClusterScope) APIServerPort() int32 {
 
 func (s *ClusterScope) LoadBalancerRef() *corev1.ObjectReference {
 	return s.AzureStackHCICluster.Spec.LoadBalancerRef
+}
+
+// GetNamespaceOrDefault returns the default namespace if given empty
+func GetNamespaceOrDefault(namespace string) string {
+	if namespace == "" {
+		return corev1.NamespaceDefault
+	}
+	return namespace
 }
 
 // This is temp. Will be moved to the CloudController in the future
@@ -296,7 +303,7 @@ func (s *ClusterScope) ReconcileAzureStackHCIAccess() error {
 func (s *ClusterScope) GetSecret(name string) (*corev1.Secret, error) {
 	secret := &corev1.Secret{}
 	secretKey := client.ObjectKey{
-		Namespace: util.GetNamespaceOrDefault(s.Cluster.Namespace),
+		Namespace: GetNamespaceOrDefault(s.Cluster.Namespace),
 		Name:      name,
 	}
 
@@ -310,7 +317,7 @@ func (s *ClusterScope) GetSecret(name string) (*corev1.Secret, error) {
 func (s *ClusterScope) CreateSecret(name string, data []byte) (*corev1.Secret, error) {
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: util.GetNamespaceOrDefault(s.Cluster.Namespace),
+			Namespace: GetNamespaceOrDefault(s.Cluster.Namespace),
 			Name:      name,
 		},
 		Data: map[string][]byte{

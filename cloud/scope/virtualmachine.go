@@ -21,7 +21,7 @@ import (
 	"os"
 
 	"github.com/go-logr/logr"
-	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha2"
+	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
 	"github.com/microsoft/moc/pkg/auth"
 	"github.com/pkg/errors"
 	"k8s.io/klog/klogr"
@@ -54,9 +54,9 @@ func NewVirtualMachineScope(params VirtualMachineScopeParams) (*VirtualMachineSc
 		params.Logger = klogr.New()
 	}
 
-	agentFqdn := os.Getenv("CLOUDAGENT_FQDN")
+	agentFqdn := os.Getenv("AZURESTACKHCI_CLOUDAGENT_FQDN")
 	if agentFqdn == "" {
-		return nil, errors.New("error creating azurestackhci services. Environment variable CLOUDAGENT_FQDN is not set")
+		return nil, errors.New("error creating azurestackhci services. Environment variable AZURESTACKHCI_CLOUDAGENT_FQDN is not set")
 	}
 	params.AzureStackHCIClients.CloudAgentFqdn = agentFqdn
 
@@ -157,14 +157,14 @@ func (m *VirtualMachineScope) SetReady() {
 	m.AzureStackHCIVirtualMachine.Status.Ready = true
 }
 
-// SetErrorMessage sets the AzureStackHCIVirtualMachine status error message.
-func (m *VirtualMachineScope) SetErrorMessage(v error) {
-	m.AzureStackHCIVirtualMachine.Status.ErrorMessage = pointer.StringPtr(v.Error())
+// SetFailureMessage sets the AzureStackHCIVirtualMachine status failure message.
+func (m *VirtualMachineScope) SetFailureMessage(v error) {
+	m.AzureStackHCIVirtualMachine.Status.FailureMessage = pointer.StringPtr(v.Error())
 }
 
-// SetErrorReason sets the AzureStackHCIVirtualMachine status error reason.
-func (m *VirtualMachineScope) SetErrorReason(v capierrors.MachineStatusError) {
-	m.AzureStackHCIVirtualMachine.Status.ErrorReason = &v
+// SetFailureReason sets the AzureStackHCIVirtualMachine status failure reason.
+func (m *VirtualMachineScope) SetFailureReason(v capierrors.MachineStatusError) {
+	m.AzureStackHCIVirtualMachine.Status.FailureReason = &v
 }
 
 // SetAnnotation sets a key value annotation on the AzureStackHCIVirtualMachine.
@@ -173,6 +173,11 @@ func (m *VirtualMachineScope) SetAnnotation(key, value string) {
 		m.AzureStackHCIVirtualMachine.Annotations = map[string]string{}
 	}
 	m.AzureStackHCIVirtualMachine.Annotations[key] = value
+}
+
+// PatchObject persists the virtual machine spec and status.
+func (m *VirtualMachineScope) PatchObject() error {
+	return m.patchHelper.Patch(context.TODO(), m.AzureStackHCIVirtualMachine)
 }
 
 // Close the VirtualMachineScope by updating the machine spec, machine status.

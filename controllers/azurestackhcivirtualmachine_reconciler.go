@@ -19,15 +19,14 @@ package controllers
 import (
 	"encoding/base64"
 
-	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha2"
+	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/disks"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/networkinterfaces"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/secrets"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/virtualmachines"
-	sdk_compute "github.com/microsoft/moc-sdk-for-go/services/compute"
-	"github.com/microsoft/moc-sdk-for-go/services/security/keyvault"
+	sdk_compute "github.com/microsoft/wssdcloud-sdk-for-go/services/compute"
 	"github.com/pkg/errors"
 	"k8s.io/klog"
 )
@@ -194,19 +193,6 @@ func (s *azureStackHCIVirtualMachineService) createVirtualMachine(nicName string
 					return nil, errors.Wrap(zoneErr, "failed to get availability zone")
 				}
 			}
-		}
-
-		if s.vmScope.AzureStackHCIVirtualMachine.Spec.OSDisk.OSType == infrav1.OSTypeWindows {
-			klog.V(2).Infof("vm ostype is windows, retrieving kubeadm 'joincommand' secret from vault %s ..", s.vmScope.ClusterName())
-			secretInterface, err := s.secretsSvc.Get(s.vmScope.Context, &secrets.Spec{Name: "joincommand", VaultName: s.vmScope.ClusterName()})
-			if err != nil {
-				return nil, errors.Wrap(err, "error retrieving 'joincommand' secret")
-			}
-			joinCmd, ok := secretInterface.(keyvault.Secret)
-			if !ok {
-				return nil, errors.New("error retrieving 'joincommand' secret")
-			}
-			klog.V(2).Infof("TEMP: joincommand is: %s", *joinCmd.Value)
 		}
 
 		vmType := sdk_compute.Tenant

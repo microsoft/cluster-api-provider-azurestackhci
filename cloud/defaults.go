@@ -20,7 +20,7 @@ import (
 	"fmt"
 
 	"github.com/blang/semver"
-	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha2"
+	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
 	"github.com/pkg/errors"
 	"k8s.io/utils/pointer"
 )

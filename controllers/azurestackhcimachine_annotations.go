@@ -19,7 +19,7 @@ package controllers
 import (
 	"encoding/json"
 
-	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha2"
+	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
 )
 
 // updateMachineAnnotationJSON updates the `annotation` on `machine` with

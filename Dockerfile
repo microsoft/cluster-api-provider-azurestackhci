@@ -40,6 +40,10 @@
 #    go build -a -ldflags '-extldflags "-static"' \
 #    -o manager .
 
+
+# NOTE: Approach above is not used while we still have a couple of private git repo's.
+# Can be uncommented later.
+
 # Copy the controller-manager into a thin image
 FROM gcr.io/distroless/static:latest
 WORKDIR /

@@ -20,11 +20,11 @@ import (
 	"context"
 
 	"github.com/go-logr/logr"
-	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha2"
+	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
 	"github.com/pkg/errors"
 	"k8s.io/klog/klogr"
 	"k8s.io/utils/pointer"
-	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha2"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
 	capierrors "sigs.k8s.io/cluster-api/errors"
 	"sigs.k8s.io/cluster-api/util/patch"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -99,9 +99,14 @@ func (l *LoadBalancerScope) SetAnnotation(key, value string) {
 	l.LoadBalancer.Annotations[key] = value
 }
 
+// PatchObject persists the loadbalancer spec and status.
+func (l *LoadBalancerScope) PatchObject() error {
+	return l.patchHelper.Patch(context.TODO(), l.LoadBalancer)
+}
+
 // Close the LoadBalancerScope by updating the loadBalancer spec and status.
 func (l *LoadBalancerScope) Close() error {
-	return l.patchHelper.Patch(l.Context, l.LoadBalancer)
+	return l.patchHelper.Patch(context.TODO(), l.LoadBalancer)
 }
 
 // SetReady sets the LoadBalancer Ready Status

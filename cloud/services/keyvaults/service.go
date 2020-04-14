@@ -19,8 +19,8 @@ package keyvaults
 import (
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
-	"github.com/microsoft/moc-sdk-for-go/services/security/keyvault"
 	"github.com/microsoft/moc/pkg/auth"
+	"github.com/microsoft/wssdcloud-sdk-for-go/services/security/keyvault"
 )
 
 var _ azurestackhci.Service = (*Service)(nil)

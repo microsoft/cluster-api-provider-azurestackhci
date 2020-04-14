@@ -20,19 +20,20 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/go-logr/logr"
-	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha2"
+	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/groups"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/loadbalancers"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/networkinterfaces"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/vippools"
-	"github.com/microsoft/moc-sdk-for-go/services/cloud"
-	"github.com/microsoft/moc-sdk-for-go/services/network"
+	"github.com/microsoft/wssdcloud-sdk-for-go/services/cloud"
+	"github.com/microsoft/wssdcloud-sdk-for-go/services/network"
 	"github.com/pkg/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -156,9 +157,10 @@ func (r *LoadBalancerReconciler) reconcileNormal(loadBalancerScope *scope.LoadBa
 	} */
 
 	// If the LoadBalancer doesn't have our finalizer, add it.
-	// with controller-runtime 0.4.0 you can do this with AddFinalizer
-	if !util.Contains(loadBalancerScope.LoadBalancer.Finalizers, infrav1.LoadBalancerFinalizer) {
-		loadBalancerScope.LoadBalancer.Finalizers = append(loadBalancerScope.LoadBalancer.Finalizers, infrav1.LoadBalancerFinalizer)
+	controllerutil.AddFinalizer(loadBalancerScope.LoadBalancer, infrav1.LoadBalancerFinalizer)
+	// Register the finalizer immediately to avoid orphaning resources on delete
+	if err := loadBalancerScope.PatchObject(); err != nil {
+		return reconcile.Result{}, err
 	}
 
 	vm, err := r.reconcileNormalVirtualMachine(loadBalancerScope, clusterScope)
@@ -244,16 +246,15 @@ func (r *LoadBalancerReconciler) reconcileNormalVirtualMachine(loadBalancerScope
 		   		} */
 
 		vm.Spec.BootstrapData = r.formatLoadBalancerCloudInit(loadBalancerScope, clusterScope)
-		vm.Spec.VMSize = "Default"
-		vm.Spec.Image = infrav1.Image{
-			Name:      to.StringPtr(loadBalancerScope.LoadBalancer.Spec.ImageReference),
-			Offer:     to.StringPtr(azurestackhci.DefaultImageOfferID),
-			Publisher: to.StringPtr(azurestackhci.DefaultImagePublisherID),
-			SKU:       to.StringPtr(azurestackhci.DefaultImageSKU),
-			Version:   to.StringPtr(azurestackhci.LatestVersion),
-		}
+		vm.Spec.VMSize = loadBalancerScope.LoadBalancer.Spec.VMSize
 		vm.Spec.Location = "westus"
 		vm.Spec.SSHPublicKey = loadBalancerScope.LoadBalancer.Spec.SSHPublicKey
+
+		image, err := r.getVMImage(loadBalancerScope)
+		if err != nil {
+			return errors.Wrap(err, "failed to get LoadBalancer image")
+		}
+		image.DeepCopyInto(&vm.Spec.Image)
 
 		return nil
 	}
@@ -361,9 +362,12 @@ func (r *LoadBalancerReconciler) reconcileDelete(loadBalancerScope *scope.LoadBa
 		return reconcile.Result{}, err
 	}
 
-	loadBalancerScope.LoadBalancer.Finalizers = util.Filter(loadBalancerScope.LoadBalancer.Finalizers, infrav1.LoadBalancerFinalizer)
-	// can use this method in controller runtime v0.4.0
-	// controllerutil.RemoveFinalizer(loadBalancerScope.LoadBalancer.Finalizers, infrav1.LoadBalancerFinalizer)
+	defer func() {
+		if reterr == nil {
+			// VM is deleted so remove the finalizer.
+			controllerutil.RemoveFinalizer(loadBalancerScope.LoadBalancer, infrav1.LoadBalancerFinalizer)
+		}
+	}()
 
 	return reconcile.Result{}, nil
 }
@@ -410,6 +414,15 @@ func (r *LoadBalancerReconciler) reconcileDeleteLoadBalancer(loadBalancerScope *
 }
 
 func (r *LoadBalancerReconciler) formatLoadBalancerCloudInit(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) *string {
+
+	// Temp until lbagent is ready
+	binarylocation := os.Getenv("AZURESTACKHCI_BINARY_LOCATION")
+	if binarylocation == "" {
+		// Default
+		binarylocation = "http://10.231.110.37/AzureEdge/0.7"
+		loadBalancerScope.Info("Failed to obtain binary location from env. Using default value.", "binarylocation", binarylocation)
+	}
+
 	ret := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf(`
 #cloud-config
 packages:
@@ -462,7 +475,7 @@ runcmd:
   systemctl start hv_kvp_daemon
   # WSSD Setup
   mkdir -p /opt/wssd/k8s
-  curl -o /opt/wssd/k8s/wssdcloudctl http://10.231.110.37/AzureEdge/0.7/wssdcloudctl
+  curl -o /opt/wssd/k8s/wssdcloudctl %[4]s/wssdcloudctl
   chmod 755 /opt/wssd/k8s/wssdcloudctl
   export WSSD_DEBUG_MODE=on
   crontab /root/crontab.input
@@ -470,6 +483,16 @@ runcmd:
   systemctl start haproxy
   #TODO: only open up ports that are needed.  This would have to be moved to the cronjob.
   systemctl stop iptables
-`, clusterScope.CloudAgentFqdn, clusterScope.GetResourceGroup(), loadBalancerScope.Name())))
+`, clusterScope.CloudAgentFqdn, clusterScope.GetResourceGroup(), loadBalancerScope.Name(), binarylocation)))
 	return &ret
+}
+
+func (r *LoadBalancerReconciler) getVMImage(loadBalancerScope *scope.LoadBalancerScope) (*infrav1.Image, error) {
+	// Use custom image if provided
+	if loadBalancerScope.LoadBalancer.Spec.Image.Name != nil {
+		loadBalancerScope.Info("Using custom image name for loadbalancer", "loadbalancer", loadBalancerScope.LoadBalancer.GetName(), "imageName", loadBalancerScope.LoadBalancer.Spec.Image.Name)
+		return &loadBalancerScope.LoadBalancer.Spec.Image, nil
+	}
+
+	return azurestackhci.GetDefaultLinuxImage(to.String(loadBalancerScope.AzureStackHCICluster.Spec.Version))
 }

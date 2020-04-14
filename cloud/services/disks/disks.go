@@ -20,7 +20,7 @@ import (
 	"context"
 
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
-	"github.com/microsoft/moc-sdk-for-go/services/storage"
+	"github.com/microsoft/wssdcloud-sdk-for-go/services/storage"
 	"github.com/pkg/errors"
 	"k8s.io/klog"
 )

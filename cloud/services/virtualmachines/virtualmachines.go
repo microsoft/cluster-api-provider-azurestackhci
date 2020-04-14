@@ -24,12 +24,12 @@ import (
 	"fmt"
 
 	"github.com/Azure/go-autorest/autorest/to"
-	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha2"
+	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/converters"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/networkinterfaces"
-	"github.com/microsoft/moc-sdk-for-go/services/compute"
-	"github.com/microsoft/moc-sdk-for-go/services/network"
+	"github.com/microsoft/wssdcloud-sdk-for-go/services/compute"
+	"github.com/microsoft/wssdcloud-sdk-for-go/services/network"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh"
 	"k8s.io/klog"
@@ -89,7 +89,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	}
 	klog.V(2).Infof("got nic %s", vmSpec.NICName)
 
-	klog.V(2).Infof("creating vm %s ", vmSpec.Name)
+	klog.V(2).Infof("creating vm %s : %v", vmSpec.Name, vmSpec)
 
 	sshKeyData := vmSpec.SSHKeyData
 	if sshKeyData == "" {

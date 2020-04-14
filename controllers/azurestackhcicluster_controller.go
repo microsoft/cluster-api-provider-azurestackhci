@@ -21,25 +21,29 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
-	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha2"
+	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
 	"github.com/pkg/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/record"
 	"k8s.io/utils/pointer"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
 	"sigs.k8s.io/cluster-api/util"
 	"sigs.k8s.io/cluster-api/util/patch"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 // AzureStackHCIClusterReconciler reconciles a AzureStackHCICluster object
 type AzureStackHCIClusterReconciler struct {
 	client.Client
-	Log logr.Logger
+	Log      logr.Logger
+	Recorder record.EventRecorder
 }
 
 func (r *AzureStackHCIClusterReconciler) SetupWithManager(mgr ctrl.Manager, options controller.Options) error {
@@ -111,9 +115,11 @@ func (r *AzureStackHCIClusterReconciler) reconcileNormal(clusterScope *scope.Clu
 
 	azureStackHCICluster := clusterScope.AzureStackHCICluster
 
-	// If the AzureStackHCICluster doesn't have our finalizer, add it.
-	if !util.Contains(azureStackHCICluster.Finalizers, infrav1.ClusterFinalizer) {
-		azureStackHCICluster.Finalizers = append(azureStackHCICluster.Finalizers, infrav1.ClusterFinalizer)
+	// If the AzureCluster doesn't have our finalizer, add it.
+	controllerutil.AddFinalizer(azureStackHCICluster, infrav1.ClusterFinalizer)
+	// Register the finalizer immediately to avoid orphaning Azure resources on delete
+	if err := clusterScope.PatchObject(); err != nil {
+		return reconcile.Result{}, err
 	}
 
 	err := newAzureStackHCIClusterReconciler(clusterScope).Reconcile()
@@ -152,7 +158,7 @@ func (r *AzureStackHCIClusterReconciler) reconcileDelete(clusterScope *scope.Clu
 	}
 
 	// Cluster is deleted so remove the finalizer.
-	clusterScope.AzureStackHCICluster.Finalizers = util.Filter(clusterScope.AzureStackHCICluster.Finalizers, infrav1.ClusterFinalizer)
+	controllerutil.RemoveFinalizer(clusterScope.AzureStackHCICluster, infrav1.ClusterFinalizer)
 
 	return reconcile.Result{}, nil
 }
@@ -164,8 +170,8 @@ func (r *AzureStackHCIClusterReconciler) reconcileLoadBalancer(clusterScope *sco
 	}
 
 	// if there are some existing control plane endpoints, skip reconciler reconcile
-	if len(clusterScope.AzureStackHCICluster.Status.APIEndpoints) > 0 {
-		clusterScope.Info("Skipping load balancer reconciliation since at least one control plane endpoint already exists")
+	if clusterScope.AzureStackHCICluster.Spec.ControlPlaneEndpoint.Host != "" {
+		clusterScope.Info("Skipping load balancer reconciliation since a control plane endpoint is already present")
 		return true, nil
 	}
 
@@ -209,11 +215,10 @@ func (r *AzureStackHCIClusterReconciler) reconcileLoadBalancer(clusterScope *sco
 		return false, nil
 	}
 
-	clusterScope.AzureStackHCICluster.Status.APIEndpoints = []infrav1.APIEndpoint{
-		{
-			Host: loadBalancer.Status.Address,
-			Port: 6443,
-		},
+	// Set APIEndpoints so the Cluster API Cluster Controller can pull them
+	clusterScope.AzureStackHCICluster.Spec.ControlPlaneEndpoint = clusterv1.APIEndpoint{
+		Host: loadBalancer.Status.Address,
+		Port: clusterScope.APIServerPort(),
 	}
 
 	return true, nil

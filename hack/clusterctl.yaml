@@ -1,0 +1,5 @@
+providers:
+  # add CAPH as a custom provider with local repository
+  - name: "azurestackhci"
+    url: "${LOCAL_REPOSITORY}/infrastructure-components.yaml"
+    type: "InfrastructureProvider"
