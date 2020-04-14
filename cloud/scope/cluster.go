@@ -192,8 +192,8 @@ func (s *ClusterScope) APIServerPort() int32 {
 	return 6443
 }
 
-func (s *ClusterScope) LoadBalancerRef() *corev1.ObjectReference {
-	return s.AzureStackHCICluster.Spec.LoadBalancerRef
+func (s *ClusterScope) LoadBalancer() *infrav1.LoadBalancerSpec {
+	return s.AzureStackHCICluster.Spec.LoadBalancer
 }
 
 // This is temp. Will be moved to the CloudController in the future

@@ -31,6 +31,8 @@ type Spec struct {
 	Name            string
 	BackendPoolName string
 	VnetName        string
+	FrontendPort    int32
+	BackendPort     int32
 }
 
 // Get provides information about a load balancer.
@@ -75,6 +77,15 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 						Subnet: &network.Subnet{
 							ID: to.StringPtr(lbSpec.VnetName),
 						},
+					},
+				},
+			},
+			LoadBalancingRules: &[]network.LoadBalancingRule{
+				network.LoadBalancingRule{
+					LoadBalancingRulePropertiesFormat: &network.LoadBalancingRulePropertiesFormat{
+						Protocol:     network.TransportProtocolTCP,
+						FrontendPort: to.Int32Ptr(lbSpec.FrontendPort),
+						BackendPort:  to.Int32Ptr(lbSpec.BackendPort),
 					},
 				},
 			},

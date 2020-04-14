@@ -59,26 +59,22 @@ func NewLoadBalancerScope(params LoadBalancerScopeParams) (*LoadBalancerScope, e
 		return nil, errors.Wrap(err, "failed to init patch helper")
 	}
 	return &LoadBalancerScope{
-		client:               params.Client,
-		LoadBalancer:         params.LoadBalancer,
-		Cluster:              params.Cluster,
-		AzureStackHCICluster: params.AzureStackHCICluster,
-		Logger:               params.Logger,
-		patchHelper:          helper,
-		Context:              context.Background(),
+		client:       params.Client,
+		LoadBalancer: params.LoadBalancer,
+		Logger:       params.Logger,
+		patchHelper:  helper,
+		Context:      context.Background(),
 	}, nil
 }
 
-// LoadBalancerScope defines a scope defined around a machine.
+// LoadBalancerScope defines a scope for a LoadBalancer.
 type LoadBalancerScope struct {
 	logr.Logger
 	client      client.Client
 	patchHelper *patch.Helper
 	Context     context.Context
 
-	LoadBalancer         *infrav1.LoadBalancer
-	Cluster              *clusterv1.Cluster
-	AzureStackHCICluster *infrav1.AzureStackHCICluster
+	LoadBalancer *infrav1.LoadBalancer
 }
 
 // Name returns the Name of the load balancer.
@@ -130,7 +126,17 @@ func (l *LoadBalancerScope) SetErrorReason(v capierrors.MachineStatusError) {
 	l.LoadBalancer.Status.ErrorReason = &v
 }
 
-// SetLoadBalancerAddress sets the Address field of the Load Balancer Status.
+// SetAddress sets the Address field of the Load Balancer Status.
 func (l *LoadBalancerScope) SetAddress(address string) {
 	l.LoadBalancer.Status.Address = address
+}
+
+// SetPort sets the Port field of the Load Balancer Status.
+func (l *LoadBalancerScope) SetPort(port int32) {
+	l.LoadBalancer.Status.Port = port
+}
+
+// GetPort returns the Port field of the Load Balancer Status.
+func (l *LoadBalancerScope) GetPort() int32 {
+	return l.LoadBalancer.Status.Port
 }

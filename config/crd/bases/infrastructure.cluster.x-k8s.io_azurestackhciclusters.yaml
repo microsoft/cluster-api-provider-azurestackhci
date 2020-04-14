@@ -145,45 +145,16 @@ spec:
               type: object
             resourceGroup:
               type: string
-            loadBalancerRef:
-              description: loadBalancerRef allows a load balancer, which must be created
-                seperately, to be specified as the clusters control plane endpoint. The
-                AzureStackHCICluster controller waits for the referenced load balancers IP to be available
-                in its Address status field in order for the cluster to set its APIEndpoint and
-                be marked as ready.
+            loadBalancer:
+              description: loadBalancer allows a LoadBalancerSpec to be given for the AzureStackHCICluster.
               properties:
-                apiVersion:
-                  description: API version of the referent.
+                sshPublicKey:
                   type: string
-                fieldPath:
-                  description: 'If referring to a piece of an object instead of
-                    an entire object, this string should contain a valid JSON/Go
-                    field access statement, such as desiredState.manifest.containers[2].
-                    For example, if the object reference is to a container within
-                    a pod, this would take on a value like: "spec.containers{name}"
-                    (where "name" refers to the name of the container that triggered
-                    the event) or if no container name is specified "spec.containers[2]"
-                    (container with index 2 in this pod). This syntax is chosen
-                    only to have some well-defined way of referencing a part of
-                    an object. TODO: this design is not final and this field is
-                    subject to change in the future.'
+                imageReference:
                   type: string
-                kind:
-                  description: 'Kind of the referent. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-                  type: string
-                name:
-                  description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names'
-                  type: string
-                namespace:
-                  description: 'Namespace of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/'
-                  type: string
-                resourceVersion:
-                  description: 'Specific resourceVersion to which this reference
-                    is made, if any. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency'
-                  type: string
-                uid:
-                  description: 'UID of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#uids'
-                  type: string
+              required:
+                - sshPublicKey
+                - imageReference
               type: object
           required:
           - location

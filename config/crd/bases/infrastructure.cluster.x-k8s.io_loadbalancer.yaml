@@ -34,25 +34,12 @@
             spec:
               description: LoadBalancerSpec defines the desired state of LoadBalancer
               properties:
-                availabilityZone:
-                  properties:
-                    enabled:
-                      type: boolean
-                    id:
-                      type: string
-                  type: object
-                location:
-                  type: string
                 sshPublicKey:
-                  type: string
-                backendPoolName:
                   type: string
                 imageReference:
                   type: string
               required:
-                - location
                 - sshPublicKey
-                - backendPoolName
                 - imageReference
               type: object
             status:
@@ -97,6 +84,10 @@
                 address:
                   description: Address is the ip address of the load balancer.
                   type: string
+                port:
+                  description: Port is the frontend port of the load balancer.
+                  type: integer
+                  format: int32
               type: object
           type: object
       version: v1alpha2

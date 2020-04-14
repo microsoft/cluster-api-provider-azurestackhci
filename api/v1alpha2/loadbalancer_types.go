@@ -26,11 +26,8 @@ const (
 )
 
 type LoadBalancerSpec struct {
-	AvailabilityZone AvailabilityZone `json:"availabilityZone,omitempty"`
-	Location         string           `json:"location"` // does location belong here?
-	SSHPublicKey     string           `json:"sshPublicKey"`
-	BackendPoolName  string           `json:"backendPoolName"`
-	ImageReference   string           `json:"imageReference"`
+	SSHPublicKey   string `json:"sshPublicKey"`
+	ImageReference string `json:"imageReference"`
 }
 
 type LoadBalancerStatus struct {
@@ -44,6 +41,9 @@ type LoadBalancerStatus struct {
 	// Address is the IP address of the load balancer.
 	// +optional
 	Address string `json:"address,omitempty"`
+
+	// Port is the port of the loadbalancer frontend.
+	Port int32 `json:"port,omitempty"`
 
 	// ErrorReason will be set in the event that there is a terminal problem
 	// reconciling the Machine and will contain a succinct value suitable

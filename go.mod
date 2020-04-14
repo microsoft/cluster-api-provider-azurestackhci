@@ -3,11 +3,14 @@ module github.com/microsoft/cluster-api-provider-azurestackhci
 go 1.12
 
 require (
+	github.com/Azure/go-autorest/autorest v0.9.3 // indirect
 	github.com/Azure/go-autorest/autorest/to v0.3.0
 	github.com/blang/semver v3.5.0+incompatible
 	github.com/go-logr/logr v0.1.0
 	github.com/microsoft/moc v0.8.0-alpha.2
-	github.com/microsoft/moc-sdk-for-go v0.8.0-alpha.2
+	github.com/microsoft/moc-sdk-for-go v0.8.0-alpha.3
+	github.com/onsi/ginkgo v1.10.1 // indirect
+	github.com/onsi/gomega v1.7.0 // indirect
 	github.com/pkg/errors v0.9.1
 	golang.org/x/crypto v0.0.0-20200320181102-891825fb96df
 	golang.org/x/text v0.3.2
@@ -19,6 +22,7 @@ require (
 	k8s.io/utils v0.0.0-20190809000727-6c36bc71fc4a
 	sigs.k8s.io/cluster-api v0.2.9
 	sigs.k8s.io/controller-runtime v0.3.0
+	sigs.k8s.io/controller-tools v0.2.0 // indirect
 )
 
 replace (

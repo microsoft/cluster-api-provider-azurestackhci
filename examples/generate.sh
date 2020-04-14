@@ -33,10 +33,6 @@ export VNET_NAME="${VNET_NAME:-External}"
 export KUBERNETES_VERSION="${KUBERNETES_VERSION:-v1.16.1}"
 export KUBERNETES_SEMVER="${KUBERNETES_VERSION#v}"
 export POD_CIDR="${POD_CIDR:-192.168.0.0/16}"
-export TARGET_CLUSTER_LB_NAME=$TARGET_CLUSTER_NAME"-load-balancer"
-export MANAGEMENT_CLUSTER_LB_NAME=$MANAGEMENT_CLUSTER_NAME"-load-balancer"
-export TARGET_CLUSTER_BACKEND_POOL_NAME=$TARGET_CLUSTER_NAME"-backend-pool"
-export MANAGEMENT_CLUSTER_BACKEND_POOL_NAME=$MANAGEMENT_CLUSTER_NAME"-backend-pool"
 export MANAGEMENT_CLUSTER_RESOURCE_GROUP="${MANAGEMENT_CLUSTER_GROUP_NAME:-${MANAGEMENT_CLUSTER_NAME}}"
 export TARGET_CLUSTER_RESOURCE_GROUP="${TARGET_CLUSTER_GROUP_NAME:-${MANAGEMENT_CLUSTER_RESOURCE_GROUP}-target}"
 
@@ -64,11 +60,9 @@ PROVIDER_COMPONENTS_GENERATED_FILE=${OUTPUT_DIR}/provider-components.yaml
 
 MANAGEMENT_CLUSTER_GENERATED_FILE=${OUTPUT_DIR}/mgmt-cluster.yaml
 MANAGEMENT_CONTROLPLANE_GENERATED_FILE=${OUTPUT_DIR}/mgmt-controlplane.yaml
-MANAGEMENT_LOADBALANCER_GENERATED_FILE=${OUTPUT_DIR}/mgmt-loadbalancer.yaml
 
 TARGET_CLUSTER_GENERATED_FILE=${OUTPUT_DIR}/target-cluster.yaml
 TARGET_CONTROLPLANE_GENERATED_FILE=${OUTPUT_DIR}/target-controlplane.yaml
-TARGET_LOADBALANCER_GENERATED_FILE=${OUTPUT_DIR}/target-loadbalancer.yaml
 
 MACHINEDEPLOYMENT_GENERATED_FILE=${OUTPUT_DIR}/target-machinedeployment.yaml
 
@@ -130,8 +124,6 @@ export BINARY_LOCATION_B64="$(echo -n "$BINARY_LOCATION" | base64 | tr -d '\n')"
 
 # Prepare environment for generation of management cluster yamls
 export CLUSTER_NAME="${MANAGEMENT_CLUSTER_NAME}"
-export LOAD_BALANCER_NAME=${MANAGEMENT_CLUSTER_LB_NAME}
-export BACKEND_POOL_NAME=${MANAGEMENT_CLUSTER_BACKEND_POOL_NAME}
 export CLUSTER_RESOURCE_GROUP=${MANAGEMENT_CLUSTER_RESOURCE_GROUP}
 
 # Generate management cluster resources.
@@ -142,15 +134,9 @@ echo "Generated ${MANAGEMENT_CLUSTER_GENERATED_FILE}"
 kustomize build "${SOURCE_DIR}/controlplane" | envsubst > "${MANAGEMENT_CONTROLPLANE_GENERATED_FILE}"
 echo "Generated ${MANAGEMENT_CONTROLPLANE_GENERATED_FILE}"
 
-# Generate loadbalancer resources.
-kustomize build "${SOURCE_DIR}/loadbalancer" | envsubst >> "${MANAGEMENT_LOADBALANCER_GENERATED_FILE}"
-echo "Generated ${MANAGEMENT_LOADBALANCER_GENERATED_FILE}"
-
 # Prepare environment for generation of target cluster yamls
 # If target cluster LB is not specified (e.g. converged cluster) then management LB is used.
 export CLUSTER_NAME="${TARGET_CLUSTER_NAME}"
-export LOAD_BALANCER_NAME=${TARGET_CLUSTER_LB_NAME}
-export BACKEND_POOL_NAME=${TARGET_CLUSTER_BACKEND_POOL_NAME}
 export CLUSTER_RESOURCE_GROUP=${TARGET_CLUSTER_RESOURCE_GROUP}
 
 # Generate target cluster resources.
@@ -160,10 +146,6 @@ echo "Generated ${TARGET_CLUSTER_GENERATED_FILE}"
 # Generate target controlplane resources.
 kustomize build "${SOURCE_DIR}/controlplane" | envsubst > "${TARGET_CONTROLPLANE_GENERATED_FILE}"
 echo "Generated ${TARGET_CONTROLPLANE_GENERATED_FILE}"
-
-# Generate loadbalancer resources.
-kustomize build "${SOURCE_DIR}/loadbalancer" | envsubst >> "${TARGET_LOADBALANCER_GENERATED_FILE}"
-echo "Generated ${TARGET_LOADBALANCER_GENERATED_FILE}"
 
 # Generate machinedeployment resources.
 kustomize build "${SOURCE_DIR}/machinedeployment" | envsubst >> "${MACHINEDEPLOYMENT_GENERATED_FILE}"

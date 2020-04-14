@@ -2,29 +2,29 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-    name: cabpk-controller-manager
-    namespace: cabpk-system
+  name: cabpk-controller-manager
+  namespace: cabpk-system
 spec:
-    template:
+  template:
     spec:
-        hostNetwork: true
+      hostNetwork: true
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-    name: caph-controller-manager
-    namespace: caph-system
+  name: caph-controller-manager
+  namespace: caph-system
 spec:
-    template:
+  template:
     spec:
-        hostNetwork: true
+      hostNetwork: true
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-    name: capi-controller-manager
-    namespace: capi-system
+  name: capi-controller-manager
+  namespace: capi-system
 spec:
-    template:
+  template:
     spec:
-        hostNetwork: true
+      hostNetwork: true
