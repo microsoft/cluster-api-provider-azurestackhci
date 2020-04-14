@@ -214,6 +214,7 @@ func (r *AzureStackHCIMachineReconciler) reconcileNormal(machineScope *scope.Mac
 
 	if err != nil {
 		if apierrors.IsAlreadyExists(err) {
+			clusterScope.Info("AzureStackHCIVirtualMachine already exists")
 			return reconcile.Result{}, nil
 		}
 		return reconcile.Result{}, err
@@ -234,7 +235,7 @@ func (r *AzureStackHCIMachineReconciler) reconcileNormal(machineScope *scope.Mac
 
 	if vm.Status.VMState == nil {
 		machineScope.Info("Waiting for VM controller to set vm state")
-		return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 10}, nil
+		return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
 	}
 
 	// changed to avoid using dereference in function param for deep copying
@@ -306,10 +307,7 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineNormal(machineSc
 	}
 
 	if _, err := controllerutil.CreateOrUpdate(clusterScope.Context, r.Client, vm, mutateFn); err != nil {
-		if apierrors.IsAlreadyExists(err) {
-			clusterScope.Info("AzureStackHCIVirtualMachine already exists")
-			return nil, err
-		}
+		return nil, err
 	}
 
 	return vm, nil

@@ -95,7 +95,7 @@ func (r *LoadBalancerReconciler) Reconcile(req ctrl.Request) (_ ctrl.Result, ret
 	}
 	if cluster == nil {
 		logger.Info("AzureStackHCICluster Controller has not set OwnerRef on LoadBalancer")
-		return reconcile.Result{}, nil
+		return reconcile.Result{}, fmt.Errorf("Expected Cluster OwnerRef is missing from LoadBalancer %s", req.Name)
 	}
 
 	azureStackHCICluster := &infrav1.AzureStackHCICluster{}
@@ -159,6 +159,7 @@ func (r *LoadBalancerReconciler) reconcileNormal(loadBalancerScope *scope.LoadBa
 	vm, err := r.reconcileNormalVirtualMachine(loadBalancerScope, clusterScope)
 	if err != nil {
 		if apierrors.IsAlreadyExists(err) {
+			clusterScope.Info("AzureStackHCIVirtualMachine already exists")
 			return reconcile.Result{}, nil
 		}
 		return reconcile.Result{}, err
@@ -166,7 +167,7 @@ func (r *LoadBalancerReconciler) reconcileNormal(loadBalancerScope *scope.LoadBa
 
 	if vm.Status.VMState == nil {
 		loadBalancerScope.Info("Waiting for VM controller to set vm state")
-		return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 10}, nil
+		return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
 	}
 
 	// changed to avoid using dereference in function param for deep copying
@@ -196,7 +197,7 @@ func (r *LoadBalancerReconciler) reconcileNormal(loadBalancerScope *scope.LoadBa
 			return reconcile.Result{}, err
 		}
 		if loadBalancerScope.Address() == "" {
-			return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 10}, nil
+			return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 20}, nil
 		}
 	}
 
@@ -242,10 +243,7 @@ func (r *LoadBalancerReconciler) reconcileNormalVirtualMachine(loadBalancerScope
 	}
 
 	if _, err := controllerutil.CreateOrUpdate(clusterScope.Context, r.Client, vm, mutateFn); err != nil {
-		if apierrors.IsAlreadyExists(err) {
-			clusterScope.Info("AzureStackHCIVirtualMachine already exists")
-			return nil, err
-		}
+		return nil, err
 	}
 
 	return vm, nil

@@ -126,7 +126,7 @@ func (r *AzureStackHCIClusterReconciler) reconcileNormal(clusterScope *scope.Clu
 			return reconcile.Result{}, err
 		}
 		clusterScope.Info("LoadBalancer Address is not ready yet")
-		return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 10}, nil
+		return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 20}, nil
 	}
 
 	// No errors, so mark us ready so the Cluster API Cluster Controller can pull it
