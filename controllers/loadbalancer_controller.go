@@ -33,8 +33,8 @@ import (
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/loadbalancers"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/networkinterfaces"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/vippools"
-	"github.com/microsoft/wssdcloud-sdk-for-go/services/cloud"
-	"github.com/microsoft/wssdcloud-sdk-for-go/services/network"
+	"github.com/microsoft/moc-sdk-for-go/services/cloud"
+	"github.com/microsoft/moc-sdk-for-go/services/network"
 	"github.com/pkg/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -51,7 +51,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-// LoadBalancerReconciler reconciles a AzureStackHCIMachine object
+// LoadBalancerReconciler reconciles a LoadBalancer object
 type LoadBalancerReconciler struct {
 	client.Client
 	Log      logr.Logger
@@ -95,8 +95,8 @@ func (r *LoadBalancerReconciler) Reconcile(req ctrl.Request) (_ ctrl.Result, ret
 		return reconcile.Result{}, err
 	}
 	if cluster == nil {
-		logger.Info("Waiting for AzureStackHCICluster Controller to set OwnerRef on LoadBalancer")
-		return reconcile.Result{}, nil
+		logger.Info("AzureStackHCICluster Controller has not set OwnerRef on LoadBalancer")
+		return reconcile.Result{}, fmt.Errorf("Expected Cluster OwnerRef is missing from LoadBalancer %s", req.Name)
 	}
 
 	azureStackHCICluster := &infrav1.AzureStackHCICluster{}
@@ -133,7 +133,7 @@ func (r *LoadBalancerReconciler) Reconcile(req ctrl.Request) (_ ctrl.Result, ret
 		return reconcile.Result{}, errors.Errorf("failed to create scope: %+v", err)
 	}
 
-	// Always close the scope when exiting this function so we can persist any AzureStackHCIMachine changes.
+	// Always close the scope when exiting this function so we can persist any LoadBalancer changes.
 	defer func() {
 		if err := loadBalancerScope.Close(); err != nil && reterr == nil {
 			reterr = err
@@ -145,17 +145,12 @@ func (r *LoadBalancerReconciler) Reconcile(req ctrl.Request) (_ ctrl.Result, ret
 		return r.reconcileDelete(loadBalancerScope, clusterScope)
 	}
 
-	// Handle non-deleted machines
+	// Handle non-deleted LoadBalancers.
 	return r.reconcileNormal(loadBalancerScope, clusterScope)
 }
 
 func (r *LoadBalancerReconciler) reconcileNormal(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) (reconcile.Result, error) {
 	loadBalancerScope.Info("Reconciling LoadBalancer")
-	// If the AzureStackHCIMachine is in an error state, return early.
-	/* 	if loadBalancerScope.LoadBalancer.Status.ErrorReason != nil || loadBalancerScope.LoadBalancer.Status.ErrorMessage != nil {
-		loadBalancerScope.Info("Error state detected, skipping reconciliation")
-		return reconcile.Result{}, nil
-	} */
 
 	// If the LoadBalancer doesn't have our finalizer, add it.
 	controllerutil.AddFinalizer(loadBalancerScope.LoadBalancer, infrav1.LoadBalancerFinalizer)
@@ -167,6 +162,7 @@ func (r *LoadBalancerReconciler) reconcileNormal(loadBalancerScope *scope.LoadBa
 	vm, err := r.reconcileNormalVirtualMachine(loadBalancerScope, clusterScope)
 	if err != nil {
 		if apierrors.IsAlreadyExists(err) {
+			clusterScope.Info("AzureStackHCIVirtualMachine already exists")
 			return reconcile.Result{}, nil
 		}
 		return reconcile.Result{}, err
@@ -204,7 +200,7 @@ func (r *LoadBalancerReconciler) reconcileNormal(loadBalancerScope *scope.LoadBa
 			return reconcile.Result{}, err
 		}
 		if loadBalancerScope.Address() == "" {
-			return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
+			return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 20}, nil
 		}
 	}
 
@@ -233,22 +229,10 @@ func (r *LoadBalancerReconciler) reconcileNormalVirtualMachine(loadBalancerScope
 		vm.Spec.ResourceGroup = clusterScope.AzureStackHCICluster.Spec.ResourceGroup
 		vm.Spec.VnetName = clusterScope.AzureStackHCICluster.Spec.NetworkSpec.Vnet.Name
 		vm.Spec.ClusterName = clusterScope.AzureStackHCICluster.Name
-
 		vm.Spec.SubnetName = azurestackhci.GenerateNodeSubnetName(clusterScope.Name())
-
-		/* 		switch role := machineScope.Role(); role {
-		   		case infrav1.Node:
-		   			vm.Spec.SubnetName = azurestackhci.GenerateNodeSubnetName(clusterScope.Name())
-		   		case infrav1.ControlPlane:
-		   			vm.Spec.SubnetName = azurestackhci.GenerateControlPlaneSubnetName(clusterScope.Name())
-		   			// TODO: Temporary loadbalancer workaround for transparent networks. This gives a predictable MAC to only the first control plane node
-		   		default:
-		   			return errors.Errorf("unknown value %s for label `set` on machine %s, unable to create virtual machine resource", role, machineScope.Name())
-		   		} */
-
 		vm.Spec.BootstrapData = r.formatLoadBalancerCloudInit(loadBalancerScope, clusterScope)
 		vm.Spec.VMSize = loadBalancerScope.LoadBalancer.Spec.VMSize
-		vm.Spec.Location = "westus"
+		vm.Spec.Location = clusterScope.Location()
 		vm.Spec.SSHPublicKey = loadBalancerScope.LoadBalancer.Spec.SSHPublicKey
 
 		image, err := r.getVMImage(loadBalancerScope)
@@ -261,17 +245,13 @@ func (r *LoadBalancerReconciler) reconcileNormalVirtualMachine(loadBalancerScope
 	}
 
 	if _, err := controllerutil.CreateOrUpdate(clusterScope.Context, r.Client, vm, mutateFn); err != nil {
-		if apierrors.IsAlreadyExists(err) {
-			clusterScope.Info("AzureStackHCIVirtualMachine already exists")
-			return nil, err
-		}
+		return nil, err
 	}
 
 	return vm, nil
 }
 
 func (r *LoadBalancerReconciler) reconcileLoadBalancerAddress(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) error {
-
 	if r.useVIP {
 		loadBalancerScope.Info("Attempting to vip for loadbalancer", "name", loadBalancerScope.LoadBalancer.Name)
 		lbSpec := &loadbalancers.Spec{
@@ -315,12 +295,16 @@ func (r *LoadBalancerReconciler) reconcileLoadBalancerAddress(loadBalancerScope 
 }
 
 func (r *LoadBalancerReconciler) reconcileLoadBalancer(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) error {
+	backendPoolName := azurestackhci.GenerateBackendPoolName(clusterScope.Name())
+	loadBalancerScope.SetPort(clusterScope.APIServerPort())
 	lbSpec := &loadbalancers.Spec{
 		Name:            loadBalancerScope.LoadBalancer.Name,
-		BackendPoolName: loadBalancerScope.LoadBalancer.Spec.BackendPoolName,
+		BackendPoolName: backendPoolName,
+		FrontendPort:    loadBalancerScope.GetPort(),
+		BackendPort:     clusterScope.APIServerPort(),
 	}
 
-	//Currently, CAPI doesn't have correct location.
+	// Currently, CAPI doesn't have correct location.
 	loadBalancerScope.Info("Attempting to get location for group", "group", clusterScope.GetResourceGroup())
 	groupInterface, err := groups.NewService(clusterScope).Get(clusterScope.Context, &groups.Spec{Name: clusterScope.GetResourceGroup()})
 	if err != nil {
@@ -333,7 +317,7 @@ func (r *LoadBalancerReconciler) reconcileLoadBalancer(loadBalancerScope *scope.
 	}
 	location := *group.Location
 
-	//If vippool does not exists, specify vnetname.
+	// If vippool does not exists, specify vnetname.
 	loadBalancerScope.Info("Attempting to get vippool for location", "location", location)
 	vippool, err := vippools.NewService(clusterScope).Get(clusterScope.Context, &vippools.Spec{Location: location})
 	if err == nil && vippool != nil {
@@ -390,7 +374,6 @@ func (r *LoadBalancerReconciler) reconcileDeleteVirtualMachine(loadBalancerScope
 		}
 	} else if vm.GetDeletionTimestamp().IsZero() {
 		// this means the VM resource was found and has not been deleted
-		// is this a synchronous call?
 		if err := r.Client.Delete(clusterScope.Context, vm); err != nil {
 			if !apierrors.IsNotFound(err) {
 				return errors.Wrapf(err, "failed to get AzureStackHCIVirtualMachine %s", vmName)
