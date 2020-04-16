@@ -21,6 +21,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"sync"
 	"time"
 
 	"golang.org/x/text/encoding/unicode"
@@ -47,6 +48,7 @@ import (
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
 	capierrors "sigs.k8s.io/cluster-api/errors"
 	"sigs.k8s.io/cluster-api/util"
+	"sigs.k8s.io/cluster-api/util/patch"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -62,6 +64,13 @@ type AzureStackHCIMachineReconciler struct {
 	Log      logr.Logger
 	Recorder record.EventRecorder
 }
+
+const (
+	ManagementClusterName             = "clustergroup-wssdkubernetes"
+	ManagementClusterControlPlaneName = "clustergroup-wssdkubernetes-control-plane-0"
+)
+
+var managementClusterOverridenError = errors.New("Management Cluster is already overriden")
 
 func (r *AzureStackHCIMachineReconciler) SetupWithManager(mgr ctrl.Manager, options controller.Options) error {
 	return ctrl.NewControllerManagedBy(mgr).
@@ -86,7 +95,7 @@ func (r *AzureStackHCIMachineReconciler) SetupWithManager(mgr ctrl.Manager, opti
 
 // +kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=azurestackhcimachines,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=azurestackhcimachines/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=cluster.x-k8s.io,resources=machines;machines/status,verbs=get;list;watch
+// +kubebuilder:rbac:groups=cluster.x-k8s.io,resources=machines;machines/status,verbs=get;list;watch;update;patch
 // +kubebuilder:rbac:groups="",resources=events,verbs=get;list;watch;create;update;patch
 // +kubebuilder:rbac:groups="",resources=secrets;,verbs=get;list;watch
 
@@ -160,6 +169,24 @@ func (r *AzureStackHCIMachineReconciler) Reconcile(req ctrl.Request) (_ ctrl.Res
 	})
 	if err != nil {
 		return reconcile.Result{}, errors.Errorf("failed to create scope: %+v", err)
+	}
+
+	// If we are creating the Management Cluster, we need to check if an override is needed
+	if machineScope.Cluster.Name == ManagementClusterName {
+
+		err := r.managementClusterOverride(machineScope, clusterScope)
+		if err == nil {
+			logger.Info("Management Cluster Override Complete")
+			return reconcile.Result{}, nil
+		}
+
+		if err != managementClusterOverridenError {
+			return reconcile.Result{}, errors.Errorf("failed to overide controlplane: %+v", err)
+		}
+
+		// Log and continue
+		logger.Info("Management Cluster Override Already Complete")
+
 	}
 
 	// Always close the scope when exiting this function so we can persist any AzureStackHCIMachine changes.
@@ -582,4 +609,71 @@ func (r *AzureStackHCIMachineReconciler) getWindowsBootstrapData(clusterScope *s
 	}
 
 	return cmdScriptEncoded, nil
+}
+
+var (
+	// managementClusterOverrides is used to ensure only one goroutine attempts the override
+	managementClusterOverrides  = map[apitypes.UID]struct{}{}
+	managementClusterOverrideMu sync.Mutex
+)
+
+func (r *AzureStackHCIMachineReconciler) managementClusterOverride(machineScope *scope.MachineScope, clusterScope *scope.ClusterScope) error {
+
+	managementClusterOverrideMu.Lock()
+	defer managementClusterOverrideMu.Unlock()
+	if _, ok := managementClusterOverrides[clusterScope.Cluster.UID]; ok {
+		machineScope.Info("Management Cluster is already overriden")
+		return managementClusterOverridenError
+	}
+
+	replacementMachine := &infrav1.AzureStackHCIMachine{}
+	azureStackMachineName := client.ObjectKey{
+		Namespace: machineScope.AzureStackHCIMachine.Namespace,
+		Name:      ManagementClusterControlPlaneName,
+	}
+	if err := r.Client.Get(clusterScope.Context, azureStackMachineName, replacementMachine); err != nil {
+		machineScope.Info("Could not recieve the replacement machine", err)
+		return err
+	}
+
+	replacementMachineHelper, err := patch.NewHelper(replacementMachine, r.Client)
+	if err != nil {
+		return errors.Wrap(err, "Replacement Machine patch helper failure")
+	}
+
+	machineHelper, err := patch.NewHelper(machineScope.Machine, r.Client)
+	if err != nil {
+		return errors.Wrap(err, "Machine patch helper failure")
+	}
+
+	for _, ref := range machineScope.AzureStackHCIMachine.ObjectMeta.OwnerReferences {
+		replacementMachine.ObjectMeta.OwnerReferences = append(replacementMachine.ObjectMeta.OwnerReferences, ref)
+	}
+	machineScope.Machine.Spec.InfrastructureRef = corev1.ObjectReference{
+		APIVersion: infrav1.GroupVersion.String(),
+		Kind:       "AzureStackHCIMachine",
+		Name:       replacementMachine.Name,
+		Namespace:  replacementMachine.Namespace,
+		UID:        replacementMachine.UID,
+	}
+
+	err = replacementMachineHelper.Patch(clusterScope.Context, replacementMachine)
+	if err != nil {
+		return errors.Wrap(err, "Replacement Machine patch failure")
+	}
+
+	err = machineHelper.Patch(clusterScope.Context, machineScope.Machine)
+	if err != nil {
+		return errors.Wrap(err, "Machine patch failure")
+	}
+
+	if err := r.Client.Delete(clusterScope.Context, machineScope.AzureStackHCIMachine); err != nil {
+		if !apierrors.IsNotFound(err) {
+			return errors.Wrapf(err, "Deleting overriden machine failed ")
+		}
+	}
+
+	managementClusterOverrides[clusterScope.Cluster.UID] = struct{}{}
+
+	return nil
 }
