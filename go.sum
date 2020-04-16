@@ -258,12 +258,16 @@ github.com/microsoft/moc v0.7.1-alpha.9 h1:UiqLLiyKRD3Dfyz1p3o61SG9LDFr+MZjnMkhf
 github.com/microsoft/moc v0.7.1-alpha.9/go.mod h1:whNqsA2n0Oui557EHtnDF2c2IrMOUBVRali6MEpUMCA=
 github.com/microsoft/moc v0.8.0-alpha.2 h1:Tm2+9ogkXY3/46ft14sfCfqoWoBWlUQMGQYKXnA6BmY=
 github.com/microsoft/moc v0.8.0-alpha.2/go.mod h1:036pGn20Nprs/smauu75ehtWmaIsIvV9dnaA5K4Rk3o=
+github.com/microsoft/moc v0.8.0-alpha.8 h1://jYnIzykjiBAXGHt/4mAsUp/P0Q9aJepIQwxqG446Q=
+github.com/microsoft/moc v0.8.0-alpha.8/go.mod h1:PqGEjmA+zZGxByg/hUfdpPyLGct8FaPuy2QNV/ooXok=
 github.com/microsoft/moc-sdk-for-go v0.7.0-alpha.4 h1:4Qpn9Y9htaK+WDk5YVeiROtKKLZ5nlWTMEa+MiihSv4=
 github.com/microsoft/moc-sdk-for-go v0.7.0-alpha.4/go.mod h1:LEk+ZF4WpxLOBiNzb7IwUSVqjwFj5SmahJyYaowS36M=
 github.com/microsoft/moc-sdk-for-go v0.8.0-alpha.2 h1:h5fqlYB9tcJYqYnMEfcIw/WAuX0WILR377TQckd1fqg=
 github.com/microsoft/moc-sdk-for-go v0.8.0-alpha.2/go.mod h1:GK6UVbtjqNT8WpNym1cfmrrF5cuPYUOGiyZeqTjWARc=
 github.com/microsoft/moc-sdk-for-go v0.8.0-alpha.3 h1:qdnig1idg6jtttGwIQpFVDsKf4aQfGpH1Rh+Q7b6UGU=
 github.com/microsoft/moc-sdk-for-go v0.8.0-alpha.3/go.mod h1:24K4TTyopXo/V4NO0tw/nESRaC89tZRsjs/CuJT7o6M=
+github.com/microsoft/moc-sdk-for-go v0.8.0-alpha.4 h1:g/L+IsYV/ui5252FRvfnzkLKh4FQ1dcUMOkkgBl5b8U=
+github.com/microsoft/moc-sdk-for-go v0.8.0-alpha.4/go.mod h1:7UdTneRw7ToMgOgpFtkb2doEur0bN9Q4Z/TxXAbnzPg=
 github.com/microsoft/wmi v0.0.6/go.mod h1:9RAp65T3V4k+u4p4ROpgz/8MDeSq5SMC3eMwjlHk6m0=
 github.com/microsoft/wmi v0.1.0/go.mod h1:9RAp65T3V4k+u4p4ROpgz/8MDeSq5SMC3eMwjlHk6m0=
 github.com/microsoft/wmi v0.1.1/go.mod h1:oOGdx0ldEw0MQPbY7f7SAikscrHoZynFFgx/9+V+SbY=
@@ -379,6 +383,7 @@ github.com/spf13/jwalterweatherman v1.0.0/go.mod h1:cQK4TGJAtQXfYWX+Ddv3mKDzgVb6
 github.com/spf13/pflag v0.0.0-20170130214245-9ff6c6923cff/go.mod h1:DYY7MBk1bdzusC3SYhjObp+wFpr4gzcvqqNjLnInEg4=
 github.com/spf13/pflag v1.0.1/go.mod h1:DYY7MBk1bdzusC3SYhjObp+wFpr4gzcvqqNjLnInEg4=
 github.com/spf13/pflag v1.0.2/go.mod h1:DYY7MBk1bdzusC3SYhjObp+wFpr4gzcvqqNjLnInEg4=
+github.com/spf13/pflag v1.0.3 h1:zPAT6CGy6wXeQ7NtTnaTerfKOsV6V6F8agHXFiazDkg=
 github.com/spf13/pflag v1.0.3/go.mod h1:DYY7MBk1bdzusC3SYhjObp+wFpr4gzcvqqNjLnInEg4=
 github.com/spf13/pflag v1.0.5 h1:iy+VFUOCP1a+8yFto/drg2CJ5u0yRoB7fZw3DKv/JXA=
 github.com/spf13/pflag v1.0.5/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=
@@ -463,6 +468,8 @@ golang.org/x/net v0.0.0-20190909003024-a7b16738d86b/go.mod h1:z5CRVTTTmAJ677TzLL
 golang.org/x/net v0.0.0-20191004110552-13f9640d40b9/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
 golang.org/x/net v0.0.0-20200320220750-118fecf932d8 h1:1+zQlQqEEhUeStBTi653GZAnAuivZq/2hz+Iz+OP7rg=
 golang.org/x/net v0.0.0-20200320220750-118fecf932d8/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
+golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e h1:3G+cUijn7XD+S4eJFddp53Pv7+slrESplyjG25HgL+k=
+golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e/go.mod h1:qpuaurCH72eLCgpAm/N6yyVIVM9cpaDIP3A8BGJEC5A=
 golang.org/x/oauth2 v0.0.0-20180821212333-d2e6202438be/go.mod h1:N/0e6XlmueqKjAGxoOufVs8QHGRruUQn6yWY3a++T0U=
 golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421/go.mod h1:gOpvHmFTYa4IltrdGE7lF6nIHvwfUNPOp7c8zoXwtLw=
 golang.org/x/oauth2 v0.0.0-20190402181905-9f3314589c9a/go.mod h1:gOpvHmFTYa4IltrdGE7lF6nIHvwfUNPOp7c8zoXwtLw=
@@ -496,6 +503,9 @@ golang.org/x/sys v0.0.0-20200202164722-d101bd2416d5 h1:LfCXLvNmTYH9kEmVgqbnsWfru
 golang.org/x/sys v0.0.0-20200202164722-d101bd2416d5/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200321134203-328b4cd54aae h1:3tcmuaB7wwSZtelmiv479UjUB+vviwABz7a133ZwOKQ=
 golang.org/x/sys v0.0.0-20200321134203-328b4cd54aae/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20200331124033-c3d80250170d h1:nc5K6ox/4lTFbMVSL9WRR81ixkcwXThoiF6yf+R9scA=
+golang.org/x/sys v0.0.0-20200331124033-c3d80250170d/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/text v0.0.0-20160726164857-2910a502d2bf/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.2 h1:tW2bmiBqwgJj/UpqtC8EpXEZVYOwU0yG4iWbprSVAcs=

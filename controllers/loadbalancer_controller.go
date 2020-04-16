@@ -396,7 +396,7 @@ func (r *LoadBalancerReconciler) formatLoadBalancerCloudInit(loadBalancerScope *
 	binarylocation := os.Getenv("BINARY_LOCATION")
 	if binarylocation == "" {
 		// Default
-		binarylocation = "http://10.231.110.37/AzureEdge/0.7"
+		binarylocation = "http://10.231.110.37/AzureEdge/0.7.9"
 		loadBalancerScope.Info("Failed to obtain binary location from env. Using default value.", "binarylocation", binarylocation)
 	}
 
@@ -404,62 +404,37 @@ func (r *LoadBalancerReconciler) formatLoadBalancerCloudInit(loadBalancerScope *
 #cloud-config
 packages:
   - keepalived
-  - cronie
-  - diffutils
   - hyper-v
   - haproxy
 
 write_files:
-  - path: /root/crontab.input
+  - path: /lib/systemd/system/lbagent.service
     owner: root:root
-    permissions: '0640'
+    permissions: '0644'
     content: |
-      * * * * * /root/update.sh
-
-  - path: /root/update.sh
-    owner: root:root
-    permissions: '0755'
-    content: |
-      #!/bin/sh
-      # TODO - we could make this more generic in the future.  For now, it is tailored to LB.
-      # create keepalived.conf and check_apiserver.sh
-      # Download keepalived.conf
-      export WSSD_DEBUG_MODE=on
-      /opt/wssd/k8s/wssdcloudctl security keyvault --cloudFqdn %[1]s --group %[2]s secret --vault-name %[2]s_%[3]s show --name keepalived.conf --query value --output tsv > /root/keepalived.conf.new
-      /opt/wssd/k8s/wssdcloudctl security keyvault --cloudFqdn %[1]s --group %[2]s secret --vault-name %[2]s_%[3]s show --name check_apiserver.sh --query value --output tsv > /root/check_apiserver.sh
-      /opt/wssd/k8s/wssdcloudctl security keyvault --cloudFqdn %[1]s --group %[2]s secret --vault-name %[2]s_%[3]s show --name haproxy.cfg --query value --output tsv > /root/haproxy.cfg.new
-      # if file diff - Restart keepalived (to pick up new conf).
-      if [ -f keepalived.conf.new ]
-      then
-        if ! diff /etc/keepalived/keepalived.conf /root/keepalived.conf.new > /dev/null
-        then
-          cp /root/keepalived.conf.new /etc/keepalived/keepalived.conf
-          systemctl restart keepalived
-        fi
-      fi
-
-      if [ -f haproxy.cfg.new ]
-      then
-        if ! diff /etc/haproxy/haproxy.cfg /root/haproxy.cfg.new > /dev/null
-        then
-          cp /root/haproxy.cfg.new /etc/haproxy/haproxy.cfg
-          systemctl restart haproxy
-        fi
-      fi
+      [Unit]
+      Description=AzEdge lbagent service
+      After=syslog.target network-online.target
+      Wants=network-online.target
+      
+      [Service]
+      Environment="LB_DEBUG_MODE=on"
+      Type=simple
+      PIDFile=/var/run/lbagent.pid
+      KillMode=process
+      ExecStart=/usr/sbin/lbagent
+      ExecReload=/bin/kill -HUP $MAINPID
+      Restart=always
+      
+      [Install]
+      WantedBy=multi-user.target
 
 runcmd:
 - |
-  systemctl start hv_kvp_daemon
-  # WSSD Setup
-  mkdir -p /opt/wssd/k8s
-  curl -o /opt/wssd/k8s/wssdcloudctl %[4]s/wssdcloudctl
-  chmod 755 /opt/wssd/k8s/wssdcloudctl
-  export WSSD_DEBUG_MODE=on
-  crontab /root/crontab.input
-  systemctl start cron
-  systemctl start haproxy
-  #TODO: only open up ports that are needed.  This would have to be moved to the cronjob.
+  curl -o /usr/sbin/lbagent %s/lbagent
+  chmod 755 /usr/sbin/lbagent
+  systemctl start lbagent
   systemctl stop iptables
-`, clusterScope.CloudAgentFqdn, clusterScope.GetResourceGroup(), loadBalancerScope.Name(), binarylocation)))
+`, binarylocation)))
 	return &ret
 }

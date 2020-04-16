@@ -7,8 +7,8 @@ require (
 	github.com/Azure/go-autorest/autorest/to v0.3.0
 	github.com/blang/semver v3.5.0+incompatible
 	github.com/go-logr/logr v0.1.0
-	github.com/microsoft/moc v0.8.0-alpha.2
-	github.com/microsoft/moc-sdk-for-go v0.8.0-alpha.3
+	github.com/microsoft/moc v0.8.0-alpha.8
+	github.com/microsoft/moc-sdk-for-go v0.8.0-alpha.4
 	github.com/onsi/ginkgo v1.10.1 // indirect
 	github.com/onsi/gomega v1.7.0 // indirect
 	github.com/pkg/errors v0.9.1
