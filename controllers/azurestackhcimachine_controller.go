@@ -636,6 +636,11 @@ func (r *AzureStackHCIMachineReconciler) managementClusterOverride(machineScope 
 		return err
 	}
 
+	if len(replacementMachine.ObjectMeta.OwnerReferences) != 0 {
+		machineScope.Info("replacement machine is already owned")
+		return managementClusterOverridenError
+	}
+
 	replacementMachineHelper, err := patch.NewHelper(replacementMachine, r.Client)
 	if err != nil {
 		return errors.Wrap(err, "Replacement Machine patch helper failure")
