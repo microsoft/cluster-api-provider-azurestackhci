@@ -53,7 +53,7 @@ ETCD=$(TOOLS_BIN_DIR)/etcd
 
 # Version
 MAJOR_VER ?= 0
-MINOR_VER ?= 8
+MINOR_VER ?= 3
 PATCH_VER ?= 0
 
 # Define Docker related variables. Releases should modify and double check these vars.
