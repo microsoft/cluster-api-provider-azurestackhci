@@ -46,6 +46,7 @@
 # Can be uncommented later.
 
 # Copy the controller-manager into a thin image
+#FROM alpine:3.11
 FROM gcr.io/distroless/static:latest
 WORKDIR /
 COPY bin/manager ./

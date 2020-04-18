@@ -46,6 +46,8 @@ spec:
     initConfiguration:
       nodeRegistration:
         name: '{{ ds.meta_data["local_hostname"] }}'
+        kubeletExtraArgs:
+          anonymous-auth: "false"
     joinConfiguration:
       nodeRegistration:
         name: '{{ ds.meta_data["local_hostname"] }}'
@@ -55,6 +57,10 @@ spec:
       controllerManager:
         extraArgs:
           terminated-pod-gc-threshold: "10"
+          bind-address: "0.0.0.0"
+      scheduler:
+        extraArgs:
+          bind-address: "0.0.0.0"
     preKubeadmCommands:
     - bash -c /tmp/kubeadm-bootstrap.sh
     postKubeadmCommands:
