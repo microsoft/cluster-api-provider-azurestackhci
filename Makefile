@@ -343,10 +343,6 @@ deployment: dev-release create-cluster  ## Build and deploy caph in a kind manag
 kind-create: ## create caph kind cluster if needed
 	kind create cluster --name=caph-$(USER)
 
-.PHONY: delete-cluster
-delete-cluster: delete-workload-cluster  ## Deletes the caph kind cluster
-	kind delete cluster --name=caph-$(USER)
-
 .PHONY: kind-reset
 kind-reset: ## Attempts to delete a caph kind cluster
 	kind delete cluster --name=caph-$(USER) || true
