@@ -148,8 +148,6 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
 	if vmSpec.OSDisk.OSType == "Windows" {
 		virtualMachine.OsProfile.LinuxConfiguration = nil
-		//windowsComputerName := "AzureStackHCITestVM"
-		//virtualMachine.OsProfile.ComputerName = &windowsComputerName
 		pass := ""
 		virtualMachine.OsProfile.AdminPassword = &pass
 		username := ""
