@@ -191,7 +191,7 @@ metadata:
   name: "${CLUSTER_NAME}-md-0"
 spec:
   clusterName: "${CLUSTER_NAME}"
-  replicas: ${LINUX_WORKER_MACHINE_COUNT}
+  replicas: ${AZURESTACKHCI_LINUX_WORKER_MACHINE_COUNT}
   selector:
     matchLabels:
   template:
