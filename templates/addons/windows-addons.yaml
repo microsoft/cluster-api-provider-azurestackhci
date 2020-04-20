@@ -114,6 +114,7 @@ spec:
             fieldRef:
               fieldPath: status.podIP
         image: kubeproxywin/kube-proxy
+        imagePullPolicy: IfNotPresent
         name: kube-proxy
         volumeMounts:
         - name: host

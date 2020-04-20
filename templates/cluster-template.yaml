@@ -373,7 +373,12 @@ spec:
         sku: "windows"
         version: "latest"
       osDisk:
+        name: "na"
+        diskSizeGB: 30
         osType: "Windows"
+        managedDisk:
+          storageAccountType: "na"
+        source: "na"
       location: "westus"
       vmSize: ${AZURESTACKHCI_NODE_MACHINE_TYPE}
       sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY}
@@ -390,6 +395,6 @@ spec:
           name: '{{ v1.local_hostname }}'
       preKubeadmCommands:
         - docker network create -d nat host
-        - powershell -C "New-HNSNetwork -Type \"overlay\" -AddressPrefix \"192.168.255.0/30\" -Gateway \"192.168.255.1\" -Name \"External\" -AdapterName \"Ethernet 2\" -SubnetPolicies @(@{Type = \"VSID\"; VSID = 9999; }); start-sleep 10;"  
+        - powershell -C "ipmo C:\ECP-Cache\hns.psm1;New-HNSNetwork -Type \"overlay\" -AddressPrefix \"192.168.255.0/30\" -Gateway \"192.168.255.1\" -Name \"External\" -AdapterName \"Ethernet 2\" -SubnetPolicies @(@{Type = \"VSID\"; VSID = 9999; }); start-sleep 10;"  
       postKubeadmCommands:
         - powershell C:\ECP-Cache\StartFlannel.ps1
