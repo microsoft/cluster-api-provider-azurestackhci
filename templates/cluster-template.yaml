@@ -348,7 +348,7 @@ spec:
   template:
     spec:
       clusterName: "${CLUSTER_NAME}"
-      version: "${KUBERNETES_VERSION}"
+      version: "1.16.2"
       bootstrap:
         configRef:
           name: "${CLUSTER_NAME}-md-1"
@@ -367,7 +367,7 @@ spec:
   template:
     spec:  
       image:
-        name: ${WINDOWS_MACHINE_IMAGE}
+        name: "windows_k8s"
         publisher: "na"
         offer: "windows"
         sku: "windows"
