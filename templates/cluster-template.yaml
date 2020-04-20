@@ -342,7 +342,7 @@ metadata:
   name: "${CLUSTER_NAME}-md-1"
 spec:
   clusterName: "${CLUSTER_NAME}"
-  replicas: ${WINDOWS_WORKER_MACHINE_COUNT}
+  replicas: ${AZURESTACKHCI_WINDOWS_WORKER_MACHINE_COUNT}
   selector:
     matchLabels:
   template:
