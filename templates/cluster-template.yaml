@@ -390,10 +390,25 @@ metadata:
 spec:
   template:
     spec:
+      files:
+        - path: C:\ECP-Cache\WaitForDocker.ps1
+          permissions: "0744"
+          content: |
+            #ps1
+            for($i = 0; $i -lt 60; $i++) {
+              if ((Get-Service docker).Status -eq "Running")
+              {
+                echo "Docker service is running."
+                exit
+              }
+              echo "Waiting docker service..."
+              start-sleep -s 2
+            }
       joinConfiguration:
         nodeRegistration:
           name: '{{ v1.local_hostname }}'
       preKubeadmCommands:
+        - powershell C:\ECP-Cache\WaitForDocker.ps1
         - docker network create -d nat host
         - powershell -C "ipmo C:\ECP-Cache\hns.psm1;New-HNSNetwork -Type \"overlay\" -AddressPrefix \"192.168.255.0/30\" -Gateway \"192.168.255.1\" -Name \"External\" -AdapterName \"Ethernet 2\" -SubnetPolicies @(@{Type = \"VSID\"; VSID = 9999; }); start-sleep 10;"  
       postKubeadmCommands:
