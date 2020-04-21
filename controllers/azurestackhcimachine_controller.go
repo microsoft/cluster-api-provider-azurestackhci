@@ -312,17 +312,9 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineNormal(machineSc
 		}
 
 		var bootstrapData string
-		if machineScope.AzureStackHCIMachine.Spec.OSDisk.OSType == "Windows" {
-			//populate bootstrap data
-			bootstrapData, err = r.getWindowsBootstrapData(clusterScope)
-			if err != nil {
-				return err
-			}
-		} else {
-			bootstrapData, err = machineScope.GetBootstrapData()
-			if err != nil {
-				return errors.Wrap(err, "failed to retrieve bootstrap data")
-			}
+		bootstrapData, err = machineScope.GetBootstrapData()
+		if err != nil {
+			return errors.Wrap(err, "failed to retrieve bootstrap data")
 		}
 
 		image, err := r.getVMImage(machineScope)

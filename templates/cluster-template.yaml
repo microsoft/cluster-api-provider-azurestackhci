@@ -335,3 +335,66 @@ spec:
             dockerd_prereq
             systemctl_config
             kubernetes_install
+---
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: MachineDeployment
+metadata:
+  name: "${CLUSTER_NAME}-md-1"
+spec:
+  clusterName: "${CLUSTER_NAME}"
+  replicas: ${AZURESTACKHCI_WINDOWS_WORKER_MACHINE_COUNT}
+  selector:
+    matchLabels:
+  template:
+    spec:
+      clusterName: "${CLUSTER_NAME}"
+      version: "1.16.2"
+      bootstrap:
+        configRef:
+          name: "${CLUSTER_NAME}-md-1"
+          apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
+          kind: KubeadmConfigTemplate
+      infrastructureRef:
+        name: "${CLUSTER_NAME}-md-1"
+        apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+        kind: AzureStackHCIMachineTemplate
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+kind: AzureStackHCIMachineTemplate
+metadata:
+  name: "${CLUSTER_NAME}-md-1"
+spec:
+  template:
+    spec:  
+      image:
+        name: "windows_k8s"
+        publisher: "na"
+        offer: "windows"
+        sku: "windows"
+        version: "latest"
+      osDisk:
+        name: "na"
+        diskSizeGB: 30
+        osType: "Windows"
+        managedDisk:
+          storageAccountType: "na"
+        source: "na"
+      location: "westus"
+      vmSize: ${AZURESTACKHCI_NODE_MACHINE_TYPE}
+      sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY}
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
+kind: KubeadmConfigTemplate
+metadata:
+  name: "${CLUSTER_NAME}-md-1"
+spec:
+  template:
+    spec:
+      joinConfiguration:
+        nodeRegistration:
+          name: '{{ v1.local_hostname }}'
+      preKubeadmCommands:
+        - docker network create -d nat host
+        - powershell -C "ipmo C:\ECP-Cache\hns.psm1;New-HNSNetwork -Type \"overlay\" -AddressPrefix \"192.168.255.0/30\" -Gateway \"192.168.255.1\" -Name \"External\" -AdapterName \"Ethernet 2\" -SubnetPolicies @(@{Type = \"VSID\"; VSID = 9999; }); start-sleep 10;"  
+      postKubeadmCommands:
+        - powershell C:\ECP-Cache\StartFlannel.ps1
