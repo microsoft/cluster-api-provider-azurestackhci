@@ -87,6 +87,160 @@ spec:
         
         [Install]
         WantedBy=default.target
+    - path: /etc/kubernetes/cni/win-kube-proxy.yaml
+      owner: "root:root"
+      permissions: "0744"
+      content: |
+        ---
+        apiVersion: v1
+        data:
+          run-script.ps1: |-
+            $ErrorActionPreference = "Stop";
+            mkdir -force /host/var/lib/kube-proxy/var/run/secrets/kubernetes.io/serviceaccount
+            mkdir -force /host/kube-proxy
+            cp -force /kube-proxy/* /host/kube-proxy
+            cp -force /var/lib/kube-proxy/* /host/var/lib/kube-proxy
+            cp -force /var/run/secrets/kubernetes.io/serviceaccount/* /host/var/lib/kube-proxy/var/run/secrets/kubernetes.io/serviceaccount #FIXME?
+            $networkName = (Get-Content /host/etc/cni/net.d/* | ConvertFrom-Json).name
+            $sourceVip = ($env:POD_IP -split "\.")[0..2] + 0 -join "."
+            $filePath="/host/var/lib/kube-proxy/config.conf"
+            $tempFilePath="/host/var/lib/kube-proxy/configCopy.conf"
+
+            $find = get-content $filePath | ForEach-Object -Process {if($_.Contains("sourceVip:")) {$_}}
+            $replace = "  sourceVip: " + $sourceVip
+            if ($find) {
+                (Get-Content -Path $filePath) -replace $find, $replace | Add-Content $tempFilePath
+            } else {
+                $replace = "winkernel:`r`n  sourceVip:" + $sourceVip + "`r`n"
+                $find = get-content $filePath | ForEach-Object -Process {if($_.Contains("winkernel:")) {$_}}
+                if ($find) {
+                    (Get-Content -Path $filePath) -replace $find, $replace | Add-Content $tempFilePath    
+                } else {
+                    (Get-Content -Path $filePath) + $replace | Add-Content $tempFilePath
+                }    
+            }
+            Remove-Item -Path $filePath
+            Move-Item -Path $tempFilePath -Destination $filePath
+
+            $find = get-content $filePath | ForEach-Object -Process {if($_.Contains("networkName:")) {$_}}
+            $replace = "  networkName: " + $networkName
+            if ($find) {
+                (Get-Content -Path $filePath) -replace $find, $replace | Add-Content $tempFilePath
+            } else {
+                $replace = "winkernel:`r`n  networkName:" + $networkName + "`r`n"
+                $find = get-content $filePath | ForEach-Object -Process {if($_.Contains("winkernel:")) {$_}}
+                if ($find) {
+                    (Get-Content -Path $filePath) -replace $find, $replace | Add-Content $tempFilePath    
+                } else {
+                    (Get-Content -Path $filePath) + $replace | Add-Content $tempFilePath
+                }    
+            }
+            Remove-Item -Path $filePath
+            Move-Item -Path $tempFilePath -Destination $filePath
+
+            $find = get-content $filePath | ForEach-Object -Process {if($_.Contains("WinOverlay:")) {$_}}
+            $replace = "  WinOverlay: " + "true"
+            if ($find) {
+                (Get-Content -Path $filePath) -replace $find, $replace | Add-Content $tempFilePath
+            } else {
+                $replace = "featureGates:`r`n  WinOverlay: true`r`n"
+                $find = get-content $filePath | ForEach-Object -Process {if($_.Contains("featureGates:")) {$_}}
+                if ($find) {
+                    (Get-Content -Path $filePath) -replace $find, $replace | Add-Content $tempFilePath    
+                } else {
+                    (Get-Content -Path $filePath) + $replace | Add-Content $tempFilePath
+                }    
+            }
+            Remove-Item -Path $filePath
+            Move-Item -Path $tempFilePath -Destination $filePath
+            
+            $find = get-content $filePath | ForEach-Object -Process {if($_.Contains("mode:")) {$_}}
+            $replace = "mode: " + "kernelspace"
+            if ($find) {
+                (Get-Content -Path $filePath) -replace $find, $replace | Add-Content $tempFilePath
+            } else {
+                $replace = "mode: kernelspace`r`n"
+                (Get-Content -Path $filePath) + $replace | Add-Content $tempFilePath
+            }
+            Remove-Item -Path $filePath
+            Move-Item -Path $tempFilePath -Destination $filePath
+            wins cli process run --path /kube-proxy/kube-proxy.exe --args "--v=6 --config=/var/lib/kube-proxy/config.conf --hostname-override=$env:NODE_NAME --feature-gates=WinOverlay=true"
+        kind: ConfigMap
+        apiVersion: v1
+        metadata:
+          labels:
+            app: kube-proxy 
+          name: kube-proxy-windows
+          namespace: kube-system
+        ---
+        apiVersion: apps/v1
+        kind: DaemonSet
+        metadata:
+          labels:
+            k8s-app: kube-proxy
+          name: kube-proxy-windows
+          namespace: kube-system
+        spec:
+          selector:
+            matchLabels:
+              k8s-app: kube-proxy-windows
+          template:
+            metadata:
+              labels:
+                k8s-app: kube-proxy-windows
+            spec:
+              serviceAccountName: kube-proxy
+              containers:
+              - command:
+                - powershell
+                args:
+                - -file
+                - /var/lib/kube-proxy-windows/run-script.ps1
+                env:
+                - name: NODE_NAME
+                  valueFrom:
+                    fieldRef:
+                      apiVersion: v1
+                      fieldPath: spec.nodeName
+                - name: POD_IP
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: status.podIP
+                image: kubeproxywin/kube-proxy
+                imagePullPolicy: IfNotPresent
+                name: kube-proxy
+                volumeMounts:
+                - name: host
+                  mountPath: /host
+                - name: wins
+                  mountPath: \\.\pipe\rancher_wins
+                - mountPath: /var/lib/kube-proxy
+                  name: kube-proxy
+                - mountPath: /var/lib/kube-proxy-windows
+                  name: kube-proxy-windows
+              nodeSelector:
+                beta.kubernetes.io/os: windows
+              tolerations:
+              - key: CriticalAddonsOnly
+                operator: Exists
+              - operator: Exists
+              volumes:
+              - configMap:
+                  defaultMode: 420
+                  name: kube-proxy-windows
+                name: kube-proxy-windows
+              - configMap:
+                  name: kube-proxy
+                name: kube-proxy
+              - hostPath:
+                  path: /
+                name: host
+              - name: wins
+                hostPath:
+                  path: \\.\pipe\rancher_wins
+                  type: null
+          updateStrategy:
+            type: RollingUpdate
     - path: /tmp/kubeadm-bootstrap.sh
       owner: "root:root"
       permissions: "0744"
@@ -153,6 +307,10 @@ spec:
         function flannel_install() {
           KUBECONFIG=/etc/kubernetes/admin.conf kubectl apply -f /etc/kubernetes/cni/kube-flannel.yml
         }
+
+        function kube_proxy_install() {
+          KUBECONFIG=/etc/kubernetes/admin.conf kubectl apply -f /etc/kubernetes/cni/win-kube-proxy.yaml
+        }
   
         # Temp, this responsibility will move to caph
         function patch_node_providerid() {
@@ -170,6 +328,7 @@ spec:
         }
   
         flannel_install
+        kube_proxy_install
         save_iptables_config
         patch_node_providerid
   version: "${KUBERNETES_VERSION}"
@@ -390,11 +549,35 @@ metadata:
 spec:
   template:
     spec:
+      files:
+        - path: C:\ECP-Cache\WaitForDocker.ps1
+          permissions: "0744"
+          content: |
+            #ps1
+            for($i = 0; $i -lt 60; $i++) {
+              if ((Get-Service docker).Status -eq "Running")
+              {
+                echo "Docker service is running."
+                exit
+              }
+              echo "Waiting docker service..."
+              start-sleep -s 2
+            }
+        - path: C:\ECP-Cache\ApplyPatch.ps1
+          permissions: "0744"
+          content: |
+            #ps1
+            C:\ECP-Cache\kubernetes\kubectl.exe --kubeconfig=C:\etc\kubernetes\kubelet.conf patch node {{ v1.local_hostname }} -p "spec:`r`n providerID: azurestackhci:////{{ v1.local_hostname }}"
       joinConfiguration:
         nodeRegistration:
           name: '{{ v1.local_hostname }}'
       preKubeadmCommands:
+        - powershell C:\ECP-Cache\WaitForDocker.ps1
         - docker network create -d nat host
         - powershell -C "ipmo C:\ECP-Cache\hns.psm1;New-HNSNetwork -Type \"overlay\" -AddressPrefix \"192.168.255.0/30\" -Gateway \"192.168.255.1\" -Name \"External\" -AdapterName \"Ethernet 2\" -SubnetPolicies @(@{Type = \"VSID\"; VSID = 9999; }); start-sleep 10;"  
       postKubeadmCommands:
         - powershell C:\ECP-Cache\StartFlannel.ps1
+        - copy C:\Users\Administrator\.ssh\authorized_keys C:\ProgramData\ssh\administrators_authorized_keys
+        - icacls C:\ProgramData\ssh\administrators_authorized_keys /inheritance:r
+        - icacls C:\ProgramData\ssh\administrators_authorized_keys /grant "NT AUTHORITY\SYSTEM":R
+        - powershell C:\ECP-Cache\ApplyPatch.ps1

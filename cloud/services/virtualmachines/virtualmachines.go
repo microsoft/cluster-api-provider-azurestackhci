@@ -150,8 +150,19 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		virtualMachine.OsProfile.LinuxConfiguration = nil
 		pass := ""
 		virtualMachine.OsProfile.AdminPassword = &pass
-		username := ""
+		username := "Administrator"
 		virtualMachine.OsProfile.AdminUsername = &username
+
+		virtualMachine.OsProfile.WindowsConfiguration = &compute.WindowsConfiguration{
+					SSH: &compute.SSHConfiguration{
+						PublicKeys: &[]compute.SSHPublicKey{
+							{
+								Path:    to.StringPtr(fmt.Sprintf("/users/%s/.ssh/authorized_keys", azurestackhci.DefaultUserName)),
+								KeyData: to.StringPtr(sshKeyData),
+							},
+						},
+					},
+				};
 	}
 
 	_, err = s.Client.CreateOrUpdate(
