@@ -54,6 +54,9 @@ spec:
                     type: string
                   offer:
                     type: string
+                  osType:
+                    description: OSType describes the OS type of a disk.
+                    type: string
                   publisher:
                     type: string
                   resourceGroup:
@@ -64,6 +67,8 @@ spec:
                     type: string
                   version:
                     type: string
+                required:
+                - osType
                 type: object
               sshPublicKey:
                 type: string

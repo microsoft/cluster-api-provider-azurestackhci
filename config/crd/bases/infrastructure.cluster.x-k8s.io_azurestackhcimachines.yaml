@@ -67,6 +67,9 @@ spec:
                     type: string
                   offer:
                     type: string
+                  osType:
+                    description: OSType describes the OS type of a disk.
+                    type: string
                   publisher:
                     type: string
                   resourceGroup:
@@ -77,6 +80,8 @@ spec:
                     type: string
                   version:
                     type: string
+                required:
+                - osType
                 type: object
               location:
                 type: string
@@ -95,7 +100,7 @@ spec:
                   name:
                     type: string
                   osType:
-                    description: 'TEMP: OSType describes the OS type of a disk.'
+                    description: OSType describes the OS type of a disk.
                     type: string
                   source:
                     type: string

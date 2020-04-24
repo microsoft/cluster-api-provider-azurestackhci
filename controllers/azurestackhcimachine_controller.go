@@ -438,7 +438,7 @@ func (r *AzureStackHCIMachineReconciler) getVMImage(scope *scope.MachineScope) (
 		return &scope.AzureStackHCIMachine.Spec.Image, nil
 	}
 
-	return azurestackhci.GetDefaultLinuxImage(to.String(scope.Machine.Spec.Version))
+	return azurestackhci.GetDefaultImage(scope.AzureStackHCIMachine.Spec.Image.OSType, to.String(scope.Machine.Spec.Version))
 }
 
 func (r *AzureStackHCIMachineReconciler) getWindowsBootstrapData(clusterScope *scope.ClusterScope) (string, error) {
