@@ -146,7 +146,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		},
 	}
 
-	if vmSpec.OSDisk.OSType == "Windows" {
+	if vmSpec.Image.OSType == "windows" {
 		virtualMachine.OsProfile.LinuxConfiguration = nil
 		pass := ""
 		virtualMachine.OsProfile.AdminPassword = &pass
