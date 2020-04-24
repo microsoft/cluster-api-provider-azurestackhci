@@ -182,7 +182,7 @@ spec:
   template:
     spec:
       image:
-        osType: "linux"
+        osType: "Linux"
       location: "westus"
       vmSize: ${AZURESTACKHCI_CONTROL_PLANE_MACHINE_TYPE}
       sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY}
@@ -218,7 +218,7 @@ spec:
   template:
     spec:
       image:
-        osType: "linux"
+        osType: "Linux"
       location: "westus"
       vmSize: ${AZURESTACKHCI_NODE_MACHINE_TYPE}
       sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY}
