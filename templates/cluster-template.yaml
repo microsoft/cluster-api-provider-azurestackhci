@@ -48,16 +48,21 @@ spec:
         name: '{{ ds.meta_data["local_hostname"] }}'
         kubeletExtraArgs:
           anonymous-auth: "false"
+          cloud-provider: external
     joinConfiguration:
       nodeRegistration:
         name: '{{ ds.meta_data["local_hostname"] }}'
+        kubeletExtraArgs: 
+          cloud-provider: external
     clusterConfiguration:
       apiServer:
         timeoutForControlPlane: 20m
+        cloud-provider: external
       controllerManager:
         extraArgs:
           terminated-pod-gc-threshold: "10"
           bind-address: "0.0.0.0"
+          cloud-provider: external
       scheduler:
         extraArgs:
           bind-address: "0.0.0.0"
@@ -383,6 +388,7 @@ spec:
       joinConfiguration:
         nodeRegistration:
           name: '{{ ds.meta_data["local_hostname"] }}'
+          cloud-provider: external
       preKubeadmCommands:
         - bash -c /tmp/kubeadm-bootstrap.sh
       postKubeadmCommands:
