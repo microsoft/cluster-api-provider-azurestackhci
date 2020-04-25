@@ -340,6 +340,8 @@ metadata:
 spec:
   template:
     spec:
+      image:
+        osType: "Linux"
       location: "westus"
       vmSize: ${AZURESTACKHCI_CONTROL_PLANE_MACHINE_TYPE}
       sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY}
@@ -374,6 +376,8 @@ metadata:
 spec:
   template:
     spec:
+      image:
+        osType: "Linux"
       location: "westus"
       vmSize: ${AZURESTACKHCI_NODE_MACHINE_TYPE}
       sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY}
@@ -526,18 +530,7 @@ spec:
   template:
     spec:  
       image:
-        name: "windows_k8s"
-        publisher: "na"
-        offer: "windows"
-        sku: "windows"
-        version: "latest"
-      osDisk:
-        name: "na"
-        diskSizeGB: 30
         osType: "Windows"
-        managedDisk:
-          storageAccountType: "na"
-        source: "na"
       location: "westus"
       vmSize: ${AZURESTACKHCI_NODE_MACHINE_TYPE}
       sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY}

@@ -134,24 +134,25 @@ func GenerateBackendPoolName(clusterName string) string {
 	return fmt.Sprintf("%s-backend-pool", clusterName)
 }
 
-// GetDefaultImageName gets the name of the image to use for the provided version of Kubernetes.
-func getDefaultImageName(k8sVersion string) (string, error) {
+// GetDefaultImageName gets the name of the image to use for the provided OS and version of Kubernetes.
+func getDefaultImageName(osType infrav1.OSType, k8sVersion string) (string, error) {
 	version, err := semver.ParseTolerant(k8sVersion)
 	if err != nil {
 		return "", errors.Wrapf(err, "unable to parse Kubernetes version \"%s\" in spec, expected valid SemVer string", k8sVersion)
 	}
-	return fmt.Sprintf("linux_k8s_%d-%d-%d", version.Major, version.Minor, version.Patch), nil
+	return fmt.Sprintf("%s_k8s_%d-%d-%d", osType, version.Major, version.Minor, version.Patch), nil
 }
 
-// GetDefaultLinuxImage returns the default image spec for Linux.
-func GetDefaultLinuxImage(k8sVersion string) (*infrav1.Image, error) {
-	imageName, err := getDefaultImageName(k8sVersion)
+// GetDefaultImage returns the default image spec for the provided OS and version of Kubernetes.
+func GetDefaultImage(osType infrav1.OSType, k8sVersion string) (*infrav1.Image, error) {
+	imageName, err := getDefaultImageName(osType, k8sVersion)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get default image name")
 	}
 
 	defaultImage := &infrav1.Image{
 		Name:      &imageName,
+		OSType:    osType,
 		Publisher: pointer.StringPtr(DefaultImagePublisherID),
 		Offer:     pointer.StringPtr(DefaultImageOfferID),
 		SKU:       pointer.StringPtr(DefaultImageSKU),

@@ -453,5 +453,5 @@ func (r *LoadBalancerReconciler) getVMImage(loadBalancerScope *scope.LoadBalance
 		return &loadBalancerScope.LoadBalancer.Spec.Image, nil
 	}
 
-	return azurestackhci.GetDefaultLinuxImage(to.String(loadBalancerScope.AzureStackHCICluster.Spec.Version))
+	return azurestackhci.GetDefaultImage(infrav1.OSTypeLinux, to.String(loadBalancerScope.AzureStackHCICluster.Spec.Version))
 }

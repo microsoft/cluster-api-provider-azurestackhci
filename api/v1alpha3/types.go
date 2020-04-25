@@ -159,6 +159,7 @@ type Image struct {
 	Name           *string `json:"name,omitempty"`
 
 	Version *string `json:"version,omitempty"`
+	OSType  OSType  `json:"osType"`
 }
 
 type AvailabilityZone struct {
@@ -169,10 +170,10 @@ type AvailabilityZone struct {
 // VMIdentity defines the identity of the virtual machine, if configured.
 type VMIdentity string
 
-// TEMP: OSType describes the OS type of a disk.
+// OSType describes the OS type of a disk.
 type OSType string
 
-var (
+const (
 	// OSTypeLinux
 	OSTypeLinux = OSType("Linux")
 	// OSTypeWindows
