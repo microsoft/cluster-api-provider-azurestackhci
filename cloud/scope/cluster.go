@@ -23,26 +23,15 @@ import (
 
 	"github.com/go-logr/logr"
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
-	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
-	"github.com/microsoft/moc-sdk-for-go/services/security"
-	"github.com/microsoft/moc-sdk-for-go/services/security/authentication"
+	azhciauth "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/auth"
 	"github.com/microsoft/moc/pkg/auth"
-	"github.com/microsoft/moc/pkg/config"
-	"github.com/microsoft/moc/pkg/marshal"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/klog/klogr"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
 	"sigs.k8s.io/cluster-api/util/patch"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-)
-
-const (
-	AzureStackHCILoginCreds           = "azurestackhcilogintoken"
-	AzureStackHCICreds                = "cloudconfig"
-	AzureStackHCIAccessTokenFieldName = "value"
 )
 
 // ClusterScopeParams defines the input parameters used to create a new Scope.
@@ -89,12 +78,12 @@ func NewClusterScope(params ClusterScopeParams) (*ClusterScope, error) {
 		Context:              context.Background(),
 	}
 
-	// This is temp. Will be moved to the CloudController in the future
-	err = scope.ReconcileAzureStackHCIAccess()
+	authorizer, err := azhciauth.ReconcileAzureStackHCIAccess(scope.Context, scope.Client, agentFqdn)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating azurestackhci services. can not authenticate to azurestackhci")
 	}
 
+	scope.Authorizer = authorizer
 	return scope, nil
 }
 
@@ -199,103 +188,6 @@ func GetNamespaceOrDefault(namespace string) string {
 	return namespace
 }
 
-// This is temp. Will be moved to the CloudController in the future
-func (s *ClusterScope) ReconcileAzureStackHCIAccess() error {
-	s.Logger.Info("reconciling azurestackhci access")
-	secretAccess, err := s.GetSecret(AzureStackHCICreds)
-	if err == nil {
-		// Already have the AccessFile.
-		data, ok := secretAccess.Data[AzureStackHCIAccessTokenFieldName]
-		if !ok {
-			return errors.New("error: could not parse kubernetes secret")
-		}
-		azurestackhciObject := auth.WssdConfig{}
-		err := marshal.FromJSON(string(data), &azurestackhciObject)
-		if err != nil {
-			return errors.Wrap(err, "error: could not parse kubernetes secret JSON")
-		}
-		serverPem, tlsCert, err := auth.AccessFileToTls(azurestackhciObject)
-		if err != nil {
-			return errors.Wrap(err, "error: could not parse accessfile")
-		}
-		authorizer, err := auth.NewAuthorizerFromInput(tlsCert, serverPem, s.AzureStackHCIClients.CloudAgentFqdn)
-		if err != nil {
-			return errors.Wrap(err, "error: new authorizer failed")
-		}
-		s.AzureStackHCIClients.Authorizer = authorizer
-		return nil
-	}
-
-	secret, err := s.GetSecret(AzureStackHCILoginCreds)
-	if err != nil {
-		authorizer, err := auth.NewAuthorizerFromEnvironment(s.AzureStackHCIClients.CloudAgentFqdn)
-		if err != nil {
-			return errors.Wrap(err, "failed to create azurestackhci session")
-		}
-		s.AzureStackHCIClients.Authorizer = authorizer
-		return nil
-	}
-
-	s.Logger.Info("recieved azurestackhcilogintoken from the cluster")
-
-	data, ok := secret.Data[AzureStackHCIAccessTokenFieldName]
-	if !ok {
-		return errors.New("error: could not parse kubernetes secret")
-	}
-
-	loginconfig := auth.LoginConfig{}
-	err = config.LoadYAMLConfig(string(data), &loginconfig)
-	if err != nil {
-		return errors.Wrap(err, "failed to create azurestackhci session: parse yaml login config failed")
-	}
-
-	authForAuth, err := auth.NewAuthorizerForAuth(loginconfig.Token, loginconfig.Certificate, s.AzureStackHCIClients.CloudAgentFqdn)
-	if err != nil {
-		return err
-	}
-
-	authenticationClient, err := authentication.NewAuthenticationClient(s.AzureStackHCIClients.CloudAgentFqdn, authForAuth)
-	if err != nil {
-		return err
-	}
-
-	clientCert, accessFile, err := auth.GenerateClientKey(loginconfig)
-	if err != nil {
-		return err
-	}
-	id := security.Identity{
-		Name:        &loginconfig.Name,
-		Certificate: &clientCert,
-	}
-
-	_, err = authenticationClient.Login(s.Context, "", &id)
-	if err != nil && !azurestackhci.ResourceAlreadyExists(err) {
-		return errors.Wrap(err, "failed to create azurestackhci session: login failed")
-	}
-
-	if !azurestackhci.ResourceAlreadyExists(err) {
-		str, err := marshal.ToJSON(accessFile)
-		if err != nil {
-			return err
-		}
-		s.CreateSecret(AzureStackHCICreds, []byte(str))
-	}
-
-	serverPem, tlsCert, err := auth.AccessFileToTls(accessFile)
-	if err != nil {
-		return err
-	}
-
-	authorizer, err := auth.NewAuthorizerFromInput(tlsCert, serverPem, s.AzureStackHCIClients.CloudAgentFqdn)
-	if err != nil {
-		return err
-	}
-
-	s.AzureStackHCIClients.Authorizer = authorizer
-
-	return nil
-}
-
 func (s *ClusterScope) GetSecret(name string) (*corev1.Secret, error) {
 	secret := &corev1.Secret{}
 	secretKey := client.ObjectKey{
@@ -304,24 +196,6 @@ func (s *ClusterScope) GetSecret(name string) (*corev1.Secret, error) {
 	}
 
 	if err := s.Client.Get(s.Context, secretKey, secret); err != nil {
-		return nil, errors.Wrapf(err, "kubernetes secret query for azurestackhci access token failed")
-	}
-
-	return secret, nil
-}
-
-func (s *ClusterScope) CreateSecret(name string, data []byte) (*corev1.Secret, error) {
-	secret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: GetNamespaceOrDefault(s.Cluster.Namespace),
-			Name:      name,
-		},
-		Data: map[string][]byte{
-			AzureStackHCIAccessTokenFieldName: data,
-		},
-	}
-
-	if err := s.Client.Create(s.Context, secret); err != nil {
 		return nil, errors.Wrapf(err, "kubernetes secret query for azurestackhci access token failed")
 	}
 

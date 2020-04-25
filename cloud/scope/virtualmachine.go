@@ -23,6 +23,7 @@ import (
 
 	"github.com/go-logr/logr"
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
+	azhciauth "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/auth"
 	"github.com/microsoft/moc/pkg/auth"
 	"github.com/pkg/errors"
 	"k8s.io/klog/klogr"
@@ -61,7 +62,7 @@ func NewVirtualMachineScope(params VirtualMachineScopeParams) (*VirtualMachineSc
 	}
 	params.AzureStackHCIClients.CloudAgentFqdn = agentFqdn
 
-	authorizer, err := auth.NewAuthorizerFromEnvironment(agentFqdn)
+	authorizer, err := azhciauth.ReconcileAzureStackHCIAccess(context.Background(), params.Client, agentFqdn)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create azurestackhci session")
 	}
