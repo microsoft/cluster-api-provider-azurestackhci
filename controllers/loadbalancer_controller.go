@@ -409,11 +409,6 @@ func (r *LoadBalancerReconciler) formatLoadBalancerCloudInit(loadBalancerScope *
 
 	ret := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf(`
 #cloud-config
-packages:
-  - keepalived
-  - hyper-v
-  - haproxy
-
 write_files:
   - path: /lib/systemd/system/lbagent.service
     owner: root:root
