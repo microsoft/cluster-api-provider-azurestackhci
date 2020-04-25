@@ -249,10 +249,6 @@ spec:
   
         set -eux
   
-        function os_setup {
-          command -v "awk" >/dev/null 2>&1 || tdnf install -y awk
-        }
-  
         function dockerd_prereq() {
           swapoff -a
           modprobe overlay
@@ -264,9 +260,9 @@ spec:
         net.bridge.bridge-nf-call-ip6tables = 1
         EOF
   
-          iptables -P INPUT ACCEPT
-          iptables -P OUTPUT ACCEPT
-          iptables -P FORWARD ACCEPT
+          iptables -w -P INPUT ACCEPT
+          iptables -w -P OUTPUT ACCEPT
+          iptables -w -P FORWARD ACCEPT
   
           sysctl --system
         }
@@ -279,10 +275,6 @@ spec:
         }
   
         function kubernetes_install() {
-          K8S_VERSION="${KUBERNETES_VERSION}"
-          KUBEADM_VERSION="${KUBERNETES_VERSION}"
-          # tdnf install -y kubernetes-${KUBERNETES_VERSION} kubernetes-kubeadm-${KUBERNETES_VERSION} kubernetes-pause-${KUBERNETES_VERSION}
-  
           cat > /etc/sysctl.d/90-kubelet.conf << EOF
         vm.overcommit_memory=1
         kernel.panic=10
@@ -291,8 +283,7 @@ spec:
           sysctl -p /etc/sysctl.d/90-kubelet.conf
           sudo swapoff -a
         }
-  
-        os_setup
+
         dockerd_prereq
         systemctl_config
         kubernetes_install
@@ -451,10 +442,6 @@ spec:
 
             set -eux
 
-            function os_setup {
-              command -v "awk" >/dev/null 2>&1 || tdnf install -y awk
-            }
-
             function dockerd_prereq() {
               swapoff -a
               modprobe overlay
@@ -466,9 +453,9 @@ spec:
             net.bridge.bridge-nf-call-ip6tables = 1
             EOF
 
-              iptables -P INPUT ACCEPT
-              iptables -P OUTPUT ACCEPT
-              iptables -P FORWARD ACCEPT
+              iptables -w -P INPUT ACCEPT
+              iptables -w -P OUTPUT ACCEPT
+              iptables -w -P FORWARD ACCEPT
 
               sysctl --system
             }
@@ -481,10 +468,6 @@ spec:
             }
 
             function kubernetes_install() {
-              K8S_VERSION="${KUBERNETES_VERSION}"
-              KUBEADM_VERSION="${KUBERNETES_VERSION}"
-              # tdnf install -y kubernetes-${KUBERNETES_VERSION} kubernetes-kubeadm-${KUBERNETES_VERSION} kubernetes-pause-${KUBERNETES_VERSION}
-
               cat > /etc/sysctl.d/90-kubelet.conf << EOF
             vm.overcommit_memory=1
             kernel.panic=10
@@ -494,7 +477,6 @@ spec:
               sudo swapoff -a
             }
 
-            os_setup
             dockerd_prereq
             systemctl_config
             kubernetes_install
