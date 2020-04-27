@@ -66,8 +66,8 @@ type AzureStackHCIMachineReconciler struct {
 }
 
 const (
-	ManagementClusterName             = "clustergroup-wssdkubernetes"
-	ManagementClusterControlPlaneName = "clustergroup-wssdkubernetes-control-plane-0"
+	ManagementClusterName             = "clustergroup-management"
+	ManagementClusterControlPlaneName = "clustergroup-management-control-plane-0"
 )
 
 var managementClusterOverridenError = errors.New("Management Cluster is already overriden")
