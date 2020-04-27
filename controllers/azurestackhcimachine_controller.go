@@ -624,7 +624,7 @@ func (r *AzureStackHCIMachineReconciler) managementClusterOverride(machineScope 
 		Name:      ManagementClusterControlPlaneName,
 	}
 	if err := r.Client.Get(clusterScope.Context, azureStackMachineName, replacementMachine); err != nil {
-		machineScope.Info("Could not recieve the replacement machine", err)
+		machineScope.Info("Could not recieve the replacement machine")
 		return err
 	}
 
