@@ -61,8 +61,8 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	klog.V(2).Infof("creating keyvault %s ", vaultSpec.Name)
 	_, err := s.Client.CreateOrUpdate(ctx, s.Scope.GetResourceGroup(), vaultSpec.Name,
 		&security.KeyVault{
-			Name:       &vaultSpec.Name,
-			Properties: &security.KeyVaultProperties{},
+			Name:               &vaultSpec.Name,
+			KeyVaultProperties: &security.KeyVaultProperties{},
 		})
 	if err != nil {
 		return err
