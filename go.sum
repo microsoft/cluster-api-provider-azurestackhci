@@ -28,6 +28,7 @@ github.com/Azure/go-autorest/tracing v0.5.0/go.mod h1:r/s2XiOKccPW3HrqB+W0TQzfbt
 github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
+github.com/KnicKnic/go-windows v0.0.3-0.20200421223124-91aad71334c6/go.mod h1:bq9qyrkvAvMH2HPlkix2bE/eDuRz1kzwyoV/ieVhqK0=
 github.com/MakeNowJust/heredoc v1.0.0/go.mod h1:mG5amYoWBHf8vpLOuehzbGGw0EHxpZZ6lCpQ4fNJ8LE=
 github.com/Microsoft/go-winio v0.4.14/go.mod h1:qXqCSQ3Xa7+6tgxaGTIe4Kpcdsi+P8jBhyzoq1bpyYA=
 github.com/NYTimes/gziphandler v0.0.0-20170623195520-56545f4a5d46/go.mod h1:3wb06e3pkSAbeQ52E9H9iFoQsEEwGN64994WTCIhntQ=
@@ -307,6 +308,8 @@ github.com/microsoft/moc v0.8.0-alpha.11 h1:NF5+0YVdbheRSx9xuQThTSC5E27Y3pbhBA5I
 github.com/microsoft/moc v0.8.0-alpha.11/go.mod h1:PqGEjmA+zZGxByg/hUfdpPyLGct8FaPuy2QNV/ooXok=
 github.com/microsoft/moc v0.8.0-alpha.12 h1:Kb1JizD0vhpjYktO8mIKt5ZfZkpgq1rOd4ifrHXx0Fw=
 github.com/microsoft/moc v0.8.0-alpha.12/go.mod h1:OY3uGfnjbE5SKplfdH57Y/v8kAJ3ggn80Moafzi1XUY=
+github.com/microsoft/moc v0.8.0-alpha.16 h1:k34QluL2/mzjkzTdHl6SPXPCEvtQK0py+XURX9WXVA4=
+github.com/microsoft/moc v0.8.0-alpha.16/go.mod h1:NDhD7TeowU9TNqCxw+l4NlTLPZN9SvtUM5ojoUcT6hE=
 github.com/microsoft/moc-sdk-for-go v0.7.0-alpha.4 h1:4Qpn9Y9htaK+WDk5YVeiROtKKLZ5nlWTMEa+MiihSv4=
 github.com/microsoft/moc-sdk-for-go v0.7.0-alpha.4/go.mod h1:LEk+ZF4WpxLOBiNzb7IwUSVqjwFj5SmahJyYaowS36M=
 github.com/microsoft/moc-sdk-for-go v0.8.0-alpha.3 h1:qdnig1idg6jtttGwIQpFVDsKf4aQfGpH1Rh+Q7b6UGU=
@@ -315,9 +318,12 @@ github.com/microsoft/moc-sdk-for-go v0.8.0-alpha.5 h1:9oMe1ULm+b/4MFWHMqA3Sm3F/i
 github.com/microsoft/moc-sdk-for-go v0.8.0-alpha.5/go.mod h1:nui7g0YWRYOayxPLnwvf0uFj8Vv+nq8kevBPVDCzq1w=
 github.com/microsoft/moc-sdk-for-go v0.8.0-alpha.6 h1:KY7YMUu21FoOqCQYA4zzpIdJjjBhn787AYwKBVDK9zY=
 github.com/microsoft/moc-sdk-for-go v0.8.0-alpha.6/go.mod h1:MDuZZGTbhJf9tpIxfkWqHKMwgxJd/LvZyBisluyMjH0=
+github.com/microsoft/moc-sdk-for-go v0.8.0-alpha.7 h1:2VVqiNZT81QrNosw4agQ2gYpYrhRZfjuLPtfqJ+hzqs=
+github.com/microsoft/moc-sdk-for-go v0.8.0-alpha.7/go.mod h1:0fPj++5TVCKxYtCk3qkhUpQrBaHGMj8Z68CDhULAbRg=
 github.com/microsoft/wmi v0.1.0/go.mod h1:9RAp65T3V4k+u4p4ROpgz/8MDeSq5SMC3eMwjlHk6m0=
 github.com/microsoft/wmi v0.1.1/go.mod h1:oOGdx0ldEw0MQPbY7f7SAikscrHoZynFFgx/9+V+SbY=
 github.com/microsoft/wmi v0.1.2/go.mod h1:oOGdx0ldEw0MQPbY7f7SAikscrHoZynFFgx/9+V+SbY=
+github.com/microsoft/wmi v0.1.3/go.mod h1:oOGdx0ldEw0MQPbY7f7SAikscrHoZynFFgx/9+V+SbY=
 github.com/miekg/dns v1.1.3/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3Nrg=
 github.com/mitchellh/go-homedir v1.1.0/go.mod h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrkLzIz1N1q0pr0=
 github.com/mitchellh/mapstructure v1.1.2 h1:fmNYVwqnSfB9mZU6OS2O6GsXM+wcskZDuKQzvN1EDeE=
@@ -529,6 +535,8 @@ golang.org/x/net v0.0.0-20200320220750-118fecf932d8 h1:1+zQlQqEEhUeStBTi653GZAnA
 golang.org/x/net v0.0.0-20200320220750-118fecf932d8/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
 golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e h1:3G+cUijn7XD+S4eJFddp53Pv7+slrESplyjG25HgL+k=
 golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e/go.mod h1:qpuaurCH72eLCgpAm/N6yyVIVM9cpaDIP3A8BGJEC5A=
+golang.org/x/net v0.0.0-20200421231249-e086a090c8fd h1:QPwSajcTUrFriMF1nJ3XzgoqakqQEsnZf9LdXdi2nkI=
+golang.org/x/net v0.0.0-20200421231249-e086a090c8fd/go.mod h1:qpuaurCH72eLCgpAm/N6yyVIVM9cpaDIP3A8BGJEC5A=
 golang.org/x/oauth2 v0.0.0-20180821212333-d2e6202438be/go.mod h1:N/0e6XlmueqKjAGxoOufVs8QHGRruUQn6yWY3a++T0U=
 golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421/go.mod h1:gOpvHmFTYa4IltrdGE7lF6nIHvwfUNPOp7c8zoXwtLw=
 golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45 h1:SVwTIAaPC2U/AvvLNZ2a7OVsmBpC8L5BlwK1whH3hm0=
@@ -563,6 +571,7 @@ golang.org/x/sys v0.0.0-20190616124812-15dcb6c0061f/go.mod h1:h1NjWce9XRLGQEsW7w
 golang.org/x/sys v0.0.0-20190826190057-c7b8b68b1456/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20190922100055-0a153f010e69/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20191120155948-bd437916bb0e/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20191128015809-6d18c012aee9/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200116001909-b77594299b42/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200122134326-e047566fdf82/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200202164722-d101bd2416d5 h1:LfCXLvNmTYH9kEmVgqbnsWfruoXZIrh4YBgqVHtDvw0=
@@ -574,6 +583,8 @@ golang.org/x/sys v0.0.0-20200331124033-c3d80250170d h1:nc5K6ox/4lTFbMVSL9WRR81ix
 golang.org/x/sys v0.0.0-20200331124033-c3d80250170d/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200408040146-ea54a3c99b9b h1:h03Ur1RlPrGTjua4koYdpGl8W0eYo8p1uI9w7RPlkdk=
 golang.org/x/sys v0.0.0-20200408040146-ea54a3c99b9b/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20200420163511-1957bb5e6d1f h1:gWF768j/LaZugp8dyS4UwsslYCYz9XgFxvlgsn0n9H8=
+golang.org/x/sys v0.0.0-20200420163511-1957bb5e6d1f/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/text v0.0.0-20160726164857-2910a502d2bf/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.1-0.20180807135948-17ff2d5776d2/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
