@@ -27,6 +27,8 @@ spec:
     vnet:
       name: "${AZURESTACKHCI_VNET_NAME}"
   loadBalancer:
+    image:
+      osType: "Linux"
     sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY}
     vmSize: "${AZURESTACKHCI_LOAD_BALANCER_MACHINE_TYPE}"
   version: "${KUBERNETES_VERSION}"

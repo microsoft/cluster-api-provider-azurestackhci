@@ -97,6 +97,7 @@ spec:
                   vmSize:
                     type: string
                 required:
+                - image
                 - sshPublicKey
                 - vmSize
                 type: object

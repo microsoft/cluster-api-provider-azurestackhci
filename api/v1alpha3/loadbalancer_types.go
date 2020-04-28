@@ -29,7 +29,7 @@ const (
 
 type LoadBalancerSpec struct {
 	SSHPublicKey string `json:"sshPublicKey"`
-	Image        Image  `json:"image,omitempty"`
+	Image        Image  `json:"image"`
 	VMSize       string `json:"vmSize"`
 }
 
