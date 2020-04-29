@@ -103,6 +103,9 @@ spec:
                 type: object
               location:
                 type: string
+              management:
+                description: mgmt
+                type: boolean
               networkSpec:
                 description: NetworkSpec encapsulates all things related to Azure
                   network.

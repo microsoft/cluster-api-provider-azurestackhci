@@ -159,7 +159,7 @@ func GetSecret(ctx context.Context, cli client.Client, name string) (*corev1.Sec
 	}
 
 	if err := cli.Get(ctx, secretKey, secret); err != nil {
-		return nil, errors.Wrapf(err, "kubernetes secret query for wssd access token failed")
+		return nil, errors.Wrapf(err, "kubernetes secret query failed")
 	}
 
 	return secret, nil
@@ -177,7 +177,7 @@ func CreateSecret(ctx context.Context, cli client.Client, name string, data []by
 	}
 
 	if err := cli.Create(ctx, secret); err != nil {
-		return nil, errors.Wrapf(err, "kubernetes secret query for wssd access token failed")
+		return nil, errors.Wrapf(err, "kubernetes secret create failed")
 	}
 
 	return secret, nil

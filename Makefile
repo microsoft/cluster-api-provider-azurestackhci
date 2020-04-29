@@ -171,6 +171,7 @@ modules: ## Runs go mod to ensure proper vendoring.
 generate: ## Generate code
 	$(MAKE) generate-go
 	$(MAKE) generate-manifests
+	$(MAKE) generate-flavors
 
 .PHONY: generate-go
 generate-go: $(CONTROLLER_GEN) $(MOCKGEN) $(CONVERSION_GEN) ## Runs Go related generate targets
@@ -197,6 +198,9 @@ generate-manifests: $(CONTROLLER_GEN) ## Generate manifests e.g. CRD, RBAC etc.
 		output:rbac:dir=$(RBAC_ROOT) \
 		rbac:roleName=manager-role
 
+.PHONY: generate-flavors ## Generate template flavors
+generate-flavors:
+	./hack/gen-flavors.sh
 ## --------------------------------------
 ## Docker
 ## --------------------------------------

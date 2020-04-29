@@ -46,6 +46,9 @@ type AzureStackHCIClusterSpec struct {
 
 	// Version indicates the desired Kubernetes version of the cluster.
 	Version *string `json:"version"`
+
+	// mgmt
+	Management bool `json:"management,omitempty"`
 }
 
 // AzureStackHCIClusterStatus defines the observed state of AzureStackHCICluster
