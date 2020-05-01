@@ -318,7 +318,7 @@ dev-release:
 	$(MAKE) release
 
 .PHONY: create-local-provider-repository
-create-local-provider-repository: $(ENVSUBST)
+create-local-provider-repository: $(ENVSUBST) generate-flavors
 	# Create the required directories
 	mkdir -p $(LOCAL_REPOSITORY)/
 	mkdir -p $(HOME)/.cluster-api/

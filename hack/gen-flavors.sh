@@ -20,9 +20,9 @@ set -o pipefail
 #set -o verbose
 
 root=$(dirname "${BASH_SOURCE[0]}")/..
+templates_dir="${root}/templates"
 flavors_dir="${root}/templates/flavors/"
-release_dir="${root}/out"
 
-kustomize build ${flavors_dir}/mgmt > ${release_dir}/cluster-template-mgmt.yaml
+kustomize build ${flavors_dir}/mgmt > ${templates_dir}/cluster-template-mgmt.yaml
 # Workaround: Can't run the base cluster-template through kustomize with the windows addons.yaml
-cat ${flavors_dir}/base/cluster-template.yaml > ${release_dir}/cluster-template.yaml
+cat ${flavors_dir}/base/cluster-template.yaml > ${templates_dir}/cluster-template.yaml
