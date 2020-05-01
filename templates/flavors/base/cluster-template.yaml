@@ -68,32 +68,9 @@ spec:
       scheduler:
         extraArgs:
           bind-address: "0.0.0.0"
-    preKubeadmCommands:
-    - bash -c /tmp/kubeadm-bootstrap.sh
     postKubeadmCommands:
     - bash -c /tmp/kubeadm-postinstall.sh
     files:
-    - path: /etc/rc.d/init.d/azurestackhci_boot.sh
-      owner: root:root
-      permissions: '0755'
-      content: |
-        #!/bin/bash
-        iptables-restore -v -w < /etc/sysconfig/iptables
-    - path: /etc/systemd/system/azurestackhci_boot.service
-      owner: root:root
-      permissions: '0644'
-      content: |
-        [Unit]
-        Description=azurestackhci_boot
-        After=network.target
-        
-        [Service]
-        Type=simple
-        ExecStart=/etc/rc.d/init.d/azurestackhci_boot.sh
-        TimeoutStartSec=0
-        
-        [Install]
-        WantedBy=default.target
     - path: /etc/kubernetes/cni/win-kube-proxy.yaml
       owner: "root:root"
       permissions: "0744"
@@ -248,52 +225,6 @@ spec:
                   type: null
           updateStrategy:
             type: RollingUpdate
-    - path: /tmp/kubeadm-bootstrap.sh
-      owner: "root:root"
-      permissions: "0744"
-      content: |
-        #!/bin/bash
-  
-        set -eux
-  
-        function dockerd_prereq() {
-          swapoff -a
-          modprobe overlay
-          modprobe br_netfilter
-  
-          cat > /etc/sysctl.d/99-sysctl-kubernetes-cri.conf <<EOF
-        net.bridge.bridge-nf-call-iptables  = 1
-        net.ipv4.ip_forward                 = 1
-        net.bridge.bridge-nf-call-ip6tables = 1
-        EOF
-  
-          iptables -w -P INPUT ACCEPT
-          iptables -w -P OUTPUT ACCEPT
-          iptables -w -P FORWARD ACCEPT
-  
-          sysctl --system
-        }
-  
-        function systemctl_config() {
-          systemctl daemon-reload
-          systemctl enable docker
-          systemctl restart docker
-          systemctl enable azurestackhci_boot
-        }
-  
-        function kubernetes_install() {
-          cat > /etc/sysctl.d/90-kubelet.conf << EOF
-        vm.overcommit_memory=1
-        kernel.panic=10
-        kernel.panic_on_oops=1
-        EOF
-          sysctl -p /etc/sysctl.d/90-kubelet.conf
-          sudo swapoff -a
-        }
-
-        dockerd_prereq
-        systemctl_config
-        kubernetes_install
     - path: /tmp/kubeadm-postinstall.sh
       owner: "root:root"
       permissions: "0744"
@@ -302,14 +233,6 @@ spec:
   
         set -euxo pipefail
 
-        function flannel_install() {
-          KUBECONFIG=/etc/kubernetes/admin.conf kubectl apply -f /etc/kubernetes/cni/kube-flannel.yml
-        }
-
-        function kube_proxy_install() {
-          KUBECONFIG=/etc/kubernetes/admin.conf kubectl apply -f /etc/kubernetes/cni/win-kube-proxy.yaml
-        }
-  
         # Temp, this responsibility will move to caph
         function patch_node_providerid() {
           for value in {1..10}
@@ -320,14 +243,7 @@ spec:
             break
           done
         }
-  
-        function save_iptables_config() {
-          iptables-save > /etc/sysconfig/iptables
-        }
-  
-        flannel_install
-        kube_proxy_install
-        save_iptables_config
+
         patch_node_providerid
   version: "${KUBERNETES_VERSION}"
 ---
@@ -391,32 +307,9 @@ spec:
         nodeRegistration:
           name: '{{ ds.meta_data["local_hostname"] }}'
           cloud-provider: external
-      preKubeadmCommands:
-        - bash -c /tmp/kubeadm-bootstrap.sh
       postKubeadmCommands:
         - bash -c /tmp/kubeadm-postinstall.sh
       files:
-        - path: /etc/rc.d/init.d/azurestackhci_boot.sh
-          owner: root:root
-          permissions: '0755'
-          content: |
-            #!/bin/bash
-            iptables-restore -v -w < /etc/sysconfig/iptables
-        - path: /etc/systemd/system/azurestackhci_boot.service
-          owner: root:root
-          permissions: '0644'
-          content: |
-            [Unit]
-            Description=azurestackhci_boot
-            After=network.target
-            
-            [Service]
-            Type=simple
-            ExecStart=/etc/rc.d/init.d/azurestackhci_boot.sh
-            TimeoutStartSec=0
-            
-            [Install]
-            WantedBy=default.target
         - path: /tmp/kubeadm-postinstall.sh
           owner: "root:root"
           permissions: "0744"
@@ -436,58 +329,7 @@ spec:
               done
             }
 
-            function save_iptables_config() {
-              iptables-save > /etc/sysconfig/iptables
-            }
-
-            save_iptables_config
             patch_node_providerid
-        - path: /tmp/kubeadm-bootstrap.sh
-          owner: "root:root"
-          permissions: "0744"
-          content: |
-            #!/bin/bash
-
-            set -eux
-
-            function dockerd_prereq() {
-              swapoff -a
-              modprobe overlay
-              modprobe br_netfilter
-
-              cat > /etc/sysctl.d/99-sysctl-kubernetes-cri.conf <<EOF
-            net.bridge.bridge-nf-call-iptables  = 1
-            net.ipv4.ip_forward                 = 1
-            net.bridge.bridge-nf-call-ip6tables = 1
-            EOF
-
-              iptables -w -P INPUT ACCEPT
-              iptables -w -P OUTPUT ACCEPT
-              iptables -w -P FORWARD ACCEPT
-
-              sysctl --system
-            }
-
-            function systemctl_config() {
-              systemctl daemon-reload
-              systemctl enable docker
-              systemctl restart docker
-              systemctl enable azurestackhci_boot
-            }
-
-            function kubernetes_install() {
-              cat > /etc/sysctl.d/90-kubelet.conf << EOF
-            vm.overcommit_memory=1
-            kernel.panic=10
-            kernel.panic_on_oops=1
-            EOF
-              sysctl -p /etc/sysctl.d/90-kubelet.conf
-              sudo swapoff -a
-            }
-
-            dockerd_prereq
-            systemctl_config
-            kubernetes_install
 ---
 apiVersion: cluster.x-k8s.io/v1alpha3
 kind: MachineDeployment
