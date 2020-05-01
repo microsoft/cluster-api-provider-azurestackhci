@@ -171,6 +171,7 @@ modules: ## Runs go mod to ensure proper vendoring.
 generate: ## Generate code
 	$(MAKE) generate-go
 	$(MAKE) generate-manifests
+	$(MAKE) generate-flavors
 
 .PHONY: generate-go
 generate-go: $(CONTROLLER_GEN) $(MOCKGEN) $(CONVERSION_GEN) ## Runs Go related generate targets
@@ -197,6 +198,9 @@ generate-manifests: $(CONTROLLER_GEN) ## Generate manifests e.g. CRD, RBAC etc.
 		output:rbac:dir=$(RBAC_ROOT) \
 		rbac:roleName=manager-role
 
+.PHONY: generate-flavors ## Generate template flavors
+generate-flavors:
+	./hack/gen-flavors.sh
 ## --------------------------------------
 ## Docker
 ## --------------------------------------
@@ -314,7 +318,7 @@ dev-release:
 	$(MAKE) release
 
 .PHONY: create-local-provider-repository
-create-local-provider-repository: $(ENVSUBST)
+create-local-provider-repository: $(ENVSUBST) generate-flavors
 	# Create the required directories
 	mkdir -p $(LOCAL_REPOSITORY)/
 	mkdir -p $(HOME)/.cluster-api/

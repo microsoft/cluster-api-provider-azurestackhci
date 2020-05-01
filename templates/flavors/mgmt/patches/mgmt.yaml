@@ -1,0 +1,113 @@
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+kind: AzureStackHCICluster
+metadata:
+  name: ${CLUSTER_NAME}
+spec:
+  management: true
+---
+kind: KubeadmControlPlane
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+metadata:
+  name: "${CLUSTER_NAME}-control-plane"
+spec:
+  kubeadmConfigSpec:
+    files:
+    - path: /etc/rc.d/init.d/azurestackhci_boot.sh
+      owner: root:root
+      permissions: '0755'
+      content: |
+        #!/bin/bash
+        iptables-restore -v -w < /etc/sysconfig/iptables
+    - path: /etc/systemd/system/azurestackhci_boot.service
+      owner: root:root
+      permissions: '0644'
+      content: |
+        [Unit]
+        Description=azurestackhci_boot
+        After=network.target
+        
+        [Service]
+        Type=simple
+        ExecStart=/etc/rc.d/init.d/azurestackhci_boot.sh
+        TimeoutStartSec=0
+        
+        [Install]
+        WantedBy=default.target
+    - path: /tmp/kubeadm-bootstrap.sh
+      owner: "root:root"
+      permissions: "0744"
+      content: |
+        #!/bin/bash
+  
+        set -eux
+  
+        function dockerd_prereq() {
+          swapoff -a
+          modprobe overlay
+          modprobe br_netfilter
+  
+          cat > /etc/sysctl.d/99-sysctl-kubernetes-cri.conf <<EOF
+        net.bridge.bridge-nf-call-iptables  = 1
+        net.ipv4.ip_forward                 = 1
+        net.bridge.bridge-nf-call-ip6tables = 1
+        EOF
+  
+          iptables -w -P INPUT ACCEPT
+          iptables -w -P OUTPUT ACCEPT
+          iptables -w -P FORWARD ACCEPT
+  
+          sysctl --system
+        }
+  
+        function systemctl_config() {
+          systemctl daemon-reload
+          systemctl enable docker
+          systemctl restart docker
+          systemctl enable azurestackhci_boot
+        }
+  
+        function kubernetes_install() {
+          cat > /etc/sysctl.d/90-kubelet.conf << EOF
+        vm.overcommit_memory=1
+        kernel.panic=10
+        kernel.panic_on_oops=1
+        EOF
+          sysctl -p /etc/sysctl.d/90-kubelet.conf
+          sudo swapoff -a
+        }
+  
+        dockerd_prereq
+        systemctl_config
+        kubernetes_install
+    - path: /tmp/kubeadm-postinstall.sh
+      owner: "root:root"
+      permissions: "0744"
+      content: |
+        #!/bin/bash
+  
+        set -euxo pipefail
+
+        function flannel_install() {
+          KUBECONFIG=/etc/kubernetes/admin.conf kubectl apply -f /etc/kubernetes/cni/kube-flannel.yml
+        }
+  
+        # Temp, this responsibility will move to caph
+        function patch_node_providerid() {
+          for value in {1..10}
+          do
+            sleep 1
+            echo "Patch ProviderID (attempt $value)..."
+            KUBECONFIG=/etc/kubernetes/admin.conf kubectl patch node {{ ds.meta_data["local_hostname"] }} -p $'spec:\n providerID: azurestackhci:////{{ ds.meta_data["local_hostname"] }}' >/dev/null 2>&1 || continue
+            break
+          done
+        }
+  
+        function save_iptables_config() {
+          iptables-save > /etc/sysconfig/iptables
+        }
+  
+        flannel_install
+        save_iptables_config
+        patch_node_providerid
+  version: "${KUBERNETES_VERSION}"

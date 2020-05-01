@@ -4,4 +4,3 @@ kind: Kustomization
 namespace: default
 resources:
   - cluster-template.yaml
-  - cluster-template-mgmt.yaml

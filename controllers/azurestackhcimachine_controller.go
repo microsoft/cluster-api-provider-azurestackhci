@@ -66,8 +66,7 @@ type AzureStackHCIMachineReconciler struct {
 }
 
 const (
-	ManagementClusterName             = "clustergroup-management"
-	ManagementClusterControlPlaneName = "clustergroup-management-control-plane-0"
+	ManagementClusterControlPlaneName = "control-plane-0"
 )
 
 var managementClusterOverridenError = errors.New("Management Cluster is already overriden")
@@ -172,7 +171,7 @@ func (r *AzureStackHCIMachineReconciler) Reconcile(req ctrl.Request) (_ ctrl.Res
 	}
 
 	// If we are creating the Management Cluster, we need to check if an override is needed
-	if machineScope.Cluster.Name == ManagementClusterName {
+	if machineScope.AzureStackHCICluster.Spec.Management {
 
 		err := r.managementClusterOverride(machineScope, clusterScope)
 		if err == nil {
@@ -618,24 +617,28 @@ func (r *AzureStackHCIMachineReconciler) managementClusterOverride(machineScope 
 		return managementClusterOverridenError
 	}
 
+	controlPlaneName := fmt.Sprintf("%s-%s", clusterScope.AzureStackHCICluster.Name, ManagementClusterControlPlaneName)
+
 	replacementMachine := &infrav1.AzureStackHCIMachine{}
 	azureStackMachineName := client.ObjectKey{
 		Namespace: machineScope.AzureStackHCIMachine.Namespace,
-		Name:      ManagementClusterControlPlaneName,
+		Name:      controlPlaneName,
 	}
-	if err := r.Client.Get(clusterScope.Context, azureStackMachineName, replacementMachine); err != nil {
-		machineScope.Info("Could not recieve the replacement machine")
-		return err
-	}
-
-	if len(replacementMachine.ObjectMeta.OwnerReferences) != 0 {
-		machineScope.Info("replacement machine is already owned")
+	if err := r.Client.Get(clusterScope.Context, azureStackMachineName, replacementMachine); err == nil {
+		machineScope.Info("replacement machine is already created")
 		return managementClusterOverridenError
 	}
 
-	replacementMachineHelper, err := patch.NewHelper(replacementMachine, r.Client)
-	if err != nil {
-		return errors.Wrap(err, "Replacement Machine patch helper failure")
+	replacementMachine = &infrav1.AzureStackHCIMachine{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: machineScope.AzureStackHCIMachine.Namespace,
+			Name:      controlPlaneName,
+		},
+		Spec: infrav1.AzureStackHCIMachineSpec{
+			Location:     machineScope.AzureStackHCIMachine.Spec.Location,
+			SSHPublicKey: machineScope.AzureStackHCIMachine.Spec.SSHPublicKey,
+			VMSize:       machineScope.AzureStackHCIMachine.Spec.VMSize,
+		},
 	}
 
 	machineHelper, err := patch.NewHelper(machineScope.Machine, r.Client)
@@ -646,6 +649,11 @@ func (r *AzureStackHCIMachineReconciler) managementClusterOverride(machineScope 
 	for _, ref := range machineScope.AzureStackHCIMachine.ObjectMeta.OwnerReferences {
 		replacementMachine.ObjectMeta.OwnerReferences = append(replacementMachine.ObjectMeta.OwnerReferences, ref)
 	}
+	replacementMachine.ObjectMeta.Labels = make(map[string]string)
+	for key, value := range machineScope.AzureStackHCIMachine.ObjectMeta.Labels {
+		replacementMachine.ObjectMeta.Labels[key] = value
+	}
+
 	machineScope.Machine.Spec.InfrastructureRef = corev1.ObjectReference{
 		APIVersion: infrav1.GroupVersion.String(),
 		Kind:       "AzureStackHCIMachine",
@@ -654,14 +662,15 @@ func (r *AzureStackHCIMachineReconciler) managementClusterOverride(machineScope 
 		UID:        replacementMachine.UID,
 	}
 
-	err = replacementMachineHelper.Patch(clusterScope.Context, replacementMachine)
-	if err != nil {
-		return errors.Wrap(err, "Replacement Machine patch failure")
-	}
-
 	err = machineHelper.Patch(clusterScope.Context, machineScope.Machine)
 	if err != nil {
 		return errors.Wrap(err, "Machine patch failure")
+	}
+
+	if err := r.Client.Create(clusterScope.Context, replacementMachine); err != nil {
+		if !apierrors.IsNotFound(err) {
+			return errors.Wrapf(err, "Creating override machine failed ")
+		}
 	}
 
 	if err := r.Client.Delete(clusterScope.Context, machineScope.AzureStackHCIMachine); err != nil {

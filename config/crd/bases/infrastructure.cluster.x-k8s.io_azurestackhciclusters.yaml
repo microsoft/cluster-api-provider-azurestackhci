@@ -103,6 +103,9 @@ spec:
                 type: object
               location:
                 type: string
+              management:
+                description: Management is true when the cluster is a Management Cluster.
+                type: boolean
               networkSpec:
                 description: NetworkSpec encapsulates all things related to Azure
                   network.
