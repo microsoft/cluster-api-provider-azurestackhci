@@ -59,7 +59,8 @@ spec:
     clusterConfiguration:
       apiServer:
         timeoutForControlPlane: 20m
-        cloud-provider: external
+        extraArgs:
+          cloud-provider: external
       controllerManager:
         extraArgs:
           terminated-pod-gc-threshold: "10"
@@ -293,7 +294,7 @@ spec:
       image:
         osType: "Linux"
       location: "westus"
-      vmSize: ${AZURESTACKHCI_NODE_MACHINE_TYPE}
+      vmSize: ${AZURESTACKHCI_LINUX_WORKER_MACHINE_TYPE}
       sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY}
 ---
 apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
@@ -306,7 +307,8 @@ spec:
       joinConfiguration:
         nodeRegistration:
           name: '{{ ds.meta_data["local_hostname"] }}'
-          cloud-provider: external
+          kubeletExtraArgs:
+            cloud-provider: external
       postKubeadmCommands:
         - bash -c /tmp/kubeadm-postinstall.sh
       files:
@@ -364,7 +366,7 @@ spec:
       image:
         osType: "Windows"
       location: "westus"
-      vmSize: ${AZURESTACKHCI_NODE_MACHINE_TYPE}
+      vmSize: ${AZURESTACKHCI_WINDOWS_WORKER_MACHINE_TYPE}
       sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY}
 ---
 apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
