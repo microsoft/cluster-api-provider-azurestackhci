@@ -12,6 +12,7 @@ metadata:
   name: "${CLUSTER_NAME}-control-plane"
 spec:
   kubeadmConfigSpec:
+    files:
     - path: /tmp/kubeadm-postinstall.sh
       owner: "root:root"
       permissions: "0744"

@@ -345,7 +345,7 @@ spec:
   template:
     spec:
       clusterName: "${CLUSTER_NAME}"
-      version: "1.16.2"
+      version: "${KUBERNETES_VERSION}"
       bootstrap:
         configRef:
           name: "${CLUSTER_NAME}-md-1"
