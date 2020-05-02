@@ -13,12 +13,34 @@ metadata:
 spec:
   kubeadmConfigSpec:
     files:
+    - path: /etc/systemd/system/docker.service.d/exec_start.conf
+      owner: root:root
+      permissions: '0644'
+      content: |
+        [Service]
+        ExecStartPost=/sbin/iptables -w -P INPUT ACCEPT
+        ExecStartPost=/sbin/iptables -w -P OUTPUT ACCEPT
+        ExecStartPost=/sbin/iptables -w -P FORWARD ACCEPT
+    - path: /tmp/kubeadm-bootstrap.sh
+      owner: "root:root"
+      permissions: "0744"
+      content: |
+        #!/bin/bash
+
+        set -eux
+
+        function systemctl_config() {
+          systemctl daemon-reload
+          systemctl restart docker
+        }
+
+        systemctl_config
     - path: /tmp/kubeadm-postinstall.sh
       owner: "root:root"
       permissions: "0744"
       content: |
         #!/bin/bash
-  
+
         set -euxo pipefail
 
         # Temp, this responsibility will move to caph
@@ -31,6 +53,5 @@ spec:
             break
           done
         }
-  
         patch_node_providerid
   version: "${KUBERNETES_VERSION}"

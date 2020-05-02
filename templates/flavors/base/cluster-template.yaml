@@ -69,9 +69,19 @@ spec:
       scheduler:
         extraArgs:
           bind-address: "0.0.0.0"
+    preKubeadmCommands:
+    - bash -c /tmp/kubeadm-bootstrap.sh
     postKubeadmCommands:
     - bash -c /tmp/kubeadm-postinstall.sh
     files:
+    - path: /etc/systemd/system/docker.service.d/exec_start.conf
+      owner: root:root
+      permissions: '0644'
+      content: |
+        [Service]
+        ExecStartPost=/sbin/iptables -w -P INPUT ACCEPT
+        ExecStartPost=/sbin/iptables -w -P OUTPUT ACCEPT
+        ExecStartPost=/sbin/iptables -w -P FORWARD ACCEPT
     - path: /etc/kubernetes/cni/win-kube-proxy.yaml
       owner: "root:root"
       permissions: "0744"
@@ -226,6 +236,15 @@ spec:
                   type: null
           updateStrategy:
             type: RollingUpdate
+    - path: /tmp/kubeadm-bootstrap.sh
+      owner: "root:root"
+      permissions: "0744"
+      content: |
+        #!/bin/bash
+
+        set -eux
+        systemctl daemon-reload
+        systemctl restart docker
     - path: /tmp/kubeadm-postinstall.sh
       owner: "root:root"
       permissions: "0744"
@@ -309,9 +328,19 @@ spec:
           name: '{{ ds.meta_data["local_hostname"] }}'
           kubeletExtraArgs:
             cloud-provider: external
+      preKubeadmCommands:
+        - bash -c /tmp/kubeadm-bootstrap.sh
       postKubeadmCommands:
         - bash -c /tmp/kubeadm-postinstall.sh
       files:
+        - path: /etc/systemd/system/docker.service.d/exec_start.conf
+          owner: root:root
+          permissions: '0644'
+          content: |
+            [Service]
+            ExecStartPost=/sbin/iptables -w -P INPUT ACCEPT
+            ExecStartPost=/sbin/iptables -w -P OUTPUT ACCEPT
+            ExecStartPost=/sbin/iptables -w -P FORWARD ACCEPT
         - path: /tmp/kubeadm-postinstall.sh
           owner: "root:root"
           permissions: "0744"
@@ -332,6 +361,16 @@ spec:
             }
 
             patch_node_providerid
+        - path: /tmp/kubeadm-bootstrap.sh
+          owner: "root:root"
+          permissions: "0744"
+          content: |
+            #!/bin/bash
+
+            set -eux
+
+            systemctl daemon-reload
+            systemctl restart docker
 ---
 apiVersion: cluster.x-k8s.io/v1alpha3
 kind: MachineDeployment
