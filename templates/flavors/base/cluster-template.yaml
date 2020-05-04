@@ -227,14 +227,19 @@ spec:
           permissions: "0744"
           content: |
             #ps1
-            for($i = 0; $i -lt 60; $i++) {
-              if ((Get-Service docker).Status -eq "Running")
-              {
-                echo "Docker service is running."
-                exit
+            for($tries = 0; $tries -lt 2; $tries++) {
+              for($i = 0; $i -lt 60; $i++) {
+                if ((Get-Service docker).Status -eq "Running")
+                {
+                  echo "Docker service is running."
+                  exit
+                }
+                echo "Waiting docker service..."
+                start-sleep -s 2
               }
-              echo "Waiting docker service..."
-              start-sleep -s 2
+
+              & sc.exe start docker
+              echo "Trying to start docker service..."
             }
         - path: C:\ECP-Cache\ApplyPatch.ps1
           permissions: "0744"
