@@ -19,24 +19,16 @@ package controllers
 
 import (
 	"context"
-	"encoding/base64"
-	"encoding/json"
 	"sync"
 	"time"
 
-	"golang.org/x/text/encoding/unicode"
-
 	"fmt"
-	"strings"
 
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/go-logr/logr"
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
-	winapi "github.com/microsoft/cluster-api-provider-azurestackhci/api/windows"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
-	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/secrets"
-	"github.com/microsoft/moc-sdk-for-go/services/security/keyvault"
 
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
@@ -438,168 +430,6 @@ func (r *AzureStackHCIMachineReconciler) getVMImage(scope *scope.MachineScope) (
 	}
 
 	return azurestackhci.GetDefaultImage(scope.AzureStackHCIMachine.Spec.Image.OSType, to.String(scope.Machine.Spec.Version))
-}
-
-func (r *AzureStackHCIMachineReconciler) getWindowsBootstrapData(clusterScope *scope.ClusterScope) (string, error) {
-
-	secretsSvc := secrets.NewService(clusterScope)
-
-	secretInterface, err := secretsSvc.Get(clusterScope.Context, &secrets.Spec{Name: "kubeconf", VaultName: clusterScope.Name()})
-	if err != nil {
-		return "", errors.Wrap(err, "error retrieving 'conf' secret")
-	}
-	conf, ok := secretInterface.(keyvault.Secret)
-	if !ok {
-		return "", errors.New("error retrieving 'conf' secret")
-	}
-
-	//Temp until CABPK work is complete
-	secretInterface, err = secretsSvc.Get(clusterScope.Context, &secrets.Spec{Name: "joincommand", VaultName: clusterScope.Name()})
-	if err != nil {
-		return "", errors.Wrap(err, "error retrieving 'joincommand' secret")
-	}
-	joinCmd, ok := secretInterface.(keyvault.Secret)
-	if !ok {
-		return "", errors.New("error retrieving 'joincommand' secret")
-	}
-
-	joinArray := strings.Fields(*joinCmd.Value)
-
-	//Temp: Replace with clusterScope.Cluster.Spec.ApiEndoints[0] ?
-	masterIP := strings.Split(joinArray[2], ":")[0]
-
-	//dummy not needed
-	username := "masteruser"
-	token := joinArray[4]
-	hash := joinArray[6]
-
-	clusterCidr := clusterScope.Cluster.Spec.ClusterNetwork.Pods.CIDRBlocks[0]
-	//The following line is broken
-	//serviceCidr := clusterScope.Cluster.Spec.ClusterNetwork.Services.CIDRBlocks[0]
-	serviceCidr := "10.96.0.0/12"
-
-	kubecluster := winapi.KubeCluster{
-		Cri: winapi.Cri{
-			Name: "dockerd",
-			Images: winapi.Images{
-				Pause:      "kubeletwin/pause",
-				Nanoserver: "microsoft/nanoserver",
-				ServerCore: "microsoft/windowsservercore",
-			},
-		},
-		Cni: winapi.Cni{
-			Name: "flannel",
-			Source: winapi.CniSource{
-				Name: "flanneld",
-				Url:  "https://github.com/coreos/flannel/releases/download/v0.11.0/flanneld.exe",
-			},
-			Plugin: winapi.Plugin{
-				Name: "vxlan",
-			},
-			//TODO: Fill out with expected interface name, probably will change the KubeCluster scripts to do this
-			InterfaceName: "Ethernet 2",
-		},
-		Kubernetes: winapi.Kubernetes{
-			Source: winapi.KubernetesSource{
-				Release: "1.16.2",
-				Url:     "https://dl.k8s.io/v1.16.2/kubernetes-node-windows-amd64.tar.gz",
-			},
-			ControlPlane: winapi.ControlPlane{
-				IpAddress:     masterIP,
-				Username:      username,
-				KubeadmToken:  token,
-				KubeadmCAHash: hash,
-			},
-			KubeProxy: winapi.KubeProxy{
-				Gates: "WinOverlay=true",
-			},
-			Network: winapi.Network{
-				ServiceCidr: serviceCidr,
-				ClusterCidr: clusterCidr,
-			},
-		},
-		Install: winapi.Install{
-			Destination: "C:\\ProgramData\\Kubernetes",
-		},
-	}
-
-	kubeclusterJSON, err := json.Marshal(kubecluster)
-	if err != nil {
-		return "", err
-	}
-
-	kubeconfig := *conf.Value
-	psScript := `
-				$cmd = $cmd = (Get-Service docker -ErrorAction SilentlyContinue).Status -eq "Running"
-				while (!$cmd)
-				{
-					Start-Sleep -s 1
-					$cmd = (Get-Service docker -ErrorAction SilentlyContinue).Status -eq "Running"
-				}
-				$BaseDir = "$env:ALLUSERSPROFILE\Kubernetes"
-				mkdir $BaseDir
-				$jsonString = '` + string(kubeclusterJSON) + `'
-				Set-Content -Path $BaseDir/kubecluster.json -Value $jsonString
-				$kubeconfig = '` + kubeconfig + `'
-				Set-Content -Path $BaseDir/config -Value $kubeconfig
-
-				$secureProtocols = @()
-				$insecureProtocols = @([System.Net.SecurityProtocolType]::SystemDefault, [System.Net.SecurityProtocolType]::Ssl3)
-				foreach ($protocol in [System.Enum]::GetValues([System.Net.SecurityProtocolType]))
-				{
-					if ($insecureProtocols -notcontains $protocol)
-					{
-						$secureProtocols += $protocol
-					}
-				}
-				[System.Net.ServicePointManager]::SecurityProtocol = $secureProtocols
-
-				$Url = "https://raw.githubusercontent.com/ksubrmnn/sig-windows-tools/bootstrap/kubeadm/KubeClusterHelper.psm1"
-				$Destination = "$BaseDir/KubeClusterHelper.psm1"
-				try {
-					(New-Object System.Net.WebClient).DownloadFile($Url,$Destination)
-					Write-Host "Downloaded [$Url] => [$Destination]"
-				} catch {
-					Write-Error "Failed to download $Url"
-					throw
-				}
-				ipmo $BaseDir/KubeClusterHelper.psm1
-				DownloadFile -Url "https://raw.githubusercontent.com/ksubrmnn/sig-windows-tools/bootstrap/kubeadm/KubeCluster.ps1" -Destination "$BaseDir/KubeCluster.ps1"
-				docker tag microsoft/nanoserver:latest mcr.microsoft.com/windows/nanoserver:latest
-				Write-Host "Building kubeletwin/pause image"
-				pushd
-				cd $Global:BaseDir
-				DownloadFile -Url "https://github.com/madhanrm/SDN/raw/kubeadm/Kubernetes/windows/Dockerfile" -Destination $BaseDir\Dockerfile
-				docker build -t kubeletwin/pause .
-				
-
-				popd
-				
-				$scriptPath = [io.Path]::Combine($BaseDir, "KubeCluster.ps1")
-				$configPath = [io.Path]::Combine($BaseDir, "kubecluster.json")
-				.$scriptPath -install -ConfigFile  $configPath
-				.$scriptPath -join -ConfigFile $configPath
-				`
-
-	Utf16leEncoding := unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM)
-	if err != nil {
-		return "", err
-	}
-
-	psScriptEncodedUtf16, err := Utf16leEncoding.NewEncoder().String(psScript)
-	psScriptEncoded64, err := base64.StdEncoding.EncodeToString([]byte(psScriptEncodedUtf16)), nil
-	if err != nil {
-		return "", err
-	}
-
-	cmdScript := "mkdir %WINDIR%\\Setup\\Scripts &&  powershell.exe echo 'powershell.exe -encoded " + psScriptEncoded64 + " > C:\\logs.txt 2>&1' > %WINDIR%\\Setup\\Scripts\\SetupComplete.cmd"
-
-	cmdScriptEncoded, err := base64.StdEncoding.EncodeToString([]byte(cmdScript)), nil
-	if err != nil {
-		return "", err
-	}
-
-	return cmdScriptEncoded, nil
 }
 
 var (

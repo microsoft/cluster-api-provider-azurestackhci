@@ -71,7 +71,7 @@ data:
     }
     Remove-Item -Path $filePath
     Move-Item -Path $tempFilePath -Destination $filePath
-    wins cli process run --path /kube-proxy/kube-proxy.exe --args "--v=6 --config=/var/lib/kube-proxy/config.conf --hostname-override=$env:NODE_NAME --feature-gates=WinOverlay=true"
+    wins cli process run --path /kube-proxy/kube-proxy.exe --args "--config=/var/lib/kube-proxy/config.conf --hostname-override=$env:NODE_NAME --feature-gates=WinOverlay=true"
 kind: ConfigMap
 apiVersion: v1
 metadata:
@@ -126,7 +126,7 @@ spec:
         - mountPath: /var/lib/kube-proxy-windows
           name: kube-proxy-windows
       nodeSelector:
-        beta.kubernetes.io/os: windows
+        kubernetes.io/os: windows
       tolerations:
       - key: CriticalAddonsOnly
         operator: Exists
