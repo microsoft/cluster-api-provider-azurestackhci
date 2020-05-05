@@ -59,13 +59,10 @@ spec:
     clusterConfiguration:
       apiServer:
         timeoutForControlPlane: 20m
-        extraArgs:
-          cloud-provider: external
       controllerManager:
         extraArgs:
           terminated-pod-gc-threshold: "10"
           bind-address: "0.0.0.0"
-          cloud-provider: external
       scheduler:
         extraArgs:
           bind-address: "0.0.0.0"
@@ -307,8 +304,6 @@ spec:
       joinConfiguration:
         nodeRegistration:
           name: '{{ ds.meta_data["local_hostname"] }}'
-          kubeletExtraArgs:
-            cloud-provider: external
       postKubeadmCommands:
         - bash -c /tmp/kubeadm-postinstall.sh
       files:
