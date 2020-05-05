@@ -25,6 +25,7 @@ import (
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
+	infrav1util "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/util"
 	"github.com/pkg/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -152,6 +153,20 @@ func (r *AzureStackHCIClusterReconciler) reconcileDelete(clusterScope *scope.Clu
 	clusterScope.Info("Reconciling AzureStackHCICluster delete")
 
 	azureStackHCICluster := clusterScope.AzureStackHCICluster
+
+	// Steps to delete a cluster
+	// 1. Wait for machines in the cluster to be deleted
+	// 2. Delete the LoadBalancer
+	// 3. Delete the Cluster
+	azhciMachines, err := infrav1util.GetAzureStackHCIMachinesInCluster(clusterScope.Context, clusterScope.Client, clusterScope.AzureStackHCICluster.Namespace, clusterScope.AzureStackHCICluster.Name)
+	if err != nil {
+		return reconcile.Result{}, errors.Wrapf(err, "unable to list AzureStackHCIMachines part of AzureStackHCIClusters %s/%s", clusterScope.AzureStackHCICluster.Namespace, clusterScope.AzureStackHCICluster.Name)
+	}
+
+	if len(azhciMachines) > 0 {
+		clusterScope.Info("Waiting for AzureStackHCIMachines to be deleted", "count", len(azhciMachines))
+		return reconcile.Result{RequeueAfter: 20 * time.Second}, nil
+	}
 
 	if err := r.reconcileDeleteLoadBalancer(clusterScope); err != nil {
 		return reconcile.Result{}, errors.Wrapf(err, "Failed to delete AzureStackHCICluster LoadBalancer")
