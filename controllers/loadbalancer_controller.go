@@ -436,6 +436,8 @@ runcmd:
   curl -o /usr/sbin/lbagent %s/lbagent
   chmod 755 /usr/sbin/lbagent
   systemctl start lbagent
+  sysctl -w net.ipv4.ip_nonlocal_bind=1
+  systemctl reload haproxy
   systemctl stop iptables
 `, binarylocation)))
 	return &ret
