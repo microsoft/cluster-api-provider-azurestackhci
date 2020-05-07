@@ -1,4 +1,120 @@
 ---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+kind: AzureStackHCIMachineTemplate
+metadata:
+  name: "${CLUSTER_NAME}-md-0"
+spec:
+  template:
+    spec:
+      image:
+        osType: "Linux"
+      location: "westus"
+      vmSize: ${AZURESTACKHCI_WORKER_MACHINE_TYPE}
+      sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY}
+---
+kind: AzureStackHCIMachineTemplate
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+metadata:
+  name: "${CLUSTER_NAME}-control-plane"
+spec:
+  template:
+    spec:
+      image:
+        osType: "Linux"
+      location: "westus"
+      vmSize: ${AZURESTACKHCI_CONTROL_PLANE_MACHINE_TYPE}
+      sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY}
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
+kind: KubeadmConfigTemplate
+metadata:
+  name: "${CLUSTER_NAME}-md-0"
+spec:
+  template:
+    spec:
+      joinConfiguration:
+        nodeRegistration:
+          name: '{{ ds.meta_data["local_hostname"] }}'
+          kubeletExtraArgs:
+            cloud-provider: external
+      postKubeadmCommands:
+        - bash -c /tmp/kubeadm-postinstall.sh
+      files:
+        - path: /tmp/kubeadm-postinstall.sh
+          owner: "root:root"
+          permissions: "0744"
+          content: |
+            #!/bin/bash
+
+            set -euxo pipefail
+
+            # Temp, this responsibility will move to caph
+            function patch_node_providerid() {
+              for value in {1..10}
+              do
+                sleep 1
+                echo "Patch ProviderID (attempt $value)..."
+                KUBECONFIG=/etc/kubernetes/kubelet.conf kubectl patch node {{ ds.meta_data["local_hostname"] }} -p $'spec:\n providerID: azurestackhci:////{{ ds.meta_data["local_hostname"] }}' >/dev/null 2>&1 || continue
+                break
+              done
+            }
+
+            patch_node_providerid
+
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+kind: AzureStackHCIMachineTemplate
+metadata:
+  name: "${CLUSTER_NAME}-md-1"
+spec:
+  template:
+    spec:  
+      image:
+        osType: "Windows"
+      location: "westus"
+      vmSize: ${AZURESTACKHCI_WINDOWS_WORKER_MACHINE_TYPE}
+      sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY}
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
+kind: KubeadmConfigTemplate
+metadata:
+  name: "${CLUSTER_NAME}-md-1"
+spec:
+  template:
+    spec:
+      files:
+        - path: C:\ECP-Cache\WaitForDocker.ps1
+          permissions: "0744"
+          content: |
+            #ps1
+            for($i = 0; $i -lt 60; $i++) {
+              if ((Get-Service docker).Status -eq "Running")
+              {
+                echo "Docker service is running."
+                exit
+              }
+              echo "Waiting docker service..."
+              start-sleep -s 2
+            }
+        - path: C:\ECP-Cache\ApplyPatch.ps1
+          permissions: "0744"
+          content: |
+            #ps1
+            C:\ECP-Cache\kubernetes\kubectl.exe --kubeconfig=C:\etc\kubernetes\kubelet.conf patch node {{ v1.local_hostname }} -p "spec:`r`n providerID: azurestackhci:////{{ v1.local_hostname }}"
+      joinConfiguration:
+        nodeRegistration:
+          name: '{{ v1.local_hostname }}'
+      preKubeadmCommands:
+        - powershell C:\ECP-Cache\WaitForDocker.ps1
+        - docker network create -d nat host
+        - powershell -C "ipmo C:\ECP-Cache\hns.psm1;New-HNSNetwork -Type \"overlay\" -AddressPrefix \"192.168.255.0/30\" -Gateway \"192.168.255.1\" -Name \"External\" -AdapterName \"Ethernet 2\" -SubnetPolicies @(@{Type = \"VSID\"; VSID = 9999; }); start-sleep 10;"  
+      postKubeadmCommands:
+        - powershell C:\ECP-Cache\StartFlannel.ps1
+        - copy C:\Users\Administrator\.ssh\authorized_keys C:\ProgramData\ssh\administrators_authorized_keys
+        - icacls C:\ProgramData\ssh\administrators_authorized_keys /inheritance:r
+        - icacls C:\ProgramData\ssh\administrators_authorized_keys /grant "NT AUTHORITY\SYSTEM":R
+        - powershell C:\ECP-Cache\ApplyPatch.ps1
+---
 apiVersion: cluster.x-k8s.io/v1alpha3
 kind: Cluster
 metadata:
@@ -91,19 +207,6 @@ spec:
         patch_node_providerid
   version: "${KUBERNETES_VERSION}"
 ---
-kind: AzureStackHCIMachineTemplate
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
-metadata:
-  name: "${CLUSTER_NAME}-control-plane"
-spec:
-  template:
-    spec:
-      image:
-        osType: "Linux"
-      location: "westus"
-      vmSize: ${AZURESTACKHCI_CONTROL_PLANE_MACHINE_TYPE}
-      sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY}
----
 apiVersion: cluster.x-k8s.io/v1alpha3
 kind: MachineDeployment
 metadata:
@@ -112,7 +215,7 @@ spec:
   clusterName: "${CLUSTER_NAME}"
   replicas: ${WORKER_MACHINE_COUNT}
   selector:
-    matchLabels:
+    matchLabels: null
   template:
     spec:
       clusterName: "${CLUSTER_NAME}"
@@ -126,53 +229,6 @@ spec:
         name: "${CLUSTER_NAME}-md-0"
         apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
         kind: AzureStackHCIMachineTemplate
----
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
-kind: AzureStackHCIMachineTemplate
-metadata:
-  name: "${CLUSTER_NAME}-md-0"
-spec:
-  template:
-    spec:
-      image:
-        osType: "Linux"
-      location: "westus"
-      vmSize: ${AZURESTACKHCI_WORKER_MACHINE_TYPE}
-      sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY}
----
-apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
-kind: KubeadmConfigTemplate
-metadata:
-  name: "${CLUSTER_NAME}-md-0"
-spec:
-  template:
-    spec:
-      joinConfiguration:
-        nodeRegistration:
-          name: '{{ ds.meta_data["local_hostname"] }}'
-      postKubeadmCommands:
-        - bash -c /tmp/kubeadm-postinstall.sh
-      files:
-        - path: /tmp/kubeadm-postinstall.sh
-          owner: "root:root"
-          permissions: "0744"
-          content: |
-            #!/bin/bash
-
-            set -euxo pipefail
-
-            # Temp, this responsibility will move to caph
-            function patch_node_providerid() {
-              for value in {1..10}
-              do
-                sleep 1
-                echo "Patch ProviderID (attempt $value)..."
-                KUBECONFIG=/etc/kubernetes/kubelet.conf kubectl patch node {{ ds.meta_data["local_hostname"] }} -p $'spec:\n providerID: azurestackhci:////{{ ds.meta_data["local_hostname"] }}' >/dev/null 2>&1 || continue
-                break
-              done
-            }
-
-            patch_node_providerid
 ---
 apiVersion: cluster.x-k8s.io/v1alpha3
 kind: MachineDeployment
@@ -196,61 +252,3 @@ spec:
         name: "${CLUSTER_NAME}-md-1"
         apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
         kind: AzureStackHCIMachineTemplate
----
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
-kind: AzureStackHCIMachineTemplate
-metadata:
-  name: "${CLUSTER_NAME}-md-1"
-spec:
-  template:
-    spec:  
-      image:
-        osType: "Windows"
-      location: "westus"
-      vmSize: ${AZURESTACKHCI_WINDOWS_WORKER_MACHINE_TYPE}
-      sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY}
----
-apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
-kind: KubeadmConfigTemplate
-metadata:
-  name: "${CLUSTER_NAME}-md-1"
-spec:
-  template:
-    spec:
-      files:
-        - path: C:\ECP-Cache\WaitForDocker.ps1
-          permissions: "0744"
-          content: |
-            #ps1
-            for($tries = 0; $tries -lt 2; $tries++) {
-              for($i = 0; $i -lt 60; $i++) {
-                if ((Get-Service docker).Status -eq "Running")
-                {
-                  echo "Docker service is running."
-                  exit
-                }
-                echo "Waiting docker service..."
-                start-sleep -s 2
-              }
-
-              & sc.exe start docker
-              echo "Trying to start docker service..."
-            }
-        - path: C:\ECP-Cache\ApplyPatch.ps1
-          permissions: "0744"
-          content: |
-            #ps1
-            C:\ECP-Cache\kubernetes\kubectl.exe --kubeconfig=C:\etc\kubernetes\kubelet.conf patch node {{ v1.local_hostname }} -p "spec:`r`n providerID: azurestackhci:////{{ v1.local_hostname }}"
-      joinConfiguration:
-        nodeRegistration:
-          name: '{{ v1.local_hostname }}'
-      preKubeadmCommands:
-        - powershell C:\ECP-Cache\WaitForDocker.ps1
-        - docker network create -d nat host
-        - powershell -C "ipmo C:\ECP-Cache\hns.psm1;New-HNSNetwork -Type \"overlay\" -AddressPrefix \"192.168.255.0/30\" -Gateway \"192.168.255.1\" -Name \"External\" -AdapterName \"Ethernet 2\" -SubnetPolicies @(@{Type = \"VSID\"; VSID = 9999; }); start-sleep 10;"  
-      postKubeadmCommands:
-        - powershell C:\ECP-Cache\StartFlannel.ps1
-        - copy C:\Users\Administrator\.ssh\authorized_keys C:\ProgramData\ssh\administrators_authorized_keys
-        - icacls C:\ProgramData\ssh\administrators_authorized_keys /inheritance:r
-        - icacls C:\ProgramData\ssh\administrators_authorized_keys /grant "NT AUTHORITY\SYSTEM":R
-        - powershell C:\ECP-Cache\ApplyPatch.ps1
