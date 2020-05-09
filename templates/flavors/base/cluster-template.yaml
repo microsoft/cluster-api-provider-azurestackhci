@@ -121,14 +121,19 @@ spec:
         nodeRegistration:
           name: '{{ v1.local_hostname }}'
       preKubeadmCommands:
+        - powershell -c "mkdir -f C:\var\lib\kubelet\plugins"
+        - powershell -c "mkdir -f C:\var\lib\kubelet\plugins_registry"
+        - icacls C:\var\lib /inheritance:r /grant Administrators:(OI)(CI)(IO)(F) /grant system:(OI)(CI)(IO)(F)
+        - icacls C:\etc\kubernetes /inheritance:r /grant Administrators:(OI)(CI)(IO)(F) /grant system:(OI)(CI)(IO)(F)
+        - icacls C:\var\lib\kubelet\plugins\ /inheritancelevel:e /grant "Authenticated Users":(OI)(CI)(IO)(F)
+        - icacls C:\var\lib\kubelet\plugins_registry\ /inheritancelevel:e /grant "Authenticated Users":(OI)(CI)(IO)(F)
         - powershell C:\ECP-Cache\WaitForDocker.ps1
         - docker network create -d nat host
         - powershell -C "ipmo C:\ECP-Cache\hns.psm1;New-HNSNetwork -Type \"overlay\" -AddressPrefix \"192.168.255.0/30\" -Gateway \"192.168.255.1\" -Name \"External\" -AdapterName \"Ethernet 2\" -SubnetPolicies @(@{Type = \"VSID\"; VSID = 9999; }); start-sleep 10;"  
       postKubeadmCommands:
         - powershell C:\ECP-Cache\StartFlannel.ps1
         - copy C:\Users\Administrator\.ssh\authorized_keys C:\ProgramData\ssh\administrators_authorized_keys
-        - icacls C:\ProgramData\ssh\administrators_authorized_keys /inheritance:r
-        - icacls C:\ProgramData\ssh\administrators_authorized_keys /grant "NT AUTHORITY\SYSTEM":R
+        - icacls C:\ProgramData\ssh\administrators_authorized_keys /inheritance:r /grant "NT AUTHORITY\SYSTEM":R
         - powershell C:\ECP-Cache\ApplyPatch.ps1
 ---
 apiVersion: cluster.x-k8s.io/v1alpha3
