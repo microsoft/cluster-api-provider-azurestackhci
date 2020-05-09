@@ -35,8 +35,6 @@ spec:
       joinConfiguration:
         nodeRegistration:
           name: '{{ ds.meta_data["local_hostname"] }}'
-          kubeletExtraArgs:
-            cloud-provider: external
       postKubeadmCommands:
         - bash -c /tmp/kubeadm-postinstall.sh
       files:
