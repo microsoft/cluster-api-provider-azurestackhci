@@ -157,7 +157,8 @@ func (r *AzureStackHCIClusterReconciler) reconcileDelete(clusterScope *scope.Clu
 	// Steps to delete a cluster
 	// 1. Wait for machines in the cluster to be deleted
 	// 2. Delete the LoadBalancer
-	// 3. Delete the Cluster
+	// 3. Wait for LoadBalancer Deletion
+	// 4. Delete the Cluster
 	azhciMachines, err := infrav1util.GetAzureStackHCIMachinesInCluster(clusterScope.Context, clusterScope.Client, clusterScope.AzureStackHCICluster.Namespace, clusterScope.AzureStackHCICluster.Name)
 	if err != nil {
 		return reconcile.Result{}, errors.Wrapf(err, "unable to list AzureStackHCIMachines part of AzureStackHCIClusters %s/%s", clusterScope.AzureStackHCICluster.Namespace, clusterScope.AzureStackHCICluster.Name)
@@ -170,6 +171,19 @@ func (r *AzureStackHCIClusterReconciler) reconcileDelete(clusterScope *scope.Clu
 
 	if err := r.reconcileDeleteLoadBalancer(clusterScope); err != nil {
 		return reconcile.Result{}, errors.Wrapf(err, "Failed to delete AzureStackHCICluster LoadBalancer")
+	}
+
+	// Initialize the LoadBalancer struct and namespaced name for lookup
+	loadBalancer := &infrav1.LoadBalancer{}
+	loadBalancerName := apitypes.NamespacedName{
+		Namespace: clusterScope.Namespace(),
+		Name:      azurestackhci.GenerateLoadBalancerName(clusterScope.Name()),
+	}
+
+	// Try to get the LoadBalancer; if it still exists, requeue
+	if err := r.Client.Get(clusterScope.Context, loadBalancerName, loadBalancer); err == nil {
+		clusterScope.Info("Waiting for AzureStackHCILoadBalancer to be deleted", "name", loadBalancerName.Name)
+		return reconcile.Result{RequeueAfter: 20 * time.Second}, nil
 	}
 
 	if err := newAzureStackHCIClusterReconciler(clusterScope).Delete(); err != nil {
