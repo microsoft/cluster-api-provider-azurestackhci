@@ -201,6 +201,11 @@ spec:
       scheduler:
         extraArgs:
           bind-address: "0.0.0.0"
+      imageRepository: "mcr.microsoft.com/oss/kubernetes"
+      etcd:
+        local:
+          imageRepository: "mcr.microsoft.com/oss/etcd-io"
+          imageTag: "v3.3.15"
     postKubeadmCommands:
     - bash -c /tmp/kubeadm-postinstall.sh
     files:
