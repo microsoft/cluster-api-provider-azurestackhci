@@ -120,6 +120,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 				AdminUsername: to.StringPtr(azurestackhci.DefaultUserName),
 				AdminPassword: to.StringPtr(randomPassword),
 				CustomData:    to.StringPtr(vmSpec.CustomData),
+				OsType:        compute.OperatingSystemTypes(vmSpec.OSDisk.OSType),
 				LinuxConfiguration: &compute.LinuxConfiguration{
 					SSH: &compute.SSHConfiguration{
 						PublicKeys: &[]compute.SSHPublicKey{
@@ -154,15 +155,15 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		virtualMachine.OsProfile.AdminUsername = &username
 
 		virtualMachine.OsProfile.WindowsConfiguration = &compute.WindowsConfiguration{
-					SSH: &compute.SSHConfiguration{
-						PublicKeys: &[]compute.SSHPublicKey{
-							{
-								Path:    to.StringPtr(fmt.Sprintf("/users/%s/.ssh/authorized_keys", azurestackhci.DefaultUserName)),
-								KeyData: to.StringPtr(sshKeyData),
-							},
-						},
+			SSH: &compute.SSHConfiguration{
+				PublicKeys: &[]compute.SSHPublicKey{
+					{
+						Path:    to.StringPtr(fmt.Sprintf("/users/%s/.ssh/authorized_keys", azurestackhci.DefaultUserName)),
+						KeyData: to.StringPtr(sshKeyData),
 					},
-				};
+				},
+			},
+		}
 	}
 
 	_, err = s.Client.CreateOrUpdate(
@@ -201,7 +202,6 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 // generateStorageProfile generates a pointer to a compute.StorageProfile which can utilized for VM creation.
 func generateStorageProfile(vmSpec Spec) (*compute.StorageProfile, error) {
 	osDisk := &compute.OSDisk{
-		OsType: compute.OperatingSystemTypes(vmSpec.OSDisk.OSType),
 		Vhd: &compute.VirtualHardDisk{
 			URI: to.StringPtr(azurestackhci.GenerateOSDiskName(vmSpec.Name)),
 		},
