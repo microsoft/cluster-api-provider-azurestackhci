@@ -35,30 +35,8 @@ spec:
       joinConfiguration:
         nodeRegistration:
           name: '{{ ds.meta_data["local_hostname"] }}'
-      postKubeadmCommands:
-        - bash -c /tmp/kubeadm-postinstall.sh
-      files:
-        - path: /tmp/kubeadm-postinstall.sh
-          owner: "root:root"
-          permissions: "0744"
-          content: |
-            #!/bin/bash
-
-            set -euxo pipefail
-
-            # Temp, this responsibility will move to caph
-            function patch_node_providerid() {
-              for value in {1..10}
-              do
-                sleep 1
-                echo "Patch ProviderID (attempt $value)..."
-                KUBECONFIG=/etc/kubernetes/kubelet.conf kubectl patch node {{ ds.meta_data["local_hostname"] }} -p $'spec:\n providerID: azurestackhci:////{{ ds.meta_data["local_hostname"] }}' >/dev/null 2>&1 || continue
-                break
-              done
-            }
-
-            patch_node_providerid
-
+          kubeletExtraArgs:
+            cloud-provider: external
 ---
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
 kind: AzureStackHCIMachineTemplate
@@ -98,26 +76,11 @@ spec:
               & sc.exe start docker
               echo "Trying to start docker service..."
             }
-        - path: C:\ECP-Cache\ApplyPatch.ps1
-          permissions: "0744"
-          content: |
-            #ps1
-            for($i = 0; $i -lt 18; $i++) {
-              try
-              {
-                C:\ECP-Cache\kubernetes\kubectl.exe --kubeconfig=C:\etc\kubernetes\kubelet.conf patch node {{ v1.local_hostname }} -p "spec:`r`n providerID: azurestackhci:////{{ v1.local_hostname }}"
-                if($?)
-                {
-                  Write-Host "Apply patch patching succeed."
-                  exit
-                }
-              } catch { }
-              Write-Host "Error patching the machine. Retrying..."
-              start-sleep -s 20
-            }
       joinConfiguration:
         nodeRegistration:
           name: '{{ v1.local_hostname }}'
+          kubeletExtraArgs:
+            cloud-provider: external
       preKubeadmCommands:
         - powershell -c "mkdir -f C:\var\lib\kubelet\plugins"
         - powershell -c "mkdir -f C:\var\lib\kubelet\plugins_registry"
@@ -132,7 +95,6 @@ spec:
         - powershell C:\ECP-Cache\StartFlannel.ps1
         - copy C:\Users\Administrator\.ssh\authorized_keys C:\ProgramData\ssh\administrators_authorized_keys
         - icacls C:\ProgramData\ssh\administrators_authorized_keys /inheritance:r /grant "NT AUTHORITY\SYSTEM":R
-        - powershell C:\ECP-Cache\ApplyPatch.ps1
 ---
 apiVersion: cluster.x-k8s.io/v1alpha3
 kind: Cluster
@@ -194,10 +156,13 @@ spec:
     clusterConfiguration:
       apiServer:
         timeoutForControlPlane: 20m
+        extraArgs:
+          cloud-provider: external
       controllerManager:
         extraArgs:
           terminated-pod-gc-threshold: "10"
           bind-address: "0.0.0.0"
+          cloud-provider: external
       scheduler:
         extraArgs:
           bind-address: "0.0.0.0"
@@ -206,29 +171,6 @@ spec:
         local:
           imageRepository: "mcr.microsoft.com/oss/etcd-io"
           imageTag: "v3.3.15"
-    postKubeadmCommands:
-    - bash -c /tmp/kubeadm-postinstall.sh
-    files:
-    - path: /tmp/kubeadm-postinstall.sh
-      owner: "root:root"
-      permissions: "0744"
-      content: |
-        #!/bin/bash
-  
-        set -euxo pipefail
-
-        # Temp, this responsibility will move to caph
-        function patch_node_providerid() {
-          for value in {1..10}
-          do
-            sleep 1
-            echo "Patch ProviderID (attempt $value)..."
-            KUBECONFIG=/etc/kubernetes/admin.conf kubectl patch node {{ ds.meta_data["local_hostname"] }} -p $'spec:\n providerID: azurestackhci:////{{ ds.meta_data["local_hostname"] }}' >/dev/null 2>&1 || continue
-            break
-          done
-        }
-
-        patch_node_providerid
   version: "${KUBERNETES_VERSION}"
 ---
 apiVersion: cluster.x-k8s.io/v1alpha3
