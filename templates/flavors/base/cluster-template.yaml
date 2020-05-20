@@ -37,6 +37,16 @@ spec:
           name: '{{ ds.meta_data["local_hostname"] }}'
           kubeletExtraArgs:
             cloud-provider: external
+      postKubeadmCommands:
+        - bash -c /tmp/kubeadm-postinstall.sh
+      files:
+        - path: /tmp/kubeadm-postinstall.sh
+          owner: "root:root"
+          permissions: "0744"
+          content: |
+            #!/bin/bash
+            set -euxo pipefail
+            KUBECONFIG=/etc/kubernetes/kubelet.conf kubectl label node {{ ds.meta_data["local_hostname"] }} kubernetes.io/role=worker
 ---
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
 kind: AzureStackHCIMachineTemplate
@@ -75,6 +85,23 @@ spec:
               }
               & sc.exe start docker
               echo "Trying to start docker service..."
+            }
+        - path: C:\ECP-Cache\ApplyPatch.ps1
+          permissions: "0744"
+          content: |
+            #ps1
+            for($i = 0; $i -lt 18; $i++) {
+              try
+              {
+                C:\ECP-Cache\kubernetes\kubectl.exe --kubeconfig=C:\etc\kubernetes\kubelet.conf label node {{ v1.local_hostname }} kubernetes.io/role=worker
+                if($?)
+                {
+                  Write-Host "Apply worker node label succeeded."
+                  exit
+                }
+              } catch { }
+              Write-Host "Error setting worker node label on the machine. Retrying..."
+              start-sleep -s 20
             }
       joinConfiguration:
         nodeRegistration:
