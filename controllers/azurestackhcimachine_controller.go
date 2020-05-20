@@ -240,7 +240,7 @@ func (r *AzureStackHCIMachineReconciler) reconcileNormal(machineScope *scope.Mac
 	}
 
 	// Make sure Spec.ProviderID is always set.
-	machineScope.SetProviderID(fmt.Sprintf("azurestackhci:////%s", vm.Name))
+	machineScope.SetProviderID(fmt.Sprintf("moc://%s", vm.Name))
 
 	// TODO(vincepri): Remove this annotation when clusterctl is no longer relevant.
 	machineScope.SetAnnotation("cluster-api-provider-azurestackhci", "true")
