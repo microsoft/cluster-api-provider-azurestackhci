@@ -122,6 +122,7 @@ spec:
         - powershell C:\ECP-Cache\StartFlannel.ps1
         - copy C:\Users\Administrator\.ssh\authorized_keys C:\ProgramData\ssh\administrators_authorized_keys
         - icacls C:\ProgramData\ssh\administrators_authorized_keys /inheritance:r /grant "NT AUTHORITY\SYSTEM":R
+        - powershell C:\ECP-Cache\ApplyPatch.ps1
 ---
 apiVersion: cluster.x-k8s.io/v1alpha3
 kind: Cluster
