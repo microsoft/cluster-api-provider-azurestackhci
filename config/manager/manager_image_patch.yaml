@@ -7,5 +7,5 @@ spec:
   template:
     spec:
       containers:
-      - image: mocimages.azurecr.io/caphcontroller-staging:0.3.1
+      - image: nwoodmsft/controller:0.3.0
         name: manager

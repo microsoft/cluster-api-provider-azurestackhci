@@ -37,9 +37,9 @@ steps:
     GOPATH_BIN="$(go env GOPATH)/bin/"
     PATH=$GOPATH_BIN:$PATH
 
-    make IMAGE_NAME=caphcontroller-staging docker-build docker-push
-    make IMAGE_NAME=caphcontroller-staging release
-    make IMAGE_NAME=caphcontroller-staging generate-flavors
+    make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging docker-build docker-push
+    make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging release
+    make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging generate-flavors
   workingDirectory: '$(System.DefaultWorkingDirectory)'
   displayName: 'Build'
 
