@@ -16,4 +16,4 @@ resources:
   kind: AzureStackHCIVirtualMachine
 - group: infrastructure
   version: v1alpha3
-  kind: LoadBalancer
+  kind: AzureStackHCILoadBalancer

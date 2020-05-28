@@ -299,7 +299,7 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineNormal(machineSc
 			return errors.Errorf("unknown value %s for label `set` on machine %s, unable to create virtual machine resource", role, machineScope.Name())
 		}
 		//add worker and control planed nodes to the lb backend
-		if clusterScope.LoadBalancer() != nil {
+		if clusterScope.AzureStackHCILoadBalancer() != nil {
 			vm.Spec.BackendPoolName = azurestackhci.GenerateBackendPoolName(clusterScope.Name())
 		}
 

@@ -131,7 +131,7 @@ spec:
   networkSpec:
     vnet:
       name: "${AZURESTACKHCI_VNET_NAME}"
-  loadBalancer:
+  azureStackHCILoadBalancer:
     image:
       osType: "Linux"
     sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY}

@@ -6,22 +6,23 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.2.6
   creationTimestamp: null
-  name: loadbalancers.infrastructure.cluster.x-k8s.io
+  name: azurestackhciloadbalancers.infrastructure.cluster.x-k8s.io
 spec:
   group: infrastructure.cluster.x-k8s.io
   names:
     categories:
     - cluster-api
-    kind: LoadBalancer
-    listKind: LoadBalancerList
-    plural: loadbalancers
-    singular: loadbalancer
+    kind: AzureStackHCILoadBalancer
+    listKind: AzureStackHCILoadBalancerList
+    plural: azurestackhciloadbalancers
+    singular: azurestackhciloadbalancer
   scope: Namespaced
   versions:
   - name: v1alpha3
     schema:
       openAPIV3Schema:
-        description: LoadBalancer is the Schema for the loadbalancers API
+        description: AzureStackHCILoadBalancer is the Schema for the azurestackhciloadbalancers
+          API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -115,7 +116,7 @@ spec:
                   the Machine object and/or logged in the controller's output."
                 type: string
               port:
-                description: Port is the port of the loadbalancer frontend.
+                description: Port is the port of the azureStackHCIloadbalancers frontend.
                 format: int32
                 type: integer
               ready:

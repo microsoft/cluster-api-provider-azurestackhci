@@ -37,8 +37,8 @@ type AzureStackHCIClusterSpec struct {
 
 	Location string `json:"location"`
 
-	// LoadBalancer is used to declare the LoadBalancerSpec if a LoadBalancer is desired for the AzureStackHCICluster.
-	LoadBalancer *LoadBalancerSpec `json:"loadBalancer,omitempty"`
+	// AzureStackHCILoadBalancer is used to declare the AzureStackHCILoadBalancerSpec if a LoadBalancer is desired for the AzureStackHCICluster.
+	AzureStackHCILoadBalancer *AzureStackHCILoadBalancerSpec `json:"azureStackHCILoadBalancer,omitempty"`
 
 	// ControlPlaneEndpoint represents the endpoint used to communicate with the control plane.
 	// +optional

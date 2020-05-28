@@ -23,17 +23,17 @@ import (
 )
 
 const (
-	// LoadBalancerFinalizer allows ReconcileLoadBalancer to clean up the load balancer resources before removing it from the apiserver.
-	LoadBalancerFinalizer = "loadbalancer.infrastructure.cluster.x-k8s.io"
+	// AzureStackHCILoadBalancerFinalizer allows ReconcileLoadBalancer to clean up the load balancer resources before removing it from the apiserver.
+	AzureStackHCILoadBalancerFinalizer = "azurestackhciloadbalancer.infrastructure.cluster.x-k8s.io"
 )
 
-type LoadBalancerSpec struct {
+type AzureStackHCILoadBalancerSpec struct {
 	SSHPublicKey string `json:"sshPublicKey"`
 	Image        Image  `json:"image"`
 	VMSize       string `json:"vmSize"`
 }
 
-type LoadBalancerStatus struct {
+type AzureStackHCILoadBalancerStatus struct {
 	// +optional
 	Ready bool `json:"ready,omitempty"`
 
@@ -45,7 +45,7 @@ type LoadBalancerStatus struct {
 	// +optional
 	Address string `json:"address,omitempty"`
 
-	// Port is the port of the loadbalancer frontend.
+	// Port is the port of the azureStackHCIloadbalancers frontend.
 	Port int32 `json:"port,omitempty"`
 
 	// ErrorReason will be set in the event that there is a terminal problem
@@ -88,27 +88,27 @@ type LoadBalancerStatus struct {
 }
 
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:path=loadbalancers,scope=Namespaced,categories=cluster-api
+// +kubebuilder:resource:path=azurestackhciloadbalancers,scope=Namespaced,categories=cluster-api
 // +kubebuilder:subresource:status
 
-// LoadBalancer is the Schema for the loadbalancers API
-type LoadBalancer struct {
+// AzureStackHCILoadBalancer is the Schema for the azurestackhciloadbalancers API
+type AzureStackHCILoadBalancer struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   LoadBalancerSpec   `json:"spec,omitempty"`
-	Status LoadBalancerStatus `json:"status,omitempty"`
+	Spec   AzureStackHCILoadBalancerSpec   `json:"spec,omitempty"`
+	Status AzureStackHCILoadBalancerStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// LoadBalancerList contains a list of LoadBalancers
-type LoadBalancerList struct {
+// AzureStackHCILoadBalancerList contains a list of AzureStackHCILoadBalancers
+type AzureStackHCILoadBalancerList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []LoadBalancer `json:"items"`
+	Items           []AzureStackHCILoadBalancer `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&LoadBalancer{}, &LoadBalancerList{})
+	SchemeBuilder.Register(&AzureStackHCILoadBalancer{}, &AzureStackHCILoadBalancerList{})
 }

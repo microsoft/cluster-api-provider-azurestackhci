@@ -124,8 +124,8 @@ func GenerateOSDiskName(machineName string) string {
 	return fmt.Sprintf("%s_OSDisk", machineName)
 }
 
-// GenerateLoadBalancerName generates the name of a load balancer based on the name of a cluster.
-func GenerateLoadBalancerName(clusterName string) string {
+// GenerateAzureStackHCILoadBalancerName generates the name of a load balancer based on the name of a cluster.
+func GenerateAzureStackHCILoadBalancerName(clusterName string) string {
 	return fmt.Sprintf("%s-load-balancer", clusterName)
 }
 

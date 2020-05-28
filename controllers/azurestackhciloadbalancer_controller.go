@@ -51,37 +51,37 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-// LoadBalancerReconciler reconciles a LoadBalancer object
-type LoadBalancerReconciler struct {
+// AzureStackHCILoadBalancerReconciler reconciles a AzureStackHCILoadBalancer object
+type AzureStackHCILoadBalancerReconciler struct {
 	client.Client
 	Log      logr.Logger
 	Recorder record.EventRecorder
 	useVIP   bool
 }
 
-func (r *LoadBalancerReconciler) SetupWithManager(mgr ctrl.Manager, options controller.Options) error {
+func (r *AzureStackHCILoadBalancerReconciler) SetupWithManager(mgr ctrl.Manager, options controller.Options) error {
 	// later we will also want to watch the cluster which owns the LB
 	return ctrl.NewControllerManagedBy(mgr).
 		WithOptions(options).
-		For(&infrav1.LoadBalancer{}).
+		For(&infrav1.AzureStackHCILoadBalancer{}).
 		Watches(
 			&source.Kind{Type: &infrav1.AzureStackHCIVirtualMachine{}},
-			&handler.EnqueueRequestForOwner{OwnerType: &infrav1.LoadBalancer{}, IsController: false},
+			&handler.EnqueueRequestForOwner{OwnerType: &infrav1.AzureStackHCILoadBalancer{}, IsController: false},
 		).
 		Complete(r)
 }
 
-// +kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=loadbalancers,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=loadbalancers/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=azurestackhciloadbalancers,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=azurestackhciloadbalancers/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups="",resources=events,verbs=get;list;watch;create;update;patch
 
-func (r *LoadBalancerReconciler) Reconcile(req ctrl.Request) (_ ctrl.Result, reterr error) {
+func (r *AzureStackHCILoadBalancerReconciler) Reconcile(req ctrl.Request) (_ ctrl.Result, reterr error) {
 	ctx := context.Background()
-	logger := r.Log.WithValues("namespace", req.Namespace, "loadBalancer", req.Name)
+	logger := r.Log.WithValues("namespace", req.Namespace, "azurestackhciloadBalancer", req.Name)
 
-	// Fetch the LoadBalancer resource.
-	loadBalancer := &infrav1.LoadBalancer{}
-	err := r.Get(ctx, req.NamespacedName, loadBalancer)
+	// Fetch the AzureStackHCILoadBalancer resource.
+	azureStackHCILoadBalancer := &infrav1.AzureStackHCILoadBalancer{}
+	err := r.Get(ctx, req.NamespacedName, azureStackHCILoadBalancer)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			return reconcile.Result{}, nil
@@ -90,19 +90,19 @@ func (r *LoadBalancerReconciler) Reconcile(req ctrl.Request) (_ ctrl.Result, ret
 	}
 
 	// Fetch the CAPI Cluster.
-	cluster, err := util.GetOwnerCluster(ctx, r.Client, loadBalancer.ObjectMeta)
+	cluster, err := util.GetOwnerCluster(ctx, r.Client, azureStackHCILoadBalancer.ObjectMeta)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
 	if cluster == nil {
-		logger.Info("AzureStackHCICluster Controller has not set OwnerRef on LoadBalancer")
-		return reconcile.Result{}, fmt.Errorf("Expected Cluster OwnerRef is missing from LoadBalancer %s", req.Name)
+		logger.Info("AzureStackHCICluster Controller has not set OwnerRef on AzureStackHCILoadBalancer")
+		return reconcile.Result{}, fmt.Errorf("Expected Cluster OwnerRef is missing from AzureStackHCILoadBalancer %s", req.Name)
 	}
 
 	azureStackHCICluster := &infrav1.AzureStackHCICluster{}
 
 	azureStackHCIClusterName := client.ObjectKey{
-		Namespace: loadBalancer.Namespace,
+		Namespace: azureStackHCILoadBalancer.Namespace,
 		Name:      cluster.Spec.InfrastructureRef.Name,
 	}
 	if err := r.Client.Get(ctx, azureStackHCIClusterName, azureStackHCICluster); err != nil {
@@ -123,17 +123,17 @@ func (r *LoadBalancerReconciler) Reconcile(req ctrl.Request) (_ ctrl.Result, ret
 
 	// create a lb scope for this request.
 	loadBalancerScope, err := scope.NewLoadBalancerScope(scope.LoadBalancerScopeParams{
-		Logger:               logger.WithValues("loadBalancer", loadBalancer.Name),
-		Client:               r.Client,
-		LoadBalancer:         loadBalancer,
-		AzureStackHCICluster: azureStackHCICluster,
-		Cluster:              cluster,
+		Logger:                    logger.WithValues("azureStackHCILoadBalancer", azureStackHCILoadBalancer.Name),
+		Client:                    r.Client,
+		AzureStackHCILoadBalancer: azureStackHCILoadBalancer,
+		AzureStackHCICluster:      azureStackHCICluster,
+		Cluster:                   cluster,
 	})
 	if err != nil {
 		return reconcile.Result{}, errors.Errorf("failed to create scope: %+v", err)
 	}
 
-	// Always close the scope when exiting this function so we can persist any LoadBalancer changes.
+	// Always close the scope when exiting this function so we can persist any AzureStackHCILoadBalancer changes.
 	defer func() {
 		if err := loadBalancerScope.Close(); err != nil && reterr == nil {
 			reterr = err
@@ -141,7 +141,7 @@ func (r *LoadBalancerReconciler) Reconcile(req ctrl.Request) (_ ctrl.Result, ret
 	}()
 
 	// Handle deleted LoadBalancers.
-	if !loadBalancer.ObjectMeta.DeletionTimestamp.IsZero() {
+	if !azureStackHCILoadBalancer.ObjectMeta.DeletionTimestamp.IsZero() {
 		return r.reconcileDelete(loadBalancerScope, clusterScope)
 	}
 
@@ -149,11 +149,11 @@ func (r *LoadBalancerReconciler) Reconcile(req ctrl.Request) (_ ctrl.Result, ret
 	return r.reconcileNormal(loadBalancerScope, clusterScope)
 }
 
-func (r *LoadBalancerReconciler) reconcileNormal(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) (reconcile.Result, error) {
-	loadBalancerScope.Info("Reconciling LoadBalancer")
+func (r *AzureStackHCILoadBalancerReconciler) reconcileNormal(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) (reconcile.Result, error) {
+	loadBalancerScope.Info("Reconciling AzureStackHCILoadBalancer")
 
-	// If the LoadBalancer doesn't have our finalizer, add it.
-	controllerutil.AddFinalizer(loadBalancerScope.LoadBalancer, infrav1.LoadBalancerFinalizer)
+	// If the AzureStackHCILoadBalancer doesn't have our finalizer, add it.
+	controllerutil.AddFinalizer(loadBalancerScope.AzureStackHCILoadBalancer, infrav1.AzureStackHCILoadBalancerFinalizer)
 	// Register the finalizer immediately to avoid orphaning resources on delete
 	if err := loadBalancerScope.PatchObject(); err != nil {
 		return reconcile.Result{}, err
@@ -207,7 +207,7 @@ func (r *LoadBalancerReconciler) reconcileNormal(loadBalancerScope *scope.LoadBa
 	return reconcile.Result{}, nil
 }
 
-func (r *LoadBalancerReconciler) reconcileNormalVirtualMachine(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) (*infrav1.AzureStackHCIVirtualMachine, error) {
+func (r *AzureStackHCILoadBalancerReconciler) reconcileNormalVirtualMachine(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) (*infrav1.AzureStackHCIVirtualMachine, error) {
 	vm := &infrav1.AzureStackHCIVirtualMachine{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: clusterScope.Namespace(),
@@ -216,14 +216,14 @@ func (r *LoadBalancerReconciler) reconcileNormalVirtualMachine(loadBalancerScope
 	}
 
 	mutateFn := func() (err error) {
-		// Mark the LoadBalancer as the owner of the AzureStackHCIVirtualMachine
+		// Mark the AzureStackHCILoadBalancer as the owner of the AzureStackHCIVirtualMachine
 		vm.SetOwnerReferences(util.EnsureOwnerRef(
 			vm.OwnerReferences,
 			metav1.OwnerReference{
-				APIVersion: loadBalancerScope.LoadBalancer.APIVersion,
-				Kind:       loadBalancerScope.LoadBalancer.Kind,
-				Name:       loadBalancerScope.LoadBalancer.Name,
-				UID:        loadBalancerScope.LoadBalancer.UID,
+				APIVersion: loadBalancerScope.AzureStackHCILoadBalancer.APIVersion,
+				Kind:       loadBalancerScope.AzureStackHCILoadBalancer.Kind,
+				Name:       loadBalancerScope.AzureStackHCILoadBalancer.Name,
+				UID:        loadBalancerScope.AzureStackHCILoadBalancer.UID,
 			}))
 
 		vm.Spec.ResourceGroup = clusterScope.AzureStackHCICluster.Spec.ResourceGroup
@@ -231,13 +231,13 @@ func (r *LoadBalancerReconciler) reconcileNormalVirtualMachine(loadBalancerScope
 		vm.Spec.ClusterName = clusterScope.AzureStackHCICluster.Name
 		vm.Spec.SubnetName = azurestackhci.GenerateNodeSubnetName(clusterScope.Name())
 		vm.Spec.BootstrapData = r.formatLoadBalancerCloudInit(loadBalancerScope, clusterScope)
-		vm.Spec.VMSize = loadBalancerScope.LoadBalancer.Spec.VMSize
+		vm.Spec.VMSize = loadBalancerScope.AzureStackHCILoadBalancer.Spec.VMSize
 		vm.Spec.Location = clusterScope.Location()
-		vm.Spec.SSHPublicKey = loadBalancerScope.LoadBalancer.Spec.SSHPublicKey
+		vm.Spec.SSHPublicKey = loadBalancerScope.AzureStackHCILoadBalancer.Spec.SSHPublicKey
 
 		image, err := r.getVMImage(loadBalancerScope)
 		if err != nil {
-			return errors.Wrap(err, "failed to get LoadBalancer image")
+			return errors.Wrap(err, "failed to get AzureStackHCILoadBalancer image")
 		}
 		image.DeepCopyInto(&vm.Spec.Image)
 
@@ -251,11 +251,11 @@ func (r *LoadBalancerReconciler) reconcileNormalVirtualMachine(loadBalancerScope
 	return vm, nil
 }
 
-func (r *LoadBalancerReconciler) reconcileLoadBalancerAddress(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) error {
+func (r *AzureStackHCILoadBalancerReconciler) reconcileLoadBalancerAddress(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) error {
 	if r.useVIP {
-		loadBalancerScope.Info("Attempting to vip for loadbalancer", "name", loadBalancerScope.LoadBalancer.Name)
+		loadBalancerScope.Info("Attempting to vip for azurestackhciloadbalancer", "name", loadBalancerScope.AzureStackHCILoadBalancer.Name)
 		lbSpec := &loadbalancers.Spec{
-			Name: loadBalancerScope.LoadBalancer.Name,
+			Name: loadBalancerScope.AzureStackHCILoadBalancer.Name,
 		}
 		lbInterface, err := loadbalancers.NewService(clusterScope).Get(clusterScope.Context, lbSpec)
 		if err != nil {
@@ -269,10 +269,10 @@ func (r *LoadBalancerReconciler) reconcileLoadBalancerAddress(loadBalancerScope 
 
 		loadBalancerScope.SetAddress(*((*lb.FrontendIPConfigurations)[0].IPAddress))
 	} else {
-		loadBalancerScope.Info("Attempting to get network interface information for loadbalancer", "name", loadBalancerScope.LoadBalancer.Name)
+		loadBalancerScope.Info("Attempting to get network interface information for loadbalancer", "name", loadBalancerScope.AzureStackHCILoadBalancer.Name)
 		nicInterface, err := networkinterfaces.NewService(clusterScope).Get(clusterScope.Context,
 			&networkinterfaces.Spec{
-				Name:     azurestackhci.GenerateNICName(loadBalancerScope.LoadBalancer.Name),
+				Name:     azurestackhci.GenerateNICName(loadBalancerScope.AzureStackHCILoadBalancer.Name),
 				VnetName: clusterScope.AzureStackHCICluster.Spec.NetworkSpec.Vnet.Name,
 			})
 		if err != nil {
@@ -294,11 +294,11 @@ func (r *LoadBalancerReconciler) reconcileLoadBalancerAddress(loadBalancerScope 
 	return nil
 }
 
-func (r *LoadBalancerReconciler) reconcileLoadBalancer(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) error {
+func (r *AzureStackHCILoadBalancerReconciler) reconcileLoadBalancer(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) error {
 	backendPoolName := azurestackhci.GenerateBackendPoolName(clusterScope.Name())
 	loadBalancerScope.SetPort(clusterScope.APIServerPort())
 	lbSpec := &loadbalancers.Spec{
-		Name:            loadBalancerScope.LoadBalancer.Name,
+		Name:            loadBalancerScope.AzureStackHCILoadBalancer.Name,
 		BackendPoolName: backendPoolName,
 		FrontendPort:    loadBalancerScope.GetPort(),
 		BackendPort:     clusterScope.APIServerPort(),
@@ -330,14 +330,14 @@ func (r *LoadBalancerReconciler) reconcileLoadBalancer(loadBalancerScope *scope.
 	}
 
 	if err := loadbalancers.NewService(clusterScope).Reconcile(clusterScope.Context, lbSpec); err != nil {
-		return errors.Wrapf(err, "failed to reconcile loadbalancer %s", loadBalancerScope.LoadBalancer.Name)
+		return errors.Wrapf(err, "failed to reconcile loadbalancer %s", loadBalancerScope.AzureStackHCILoadBalancer.Name)
 	}
 
 	return nil
 }
 
-func (r *LoadBalancerReconciler) reconcileDelete(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) (_ reconcile.Result, reterr error) {
-	loadBalancerScope.Info("Handling deleted LoadBalancer")
+func (r *AzureStackHCILoadBalancerReconciler) reconcileDelete(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) (_ reconcile.Result, reterr error) {
+	loadBalancerScope.Info("Handling deleted AzureStackHCILoadBalancer")
 
 	if err := r.reconcileDeleteLoadBalancer(loadBalancerScope, clusterScope); err != nil {
 		return reconcile.Result{}, err
@@ -350,14 +350,14 @@ func (r *LoadBalancerReconciler) reconcileDelete(loadBalancerScope *scope.LoadBa
 	defer func() {
 		if reterr == nil {
 			// VM is deleted so remove the finalizer.
-			controllerutil.RemoveFinalizer(loadBalancerScope.LoadBalancer, infrav1.LoadBalancerFinalizer)
+			controllerutil.RemoveFinalizer(loadBalancerScope.AzureStackHCILoadBalancer, infrav1.AzureStackHCILoadBalancerFinalizer)
 		}
 	}()
 
 	return reconcile.Result{}, nil
 }
 
-func (r *LoadBalancerReconciler) reconcileDeleteVirtualMachine(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) error {
+func (r *AzureStackHCILoadBalancerReconciler) reconcileDeleteVirtualMachine(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) error {
 	// use Get to find VM
 	vm := &infrav1.AzureStackHCIVirtualMachine{}
 	vmName := apitypes.NamespacedName{
@@ -384,20 +384,20 @@ func (r *LoadBalancerReconciler) reconcileDeleteVirtualMachine(loadBalancerScope
 	return nil
 }
 
-func (r *LoadBalancerReconciler) reconcileDeleteLoadBalancer(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) error {
+func (r *AzureStackHCILoadBalancerReconciler) reconcileDeleteLoadBalancer(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) error {
 	lbSpec := &loadbalancers.Spec{
-		Name: loadBalancerScope.LoadBalancer.Name,
+		Name: loadBalancerScope.AzureStackHCILoadBalancer.Name,
 	}
 	if err := loadbalancers.NewService(clusterScope).Delete(clusterScope.Context, lbSpec); err != nil {
 		if !azurestackhci.ResourceNotFound(err) {
-			return errors.Wrapf(err, "failed to delete loadbalancer %s", loadBalancerScope.LoadBalancer.Name)
+			return errors.Wrapf(err, "failed to delete loadbalancer %s", loadBalancerScope.AzureStackHCILoadBalancer.Name)
 		}
 	}
 
 	return nil
 }
 
-func (r *LoadBalancerReconciler) formatLoadBalancerCloudInit(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) *string {
+func (r *AzureStackHCILoadBalancerReconciler) formatLoadBalancerCloudInit(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) *string {
 
 	// Temp until lbagent is ready
 	binarylocation := os.Getenv("AZURESTACKHCI_BINARY_LOCATION")
@@ -443,12 +443,12 @@ runcmd:
 	return &ret
 }
 
-func (r *LoadBalancerReconciler) getVMImage(loadBalancerScope *scope.LoadBalancerScope) (*infrav1.Image, error) {
+func (r *AzureStackHCILoadBalancerReconciler) getVMImage(loadBalancerScope *scope.LoadBalancerScope) (*infrav1.Image, error) {
 	// Use custom image if provided
-	if loadBalancerScope.LoadBalancer.Spec.Image.Name != nil {
-		loadBalancerScope.Info("Using custom image name for loadbalancer", "loadbalancer", loadBalancerScope.LoadBalancer.GetName(), "imageName", loadBalancerScope.LoadBalancer.Spec.Image.Name)
-		return &loadBalancerScope.LoadBalancer.Spec.Image, nil
+	if loadBalancerScope.AzureStackHCILoadBalancer.Spec.Image.Name != nil {
+		loadBalancerScope.Info("Using custom image name for loadbalancer", "loadbalancer", loadBalancerScope.AzureStackHCILoadBalancer.GetName(), "imageName", loadBalancerScope.AzureStackHCILoadBalancer.Spec.Image.Name)
+		return &loadBalancerScope.AzureStackHCILoadBalancer.Spec.Image, nil
 	}
 
-	return azurestackhci.GetDefaultImage(loadBalancerScope.LoadBalancer.Spec.Image.OSType, to.String(loadBalancerScope.AzureStackHCICluster.Spec.Version))
+	return azurestackhci.GetDefaultImage(loadBalancerScope.AzureStackHCILoadBalancer.Spec.Image.OSType, to.String(loadBalancerScope.AzureStackHCICluster.Spec.Version))
 }

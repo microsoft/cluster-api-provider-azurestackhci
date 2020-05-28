@@ -65,7 +65,7 @@ var (
 	profilerAddress                        string
 	azureStackHCIClusterConcurrency        int
 	azureStackHCIMachineConcurrency        int
-	loadBalancerConcurrency                int
+	azureStackHCIloadBalancerConcurrency   int
 	azureStackHCIVirtualMachineConcurrency int
 	syncPeriod                             time.Duration
 	healthAddr                             string
@@ -113,10 +113,10 @@ func InitFlags(fs *pflag.FlagSet) {
 		"Number of AzureStackHCIMachines to process simultaneously",
 	)
 
-	flag.IntVar(&loadBalancerConcurrency,
-		"load-balancer-concurrency",
+	flag.IntVar(&azureStackHCIloadBalancerConcurrency,
+		"azurestackhciload-balancer-concurrency",
 		10,
-		"Number of LoadBalancers to process simultaneously",
+		"Number of AzureStackHCILoadBalancers to process simultaneously",
 	)
 
 	flag.IntVar(&azureStackHCIVirtualMachineConcurrency,
@@ -205,12 +205,12 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "AzureStackHCICluster")
 		os.Exit(1)
 	}
-	if err = (&controllers.LoadBalancerReconciler{
+	if err = (&controllers.AzureStackHCILoadBalancerReconciler{
 		Client:   mgr.GetClient(),
-		Log:      ctrl.Log.WithName("controllers").WithName("LoadBalancer"),
-		Recorder: mgr.GetEventRecorderFor("loadbalancer-reconciler"),
-	}).SetupWithManager(mgr, controller.Options{MaxConcurrentReconciles: loadBalancerConcurrency}); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "LoadBalancer")
+		Log:      ctrl.Log.WithName("controllers").WithName("AzureStackHCILoadBalancer"),
+		Recorder: mgr.GetEventRecorderFor("azurestackhciloadbalancer-reconciler"),
+	}).SetupWithManager(mgr, controller.Options{MaxConcurrentReconciles: azureStackHCIloadBalancerConcurrency}); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "AzureStackHCILoadBalancer")
 		os.Exit(1)
 	}
 	if err = (&controllers.AzureStackHCIVirtualMachineReconciler{

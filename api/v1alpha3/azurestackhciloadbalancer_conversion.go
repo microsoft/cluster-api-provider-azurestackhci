@@ -17,8 +17,8 @@ limitations under the License.
 
 package v1alpha3
 
-// Hub marks LoadBalancer as a conversion hub.
-func (*LoadBalancer) Hub() {}
+// Hub marks AzureStackHCILoadBalancer as a conversion hub.
+func (*AzureStackHCILoadBalancer) Hub() {}
 
-// Hub marks LoadBalancerList as a conversion hub.
-func (*LoadBalancerList) Hub() {}
+// Hub marks AzureStackHCILoadBalancerList as a conversion hub.
+func (*AzureStackHCILoadBalancerList) Hub() {}
