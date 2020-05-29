@@ -76,6 +76,13 @@ spec:
               & sc.exe start docker
               echo "Trying to start docker service..."
             }
+        - path: C:\ECP-Cache\ReplaceKubelet.ps1
+          permissions: "0744"
+          content: |
+            #ps1
+            & sc.exe delete kubelet
+            New-Service -Name "kubelet" -StartupType Automatic -DependsOn "docker" -BinaryPathName "C:\ECP-Cache\kubernetes\kubelet.exe --windows-service --cert-dir=$env:SYSTEMDRIVE\var\lib\kubelet\pki --cni-bin-dir=C:\ECP-Cache\cni --config=/var/lib/kubelet/config.yaml --bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf --pod-infra-container-image=`"mcr.microsoft.com/oss/kubernetes/pause:1.2.0-windows-1809-amd64`" --enable-debugging-handlers  --cgroups-per-qos=false --enforce-node-allocatable=`"`" --cloud-provider=external --network-plugin=cni --resolv-conf=`"`" --log-dir=/var/log/kubelet --logtostderr=false --image-pull-progress-deadline=20m"
+            & sc.exe failure kubelet reset= 600 actions= restart/5000/restart/15000/restart/30000/restart/30000
       joinConfiguration:
         nodeRegistration:
           name: '{{ v1.local_hostname }}'
@@ -89,6 +96,7 @@ spec:
         - icacls C:\var\lib\kubelet\plugins\ /inheritancelevel:e /grant "Authenticated Users":(OI)(CI)(IO)(F)
         - icacls C:\var\lib\kubelet\plugins_registry\ /inheritancelevel:e /grant "Authenticated Users":(OI)(CI)(IO)(F)
         - powershell C:\ECP-Cache\WaitForDocker.ps1
+        - powershell C:\ECP-Cache\ReplaceKubelet.ps1
         - docker network create -d nat host
         - powershell -C "ipmo C:\ECP-Cache\hns.psm1;New-HNSNetwork -Type \"overlay\" -AddressPrefix \"192.168.255.0/30\" -Gateway \"192.168.255.1\" -Name \"External\" -AdapterName \"Ethernet 2\" -SubnetPolicies @(@{Type = \"VSID\"; VSID = 9999; }); start-sleep 10;"  
       postKubeadmCommands:
@@ -162,10 +170,14 @@ spec:
         extraArgs:
           terminated-pod-gc-threshold: "10"
           bind-address: "0.0.0.0"
+          leader-elect-lease-duration: "60s"
+          leader-elect-renew-deadline: "55s"
           cloud-provider: external
       scheduler:
         extraArgs:
           bind-address: "0.0.0.0"
+          leader-elect-lease-duration: "60s"
+          leader-elect-renew-deadline: "55s"
       imageRepository: "mcr.microsoft.com/oss/kubernetes"
       etcd:
         local:

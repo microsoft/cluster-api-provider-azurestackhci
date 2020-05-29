@@ -17,7 +17,6 @@ spec:
     spec:
       containers:
         - args:
-            - --enable-leader-election
             - "--v=6"
           image: controller:latest
           imagePullPolicy: Always
