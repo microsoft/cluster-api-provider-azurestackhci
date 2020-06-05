@@ -32,8 +32,10 @@ steps:
     git config --global url.ssh://git@github.com/.insteadOf https://github.com/
     chmod +x hack/ensure-kustomize.sh
     chmod +x hack/gen-flavors.sh
+    chmod +x hack/for-pipeline.sh
     hack/ensure-kustomize.sh
-    
+    hack/for-pipeline.sh
+
     GOPATH_BIN="$(go env GOPATH)/bin/"
     PATH=$GOPATH_BIN:$PATH
 
