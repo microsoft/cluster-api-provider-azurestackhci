@@ -187,11 +187,11 @@ func (m *VirtualMachineScope) Close() error {
 	return m.patchHelper.Patch(context.TODO(), m.AzureStackHCIVirtualMachine)
 }
 
-// LoadBalancerVM returns true if the AzureStackHCIVirtualMachine is owned by a LoadBalancer resource and false otherwise (Tenant).
-func (m *VirtualMachineScope) LoadBalancerVM() bool {
+// AzureStackHCILoadBalancerVM returns true if the AzureStackHCIVirtualMachine is owned by a LoadBalancer resource and false otherwise (Tenant).
+func (m *VirtualMachineScope) AzureStackHCILoadBalancerVM() bool {
 	for _, ref := range m.AzureStackHCIVirtualMachine.ObjectMeta.GetOwnerReferences() {
 		m.Info("owner references", "type", ref.Kind)
-		if ref.Kind == "LoadBalancer" && ref.APIVersion == m.AzureStackHCIVirtualMachine.APIVersion {
+		if ref.Kind == "AzureStackHCILoadBalancer" && ref.APIVersion == m.AzureStackHCIVirtualMachine.APIVersion {
 			return true
 		}
 	}

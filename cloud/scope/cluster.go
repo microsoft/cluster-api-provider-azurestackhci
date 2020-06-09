@@ -176,8 +176,8 @@ func (s *ClusterScope) APIServerPort() int32 {
 	return 6443
 }
 
-func (s *ClusterScope) LoadBalancer() *infrav1.LoadBalancerSpec {
-	return s.AzureStackHCICluster.Spec.LoadBalancer
+func (s *ClusterScope) AzureStackHCILoadBalancer() *infrav1.AzureStackHCILoadBalancerSpec {
+	return s.AzureStackHCICluster.Spec.AzureStackHCILoadBalancer
 }
 
 // GetNamespaceOrDefault returns the default namespace if given empty

@@ -197,7 +197,7 @@ func (s *azureStackHCIVirtualMachineService) createVirtualMachine(nicName string
 		}
 
 		vmType := sdk_compute.Tenant
-		if s.vmScope.LoadBalancerVM() == true {
+		if s.vmScope.AzureStackHCILoadBalancerVM() == true {
 			vmType = sdk_compute.LoadBalancer
 		}
 

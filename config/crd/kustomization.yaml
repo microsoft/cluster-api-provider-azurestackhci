@@ -9,7 +9,7 @@ resources:
 - bases/infrastructure.cluster.x-k8s.io_azurestackhciclusters.yaml
 - bases/infrastructure.cluster.x-k8s.io_azurestackhcimachinetemplates.yaml
 - bases/infrastructure.cluster.x-k8s.io_azurestackhcivirtualmachines.yaml
-- bases/infrastructure.cluster.x-k8s.io_loadbalancers.yaml
+- bases/infrastructure.cluster.x-k8s.io_azurestackhciloadbalancers.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 patchesStrategicMerge:

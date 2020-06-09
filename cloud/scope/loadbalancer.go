@@ -33,11 +33,11 @@ import (
 
 // LoadBalancerScopeParams defines the input parameters used to create a new LoadBalancerScope.
 type LoadBalancerScopeParams struct {
-	Client               client.Client
-	Logger               logr.Logger
-	LoadBalancer         *infrav1.LoadBalancer
-	Cluster              *clusterv1.Cluster
-	AzureStackHCICluster *infrav1.AzureStackHCICluster
+	Client                    client.Client
+	Logger                    logr.Logger
+	AzureStackHCILoadBalancer *infrav1.AzureStackHCILoadBalancer
+	Cluster                   *clusterv1.Cluster
+	AzureStackHCICluster      *infrav1.AzureStackHCICluster
 }
 
 // NewLoadBalancerScope creates a new LoadBalancerScope from the supplied parameters.
@@ -47,26 +47,26 @@ func NewLoadBalancerScope(params LoadBalancerScopeParams) (*LoadBalancerScope, e
 		return nil, errors.New("client is required when creating a LoadBalancerScope")
 	}
 
-	if params.LoadBalancer == nil {
-		return nil, errors.New("load balancer is required when creating a LoadBalancerScope")
+	if params.AzureStackHCILoadBalancer == nil {
+		return nil, errors.New("azurestackhci loadbalancer is required when creating a LoadBalancerScope")
 	}
 
 	if params.Logger == nil {
 		params.Logger = klogr.New()
 	}
 
-	helper, err := patch.NewHelper(params.LoadBalancer, params.Client)
+	helper, err := patch.NewHelper(params.AzureStackHCILoadBalancer, params.Client)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to init patch helper")
 	}
 	return &LoadBalancerScope{
-		client:               params.Client,
-		LoadBalancer:         params.LoadBalancer,
-		Cluster:              params.Cluster,
-		AzureStackHCICluster: params.AzureStackHCICluster,
-		Logger:               params.Logger,
-		patchHelper:          helper,
-		Context:              context.Background(),
+		client:                    params.Client,
+		AzureStackHCILoadBalancer: params.AzureStackHCILoadBalancer,
+		Cluster:                   params.Cluster,
+		AzureStackHCICluster:      params.AzureStackHCICluster,
+		Logger:                    params.Logger,
+		patchHelper:               helper,
+		Context:                   context.Background(),
 	}, nil
 }
 
@@ -77,76 +77,76 @@ type LoadBalancerScope struct {
 	patchHelper *patch.Helper
 	Context     context.Context
 
-	LoadBalancer         *infrav1.LoadBalancer
-	Cluster              *clusterv1.Cluster
-	AzureStackHCICluster *infrav1.AzureStackHCICluster
+	AzureStackHCILoadBalancer *infrav1.AzureStackHCILoadBalancer
+	Cluster                   *clusterv1.Cluster
+	AzureStackHCICluster      *infrav1.AzureStackHCICluster
 }
 
-// Name returns the Name of the load balancer.
+// Name returns the Name of the AzureStackHCILoadBalancer
 func (l *LoadBalancerScope) Name() string {
-	return l.LoadBalancer.Name
+	return l.AzureStackHCILoadBalancer.Name
 }
 
-// Address returns the address of the load balancer, if it exists.
+// Address returns the address of the AzureStackHCILoadBalancer, if it exists.
 func (l *LoadBalancerScope) Address() string {
-	return l.LoadBalancer.Status.Address
+	return l.AzureStackHCILoadBalancer.Status.Address
 }
 
-// SetAnnotation sets a key value annotation on the LoadBalancer.
+// SetAnnotation sets a key value annotation on the AzureStackHCILoadBalancer
 func (l *LoadBalancerScope) SetAnnotation(key, value string) {
-	if l.LoadBalancer.Annotations == nil {
-		l.LoadBalancer.Annotations = map[string]string{}
+	if l.AzureStackHCILoadBalancer.Annotations == nil {
+		l.AzureStackHCILoadBalancer.Annotations = map[string]string{}
 	}
-	l.LoadBalancer.Annotations[key] = value
+	l.AzureStackHCILoadBalancer.Annotations[key] = value
 }
 
-// PatchObject persists the loadbalancer spec and status.
+// PatchObject persists the AzureStackHCILoadBalancer spec and status.
 func (l *LoadBalancerScope) PatchObject() error {
-	return l.patchHelper.Patch(context.TODO(), l.LoadBalancer)
+	return l.patchHelper.Patch(context.TODO(), l.AzureStackHCILoadBalancer)
 }
 
-// Close the LoadBalancerScope by updating the loadBalancer spec and status.
+// Close the LoadBalancerScope by updating the AzureStackHCILoadBalancer spec and status.
 func (l *LoadBalancerScope) Close() error {
-	return l.patchHelper.Patch(context.TODO(), l.LoadBalancer)
+	return l.patchHelper.Patch(context.TODO(), l.AzureStackHCILoadBalancer)
 }
 
-// SetReady sets the LoadBalancer Ready Status
+// SetReady sets the AzureStackHCILoadBalancer Ready Status
 func (l *LoadBalancerScope) SetReady() {
-	l.LoadBalancer.Status.Ready = true
+	l.AzureStackHCILoadBalancer.Status.Ready = true
 }
 
-// GetVMState returns the LoadBalancer VM state.
+// GetVMState returns the AzureStackHCILoadBalancer VM state.
 func (l *LoadBalancerScope) GetVMState() *infrav1.VMState {
-	return l.LoadBalancer.Status.VMState
+	return l.AzureStackHCILoadBalancer.Status.VMState
 }
 
-// SetVMState sets the LoadBalancer VM state.
+// SetVMState sets the AzureStackHCILoadBalancer VM state.
 func (l *LoadBalancerScope) SetVMState(v *infrav1.VMState) {
-	l.LoadBalancer.Status.VMState = new(infrav1.VMState)
-	*l.LoadBalancer.Status.VMState = *v
+	l.AzureStackHCILoadBalancer.Status.VMState = new(infrav1.VMState)
+	*l.AzureStackHCILoadBalancer.Status.VMState = *v
 }
 
-// SetErrorMessage sets the LoadBalancer status error message.
+// SetErrorMessage sets the AzureStackHCILoadBalancer status error message.
 func (l *LoadBalancerScope) SetErrorMessage(v error) {
-	l.LoadBalancer.Status.ErrorMessage = pointer.StringPtr(v.Error())
+	l.AzureStackHCILoadBalancer.Status.ErrorMessage = pointer.StringPtr(v.Error())
 }
 
-// SetErrorReason sets the LoadBalancer status error reason.
+// SetErrorReason sets the AzureStackHCILoadBalancer status error reason.
 func (l *LoadBalancerScope) SetErrorReason(v capierrors.MachineStatusError) {
-	l.LoadBalancer.Status.ErrorReason = &v
+	l.AzureStackHCILoadBalancer.Status.ErrorReason = &v
 }
 
-// SetAddress sets the Address field of the Load Balancer Status.
+// SetAddress sets the Address field of the AzureStackHCILoadBalancer Status.
 func (l *LoadBalancerScope) SetAddress(address string) {
-	l.LoadBalancer.Status.Address = address
+	l.AzureStackHCILoadBalancer.Status.Address = address
 }
 
-// SetPort sets the Port field of the Load Balancer Status.
+// SetPort sets the Port field of the AzureStackHCILoadBalancer Status.
 func (l *LoadBalancerScope) SetPort(port int32) {
-	l.LoadBalancer.Status.Port = port
+	l.AzureStackHCILoadBalancer.Status.Port = port
 }
 
-// GetPort returns the Port field of the Load Balancer Status.
+// GetPort returns the Port field of the AzureStackHCILoadBalancer Status.
 func (l *LoadBalancerScope) GetPort() int32 {
-	return l.LoadBalancer.Status.Port
+	return l.AzureStackHCILoadBalancer.Status.Port
 }
