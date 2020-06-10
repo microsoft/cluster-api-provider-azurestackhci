@@ -7,13 +7,6 @@
 trigger:
 - master
 
-variables:
-  GOPATH: '$(Agent.BuildDirectory)/gopath' # Go workspace path
-  GOROOT: '$(Agent.BuildDirectory)/go' # Go installation path
-  GOBIN:  '$(GOPATH)/bin' # Go binaries path
-  GO111MODULE: 'on'
-  modulePath: '$(system.defaultWorkingDirectory)'
-
 pool:
   vmImage: 'ubuntu-latest'
 
@@ -33,26 +26,28 @@ steps:
     containerRegistry: mocimages-connection
 - task: GoTool@0
   inputs:
-    version: '1.13.5'
-- script: |
-    mkdir -p '$(GOBIN)'
-    mkdir -p '$(GOPATH)/pkg'
-    mkdir -p '$(modulePath)'
-    mkdir -p '$(GOROOT)'
-    shopt -s extglob
-    shopt -s dotglob
-    mv !(gopath) '$(modulePath)'
-    echo '##vso[task.prependpath]$(GOBIN)'
-    echo '##vso[task.prependpath]$(GOROOT)/bin'
-  displayName: 'Set up the Go workspace'
+    version: '1.14'
 
 - script: |
     git config --global url.ssh://git@github.com/.insteadOf https://github.com/
-    make IMG=mocimages.azurecr.io/caphcontroller:latest docker-build docker-push
+    chmod +x hack/ensure-kustomize.sh
+    chmod +x hack/gen-flavors.sh
     chmod +x hack/for-pipeline.sh
+    hack/ensure-kustomize.sh
     hack/for-pipeline.sh
-  workingDirectory: '$(modulePath)'
+
+    GOPATH_BIN="$(go env GOPATH)/bin/"
+    PATH=$GOPATH_BIN:$PATH
+
+    make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging docker-build docker-push
+    make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging release
+    make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging generate-flavors
+  workingDirectory: '$(System.DefaultWorkingDirectory)'
   displayName: 'Build'
 
-- publish: $(modulePath)/bin
-  artifact: binaries
+- publish: $(System.DefaultWorkingDirectory)/out
+  artifact: releases
+
+
+- publish: $(System.DefaultWorkingDirectory)/templates
+  artifact: templates
