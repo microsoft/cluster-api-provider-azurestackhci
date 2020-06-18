@@ -47,8 +47,10 @@ spec:
                   id:
                     type: string
                 type: object
-              backendPoolName:
-                type: string
+              backendPoolNames:
+                items:
+                  type: string
+                type: array
               bootstrapData:
                 type: string
               clusterName:

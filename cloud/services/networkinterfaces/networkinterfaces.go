@@ -29,12 +29,12 @@ import (
 
 // Spec specification for network interface
 type Spec struct {
-	Name            string
-	SubnetName      string
-	VnetName        string
-	StaticIPAddress string
-	MacAddress      string
-	BackendPoolName string
+	Name             string
+	SubnetName       string
+	VnetName         string
+	StaticIPAddress  string
+	MacAddress       string
+	BackendPoolNames []string
 }
 
 // Get provides information about a network interface.
@@ -68,11 +68,12 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	nicConfig.Subnet = &network.APIEntityReference{
 		ID: to.StringPtr(nicSpec.VnetName),
 	}
-	nicConfig.LoadBalancerBackendAddressPools = &[]network.BackendAddressPool{
-		{
-			Name: &nicSpec.BackendPoolName,
-		},
+	backendAddressPools := []network.BackendAddressPool{}
+	for _, backendpoolname := range nicSpec.BackendPoolNames {
+		name := backendpoolname
+		backendAddressPools = append(backendAddressPools, network.BackendAddressPool{Name: &name})
 	}
+	nicConfig.LoadBalancerBackendAddressPools = &backendAddressPools
 
 	if nicSpec.StaticIPAddress != "" {
 		nicConfig.PrivateIPAddress = to.StringPtr(nicSpec.StaticIPAddress)

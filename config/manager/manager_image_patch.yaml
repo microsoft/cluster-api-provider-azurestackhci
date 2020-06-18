@@ -7,5 +7,5 @@ spec:
   template:
     spec:
       containers:
-      - image: nwoodmsft/controller:0.3.0
+      - image: pradipd/controller:0.3.9
         name: manager

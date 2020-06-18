@@ -41,11 +41,11 @@ type AzureStackHCIVirtualMachineSpec struct {
 	SSHPublicKey     string           `json:"sshPublicKey"`
 
 	// come from the cluster scope for machine and lb controller creation path
-	ResourceGroup   string `json:"resourceGroup"`
-	VnetName        string `json:"vnetName"`
-	ClusterName     string `json:"clusterName"`
-	SubnetName      string `json:"subnetName"`
-	BackendPoolName string `json:"backendPoolName,omitempty"`
+	ResourceGroup    string   `json:"resourceGroup"`
+	VnetName         string   `json:"vnetName"`
+	ClusterName      string   `json:"clusterName"`
+	SubnetName       string   `json:"subnetName"`
+	BackendPoolNames []string `json:"backendPoolNames,omitempty"`
 }
 
 // AzureStackHCIVirtualMachineStatus defines the observed state of AzureStackHCIVirtualMachine
