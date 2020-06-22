@@ -149,12 +149,11 @@ func (s *azureStackHCIVirtualMachineService) reconcileDisk(disk infrav1.OSDisk) 
 
 func (s *azureStackHCIVirtualMachineService) reconcileNetworkInterface(nicName string) error {
 	networkInterfaceSpec := &networkinterfaces.Spec{
-		Name:            nicName,
-		VnetName:        s.vmScope.VnetName(),
-		SubnetName:      s.vmScope.SubnetName(), // this field is required to be passed from AzureStackHCIMachine
-		BackendPoolName: s.vmScope.BackendPoolName(),
+		Name:             nicName,
+		VnetName:         s.vmScope.VnetName(),
+		SubnetName:       s.vmScope.SubnetName(), // this field is required to be passed from AzureStackHCIMachine
+		BackendPoolNames: s.vmScope.BackendPoolNames(),
 	}
-
 	err := s.networkInterfacesSvc.Reconcile(s.vmScope.Context, networkInterfaceSpec)
 	if err != nil {
 		return errors.Wrap(err, "unable to create VM network interface")

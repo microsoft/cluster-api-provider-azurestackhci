@@ -295,7 +295,7 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileLoadBalancerAddress(loadB
 }
 
 func (r *AzureStackHCILoadBalancerReconciler) reconcileLoadBalancer(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) error {
-	backendPoolName := azurestackhci.GenerateBackendPoolName(clusterScope.Name())
+	backendPoolName := azurestackhci.GenerateControlPlaneBackendPoolName(clusterScope.Name())
 	loadBalancerScope.SetPort(clusterScope.APIServerPort())
 	lbSpec := &loadbalancers.Spec{
 		Name:            loadBalancerScope.AzureStackHCILoadBalancer.Name,

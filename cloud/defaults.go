@@ -129,7 +129,14 @@ func GenerateAzureStackHCILoadBalancerName(clusterName string) string {
 	return fmt.Sprintf("%s-load-balancer", clusterName)
 }
 
+// GenerateControlPlaneBackendPoolName generates the name of a control plane backend pool based on the name of a cluster.
+// This backend pool name should be used by the control plane only
+func GenerateControlPlaneBackendPoolName(clusterName string) string {
+	return fmt.Sprintf("%s-controlplane-backend-pool", clusterName)
+}
+
 // GenerateBackendPoolName generates the name of a backend pool based on the name of a cluster.
+// This backend pool name should be used by control plane and worker nodes.
 func GenerateBackendPoolName(clusterName string) string {
 	return fmt.Sprintf("%s-backend-pool", clusterName)
 }

@@ -198,7 +198,7 @@ func (m *VirtualMachineScope) AzureStackHCILoadBalancerVM() bool {
 	return false
 }
 
-// BackendPoolName returns the backend pool name for the virtual machine
-func (m *VirtualMachineScope) BackendPoolName() string {
-	return m.AzureStackHCIVirtualMachine.Spec.BackendPoolName
+// BackendPoolNames returns the backend pool name for the virtual machine
+func (m *VirtualMachineScope) BackendPoolNames() []string {
+	return m.AzureStackHCIVirtualMachine.Spec.BackendPoolNames
 }
