@@ -76,6 +76,23 @@ spec:
               & sc.exe start docker
               echo "Trying to start docker service..."
             }
+        - path: C:\ECP-Cache\WaitForWins.ps1
+          permissions: "0744"
+          content: |
+            #ps1
+            for($tries = 0; $tries -lt 3; $tries++) {
+              for($i = 0; $i -lt 10; $i++) {
+                if ((Get-Service rancher-wins).Status -eq "Running")
+                {
+                  echo "WINS service is running."
+                  exit
+                }
+                echo "Waiting WINS service..."
+                start-sleep -s 2
+              }
+              & sc.exe start rancher-wins
+              echo "Trying to start WINS service..."
+            }
       joinConfiguration:
         nodeRegistration:
           name: '{{ v1.local_hostname }}'
@@ -89,7 +106,8 @@ spec:
         - icacls C:\var\lib\kubelet\pki /inheritance:r /grant Administrators:(OI)(CI)(IO)(F) /grant system:(OI)(CI)(IO)(F)
         - powershell C:\ECP-Cache\WaitForDocker.ps1
         - docker network create -d nat host
-        - powershell -C "ipmo C:\ECP-Cache\hns.psm1;New-HNSNetwork -Type \"overlay\" -AddressPrefix \"192.168.255.0/30\" -Gateway \"192.168.255.1\" -Name \"External\" -AdapterName \"Ethernet 2\" -SubnetPolicies @(@{Type = \"VSID\"; VSID = 9999; }); start-sleep 10;"  
+        - powershell -C "ipmo C:\ECP-Cache\hns.psm1;New-HNSNetwork -Type \"overlay\" -AddressPrefix \"192.168.255.0/30\" -Gateway \"192.168.255.1\" -Name \"External\" -AdapterName \"Ethernet 2\" -SubnetPolicies @(@{Type = \"VSID\"; VSID = 9999; }); start-sleep 10;"
+        - powershell C:\ECP-Cache\WaitForWins.ps1        
       postKubeadmCommands:
         - powershell C:\ECP-Cache\StartFlannel.ps1
         - copy C:\Users\Administrator\.ssh\authorized_keys C:\ProgramData\ssh\administrators_authorized_keys
