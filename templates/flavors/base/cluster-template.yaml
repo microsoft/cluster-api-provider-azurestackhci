@@ -81,7 +81,7 @@ spec:
           content: |
             #ps1
             for($tries = 0; $tries -lt 3; $tries++) {
-              for($i = 0; $i -lt 10; $i++) {
+              for($i = 0; $i -lt 15; $i++) {
                 if ((Get-Service rancher-wins).Status -eq "Running")
                 {
                   echo "WINS service is running."
