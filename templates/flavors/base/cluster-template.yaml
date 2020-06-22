@@ -32,6 +32,8 @@ metadata:
 spec:
   template:
     spec:
+      preKubeadmCommands:
+      - /etc/rc.d/init.d/docker-import-mcr-k8s.sh
       joinConfiguration:
         nodeRegistration:
           name: '{{ ds.meta_data["local_hostname"] }}'
@@ -190,7 +192,6 @@ spec:
           leader-elect-lease-duration: "60s"
           leader-elect-renew-deadline: "55s"
       imageRepository: "ecpacr.azurecr.io"
-      kubernetesVersion: "${KUBERNETES_VERSION}"
   version: "${KUBERNETES_VERSION}"
 ---
 apiVersion: cluster.x-k8s.io/v1alpha3
