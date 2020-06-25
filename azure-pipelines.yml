@@ -4,6 +4,12 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
+resources:
+  repositories:
+  - repository: cloud-operator
+    type: git
+    name: cloud-operator
+
 trigger:
 - master
 
@@ -11,6 +17,8 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
+- checkout: self
+- checkout: cloud-operator
 - task: InstallSSHKey@0
   inputs:
     knownHostsEntry: '$(KNOWN_HOST)' 
@@ -42,8 +50,25 @@ steps:
     make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging docker-build docker-push
     make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging release
     make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging generate-flavors
-  workingDirectory: '$(System.DefaultWorkingDirectory)'
-  displayName: 'Build'
+  workingDirectory: '$(System.DefaultWorkingDirectory)/cluster-api-provider-azurestackhci'
+  displayName: 'Build CAPH'
+
+- script: |
+    git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+    chmod +x hack/ensure-kustomize.sh
+    hack/ensure-kustomize.sh
+
+    GOPATH_BIN="$(go env GOPATH)/bin/"
+    PATH=$GOPATH_BIN:$PATH
+
+    cp ../cluster-api-provider-azurestackhci/out/infrastructure-components.yaml deployment/infrastructure-azurestackhci/v0.3.0
+    cp ../cluster-api-provider-azurestackhci/templates/cluster-template.yaml deployment/infrastructure-azurestackhci/v0.3.0
+    cp ../cluster-api-provider-azurestackhci/templates/cluster-template-mgmt.yaml deployment/infrastructure-azurestackhci/v0.3.0
+
+    make IMG=mocimages.azurecr.io/cloud-operator-staging:latest docker-build docker-push
+    make IMG=mocimages.azurecr.io/cloud-operator-staging:latest release
+  workingDirectory: '$(System.DefaultWorkingDirectory)/cloud-operator'
+  displayName: 'Build Cloud Operator'
 
 - publish: $(System.DefaultWorkingDirectory)/out
   artifact: releases
