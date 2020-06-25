@@ -46,6 +46,7 @@ steps:
 
     GOPATH_BIN="$(go env GOPATH)/bin/"
     PATH=$GOPATH_BIN:$PATH
+
     RANDOM=$$
     make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging PATCH_VER=$RANDOM docker-build docker-push
     make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging PATCH_VER=$RANDOM release
@@ -60,8 +61,8 @@ steps:
 
     GOPATH_BIN="$(go env GOPATH)/bin/"
     PATH=$GOPATH_BIN:$PATH
-    RANDOM=$$
 
+    RANDOM=$$
     cp ../cluster-api-provider-azurestackhci/out/infrastructure-components.yaml deployment/infrastructure-azurestackhci/v0.3.0
     cp ../cluster-api-provider-azurestackhci/templates/cluster-template.yaml deployment/infrastructure-azurestackhci/v0.3.0
     cp ../cluster-api-provider-azurestackhci/templates/cluster-template-mgmt.yaml deployment/infrastructure-azurestackhci/v0.3.0
