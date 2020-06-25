@@ -46,10 +46,10 @@ steps:
 
     GOPATH_BIN="$(go env GOPATH)/bin/"
     PATH=$GOPATH_BIN:$PATH
-
-    make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging docker-build docker-push
-    make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging release
-    make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging generate-flavors
+    RANDOM=$$
+    make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging PATCH_VER=$RANDOM docker-build docker-push
+    make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging PATCH_VER=$RANDOM release
+    make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging PATCH_VER=$RANDOM generate-flavors
   workingDirectory: '$(System.DefaultWorkingDirectory)/cluster-api-provider-azurestackhci'
   displayName: 'Build CAPH'
 
@@ -60,19 +60,22 @@ steps:
 
     GOPATH_BIN="$(go env GOPATH)/bin/"
     PATH=$GOPATH_BIN:$PATH
+    RANDOM=$$
 
     cp ../cluster-api-provider-azurestackhci/out/infrastructure-components.yaml deployment/infrastructure-azurestackhci/v0.3.0
     cp ../cluster-api-provider-azurestackhci/templates/cluster-template.yaml deployment/infrastructure-azurestackhci/v0.3.0
     cp ../cluster-api-provider-azurestackhci/templates/cluster-template-mgmt.yaml deployment/infrastructure-azurestackhci/v0.3.0
 
-    make IMG=mocimages.azurecr.io/cloud-operator-staging:latest docker-build docker-push
-    make IMG=mocimages.azurecr.io/cloud-operator-staging:latest release
+    make IMG=mocimages.azurecr.io/cloud-operator-staging:$RANDOM docker-build docker-push
+    make IMG=mocimages.azurecr.io/cloud-operator-staging:$RANDOM release
   workingDirectory: '$(System.DefaultWorkingDirectory)/cloud-operator'
   displayName: 'Build Cloud Operator'
 
-- publish: $(System.DefaultWorkingDirectory)/out
+- publish: $(System.DefaultWorkingDirectory)/cluster-api-provider-azurestackhci/out
   artifact: releases
 
-
-- publish: $(System.DefaultWorkingDirectory)/templates
+- publish: $(System.DefaultWorkingDirectory)/cluster-api-provider-azurestackhci/templates
   artifact: templates
+  
+- publish: $(System.DefaultWorkingDirectory)/cloud-operator/deployment/cloud-operator.yaml
+  artifact: deployment
