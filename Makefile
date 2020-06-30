@@ -54,13 +54,13 @@ ETCD=$(TOOLS_BIN_DIR)/etcd
 # Version
 MAJOR_VER ?= 0
 MINOR_VER ?= 3
-PATCH_VER ?= 0
+PATCH_VER ?= 2
 
 # Define Docker related variables. Releases should modify and double check these vars.
-REGISTRY ?= nwoodmsft
-STAGING_REGISTRY := nwoodmsft
-PROD_REGISTRY := nwoodmsft
-IMAGE_NAME ?= controller
+REGISTRY ?= mocimages.azurecr.io
+STAGING_REGISTRY := mocimages.azurecr.io
+PROD_REGISTRY := mocimages.azurecr.io
+IMAGE_NAME ?= caphcontroller
 CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME)
 TAG := $(MAJOR_VER).$(MINOR_VER).$(PATCH_VER)
 ARCH := amd64
