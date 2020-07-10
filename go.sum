@@ -313,6 +313,10 @@ github.com/microsoft/moc v0.8.0-alpha.16/go.mod h1:NDhD7TeowU9TNqCxw+l4NlTLPZN9S
 github.com/microsoft/moc v0.8.0-alpha.31/go.mod h1:QDHIQjlHtf6oWkKgwtjEWhT9JYAR8dqKRoWkcfoap04=
 github.com/microsoft/moc v0.9.0-alpha.4 h1:ljoCaRpnZRGyWOrDs8acstozhijohkzsiVPFqzttXTc=
 github.com/microsoft/moc v0.9.0-alpha.4/go.mod h1:QDHIQjlHtf6oWkKgwtjEWhT9JYAR8dqKRoWkcfoap04=
+github.com/microsoft/moc v0.9.0-alpha.25 h1:tew+AWvnQ3t9xYEpASNk6LooVe/Cl+r6yo30qSQNjy0=
+github.com/microsoft/moc v0.9.0-alpha.25/go.mod h1:u3pjIIl0Xl35cgc5ImC+BTY1F3x6BHi/KuFjCSV01cw=
+github.com/microsoft/moc v0.9.0-alpha.28 h1:F5xzCwIc+p5SXGZpk5Rx0JZaFvjMnig/YDJ8pGwc0tM=
+github.com/microsoft/moc v0.9.0-alpha.28/go.mod h1:u3pjIIl0Xl35cgc5ImC+BTY1F3x6BHi/KuFjCSV01cw=
 github.com/microsoft/moc-sdk-for-go v0.7.0-alpha.4 h1:4Qpn9Y9htaK+WDk5YVeiROtKKLZ5nlWTMEa+MiihSv4=
 github.com/microsoft/moc-sdk-for-go v0.7.0-alpha.4/go.mod h1:LEk+ZF4WpxLOBiNzb7IwUSVqjwFj5SmahJyYaowS36M=
 github.com/microsoft/moc-sdk-for-go v0.8.0-alpha.3 h1:qdnig1idg6jtttGwIQpFVDsKf4aQfGpH1Rh+Q7b6UGU=
@@ -325,11 +329,14 @@ github.com/microsoft/moc-sdk-for-go v0.8.0-alpha.7 h1:2VVqiNZT81QrNosw4agQ2gYpYr
 github.com/microsoft/moc-sdk-for-go v0.8.0-alpha.7/go.mod h1:0fPj++5TVCKxYtCk3qkhUpQrBaHGMj8Z68CDhULAbRg=
 github.com/microsoft/moc-sdk-for-go v0.8.1-alpha.1 h1:Wi1Lz46nS9jJ4UflA5OX6XINL1N5z+t6J42rnXAQnIU=
 github.com/microsoft/moc-sdk-for-go v0.8.1-alpha.1/go.mod h1:E7Yzp7xCUkZow8Y/hjeFOb6I0wwKmat5Szz2cLJ2cyg=
+github.com/microsoft/moc-sdk-for-go v0.9.0-alpha.6 h1:Ab/TUqltewnZPJM86rdYGsoozkf8b+dI2yXM336G/lc=
+github.com/microsoft/moc-sdk-for-go v0.9.0-alpha.6/go.mod h1:yhhKIKzEBYn9CN3fiP5FTZBhBNSKL1XSHN+Bk4/SO8U=
 github.com/microsoft/wmi v0.1.0/go.mod h1:9RAp65T3V4k+u4p4ROpgz/8MDeSq5SMC3eMwjlHk6m0=
 github.com/microsoft/wmi v0.1.1/go.mod h1:oOGdx0ldEw0MQPbY7f7SAikscrHoZynFFgx/9+V+SbY=
 github.com/microsoft/wmi v0.1.2/go.mod h1:oOGdx0ldEw0MQPbY7f7SAikscrHoZynFFgx/9+V+SbY=
 github.com/microsoft/wmi v0.1.3/go.mod h1:oOGdx0ldEw0MQPbY7f7SAikscrHoZynFFgx/9+V+SbY=
 github.com/microsoft/wmi v0.1.4/go.mod h1:oOGdx0ldEw0MQPbY7f7SAikscrHoZynFFgx/9+V+SbY=
+github.com/microsoft/wmi v0.2.3/go.mod h1:dCXZgJVjwILNv4HD6VOM356/Yh5MTi393MUbYpUhrHA=
 github.com/miekg/dns v1.1.3/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3Nrg=
 github.com/mitchellh/go-homedir v1.1.0/go.mod h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrkLzIz1N1q0pr0=
 github.com/mitchellh/mapstructure v1.1.2 h1:fmNYVwqnSfB9mZU6OS2O6GsXM+wcskZDuKQzvN1EDeE=
