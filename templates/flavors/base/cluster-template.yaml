@@ -128,10 +128,6 @@ spec:
     apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
     kind: AzureStackHCICluster
     name: ${CLUSTER_NAME}
-  controlPlaneRef:
-    kind: KubeadmControlPlane
-    apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
-    name: "${CLUSTER_NAME}-control-plane"
 ---
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
 kind: AzureStackHCICluster

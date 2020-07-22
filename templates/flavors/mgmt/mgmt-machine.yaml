@@ -1,0 +1,75 @@
+---
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Machine
+metadata:
+  labels:
+    cluster.x-k8s.io/cluster-name: ${CLUSTER_NAME}
+    cluster.x-k8s.io/control-plane: "true"
+  name: ${CLUSTER_NAME}-control-plane-0
+  namespace: default
+spec:
+  version: v1.18.2
+  providerID: moc://${CLUSTER_NAME}-control-plane-0
+  clusterName: ${CLUSTER_NAME}
+  bootstrap:
+    configRef:
+      apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
+      kind: KubeadmConfig
+      name: ${CLUSTER_NAME}-control-plane-0
+  infrastructureRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+    kind: AzureStackHCIMachine
+    name: ${CLUSTER_NAME}-control-plane-0
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+kind: AzureStackHCIMachine
+metadata:
+  labels:
+    cluster.x-k8s.io/cluster-name: ${CLUSTER_NAME}
+    cluster.x-k8s.io/control-plane: ${CLUSTER_NAME}-control-plane
+  name: ${CLUSTER_NAME}-control-plane-0
+  namespace: default
+spec:
+  location: westus
+  providerID: moc://${CLUSTER_NAME}-control-plane-0
+  sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY}
+  vmSize: ${AZURESTACKHCI_CONTROL_PLANE_MACHINE_TYPE}
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
+kind: KubeadmConfig
+metadata:
+  name: ${CLUSTER_NAME}-control-plane-0
+spec:
+  clusterConfiguration:
+    apiServer:
+      extraArgs:
+        cloud-provider: external
+      timeoutForControlPlane: 20m
+    controllerManager:
+      extraArgs:
+        bind-address: 0.0.0.0
+        cloud-provider: external
+        leader-elect-lease-duration: 60s
+        leader-elect-renew-deadline: 55s
+        terminated-pod-gc-threshold: "10"
+    imageRepository: ecpacr.azurecr.io
+    scheduler:
+      extraArgs:
+        bind-address: 0.0.0.0
+        leader-elect-lease-duration: 60s
+        leader-elect-renew-deadline: 55s
+  initConfiguration:
+    nodeRegistration:
+      kubeletExtraArgs:
+        anonymous-auth: "false"
+        cloud-provider: external
+      name: '{{ ds.meta_data["local_hostname"] }}'
+  joinConfiguration:
+    nodeRegistration:
+      kubeletExtraArgs:
+        cloud-provider: external
+      name: '{{ ds.meta_data["local_hostname"] }}'
+  preKubeadmCommands:
+  - /etc/rc.d/init.d/docker-import-mcr-k8s.sh
+  useExperimentalRetryJoin: true
+---
