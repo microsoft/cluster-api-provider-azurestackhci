@@ -216,6 +216,7 @@ docker-build: manager ## Build the docker image for controller-manager
 .PHONY: docker-push
 docker-push: ## Push the docker image
 	#docker push $(CONTROLLER_IMG)-$(ARCH):$(TAG)
+	@if [ "${DOCKER_USERNAME}" ]; then docker login $(STAGING_REGISTRY) -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}; fi
 	docker push $(CONTROLLER_IMG):$(TAG)
 
 ## --------------------------------------
@@ -315,6 +316,7 @@ dev-release:
 	#$(MAKE) generate
 	$(MAKE) docker-build
 	$(MAKE) docker-push
+	@if [ "${DOCKER_USERNAME}" ]; then ./hack/for-pipeline.sh; fi
 	$(MAKE) release
 
 .PHONY: create-local-provider-repository
