@@ -19,9 +19,7 @@ package controllers
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/to"
@@ -230,7 +228,8 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileNormalVirtualMachine(load
 		vm.Spec.VnetName = clusterScope.AzureStackHCICluster.Spec.NetworkSpec.Vnet.Name
 		vm.Spec.ClusterName = clusterScope.AzureStackHCICluster.Name
 		vm.Spec.SubnetName = azurestackhci.GenerateNodeSubnetName(clusterScope.Name())
-		vm.Spec.BootstrapData = r.formatLoadBalancerCloudInit(loadBalancerScope, clusterScope)
+		bootstrapdata := ""
+		vm.Spec.BootstrapData = &bootstrapdata
 		vm.Spec.VMSize = loadBalancerScope.AzureStackHCILoadBalancer.Spec.VMSize
 		vm.Spec.Location = clusterScope.Location()
 		vm.Spec.SSHPublicKey = loadBalancerScope.AzureStackHCILoadBalancer.Spec.SSHPublicKey
@@ -395,52 +394,6 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileDeleteLoadBalancer(loadBa
 	}
 
 	return nil
-}
-
-func (r *AzureStackHCILoadBalancerReconciler) formatLoadBalancerCloudInit(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) *string {
-
-	// Temp until lbagent is ready
-	binarylocation := os.Getenv("AZURESTACKHCI_BINARY_LOCATION")
-	if binarylocation == "" {
-		// Default
-		binarylocation = "http://10.231.110.37/AzureEdge/0.8"
-		loadBalancerScope.Info("Failed to obtain binary location from env. Using default value.", "binarylocation", binarylocation)
-	}
-
-	ret := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf(`
-#cloud-config
-write_files:
-  - path: /lib/systemd/system/lbagent.service
-    owner: root:root
-    permissions: '0644'
-    content: |
-      [Unit]
-      Description=AzEdge lbagent service
-      After=syslog.target network-online.target
-      Wants=network-online.target
-      
-      [Service]
-      Environment="LB_DEBUG_MODE=on"
-      Type=simple
-      PIDFile=/var/run/lbagent.pid
-      KillMode=process
-      ExecStart=/usr/sbin/lbagent
-      ExecReload=/bin/kill -HUP $MAINPID
-      Restart=always
-      
-      [Install]
-      WantedBy=multi-user.target
-
-runcmd:
-- |
-  curl -o /usr/sbin/lbagent %s/lbagent
-  chmod 755 /usr/sbin/lbagent
-  systemctl start lbagent
-  sysctl -w net.ipv4.ip_nonlocal_bind=1
-  systemctl reload haproxy
-  systemctl stop iptables
-`, binarylocation)))
-	return &ret
 }
 
 func (r *AzureStackHCILoadBalancerReconciler) getVMImage(loadBalancerScope *scope.LoadBalancerScope) (*infrav1.Image, error) {
