@@ -22,6 +22,11 @@ set -o pipefail
 : "${AZURESTACKHCI_CLOUDAGENT_FQDN:?Environment variable empty or not defined.}"
 : "${AZURESTACKHCI_BINARY_LOCATION:?Environment variable empty or not defined.}"
 
+# CAPI settings.
+export CAPI_PROVIDER_BOOTSTRAP="${CAPI_PROVIDER_BOOTSTRAP:-kubeadm:v0.3.5}"
+export CAPI_PROVIDER_CONTROLPLANE="${CAPI_PROVIDER_CONTROLPLANE:-kubeadm:v0.3.5}"
+export CAPI_PROVIDER_CORE="${CAPI_PROVIDER_CORE:-cluster-api:v0.3.5}"
+
 # Cluster settings.
 export AZURESTACKHCI_CLUSTER_RESOURCE_GROUP="${AZURESTACKHCI_CLUSTER_RESOURCE_GROUP:-nickgroup}"
 export CLUSTER_NAME="${CLUSTER_NAME:-${AZURESTACKHCI_CLUSTER_RESOURCE_GROUP}-caph-test}"
@@ -76,7 +81,7 @@ make kind-reset
 make kind-create
 
 print_banner "ClusterCTL Init"
-clusterctl init --infrastructure azurestackhci
+clusterctl init --infrastructure azurestackhci --bootstrap ${CAPI_PROVIDER_BOOTSTRAP} --control-plane ${CAPI_PROVIDER_CONTROLPLANE} --core ${CAPI_PROVIDER_CORE}
 
 print_banner "Wait For CAPI Pods To Be Ready"
 kubectl wait --for=condition=Ready --timeout=5m -n capi-system pod -l cluster.x-k8s.io/provider=cluster-api
