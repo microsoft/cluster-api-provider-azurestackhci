@@ -201,9 +201,16 @@ generate-manifests: $(CONTROLLER_GEN) ## Generate manifests e.g. CRD, RBAC etc.
 .PHONY: generate-flavors ## Generate template flavors
 generate-flavors:
 	./hack/gen-flavors.sh
+
 ## --------------------------------------
 ## Docker
 ## --------------------------------------
+
+.PHONY: docker-login
+docker-login: ## Login docker to a private registry
+	@if [ -z "${DOCKER_USERNAME}" ]; then echo "DOCKER_USERNAME is not set"; exit 1; fi
+	@if [ -z "${DOCKER_PASSWORD}" ]; then echo "DOCKER_PASSWORD is not set"; exit 1; fi
+	docker login $(STAGING_REGISTRY) -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
 
 .PHONY: docker-build
 docker-build: manager ## Build the docker image for controller-manager
@@ -215,8 +222,6 @@ docker-build: manager ## Build the docker image for controller-manager
 
 .PHONY: docker-push
 docker-push: ## Push the docker image
-	#docker push $(CONTROLLER_IMG)-$(ARCH):$(TAG)
-	@if [ "${DOCKER_USERNAME}" ]; then docker login $(STAGING_REGISTRY) -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}; fi
 	docker push $(CONTROLLER_IMG):$(TAG)
 
 ## --------------------------------------
