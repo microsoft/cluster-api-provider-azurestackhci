@@ -62,6 +62,62 @@ spec:
   template:
     spec:
       files:
+        - path: C:\ECP-Cache\RetryJoinIfNecessary.ps1
+          permissions: "0744"
+          content: |
+            #ps1
+            function CheckIsJoined() {
+              if (Test-Path C:\etc\kubernetes\kubelet.conf) {
+                kubectl --kubeconfig=C:\etc\kubernetes\kubelet.conf get nodes $(hostname)
+                if ($?) {
+                  return $true
+                }
+                Write-Warning "The node wasn't found by kubectl"
+                return $false
+              }
+              Write-Warning "The kubelet file doesn't exist"
+              return $false
+            }
+            function Retry-Command
+            {
+                param (
+                [Parameter(Mandatory=$true)][string]$command,
+                [Parameter(Mandatory=$true)][string[]]$args,
+                [Parameter(Mandatory=$false)][int]$retries = 5,
+                [Parameter(Mandatory=$false)][int]$secondsDelay = 2
+                )
+                $retrycount = 0
+                $completed = $false
+                Write-Verbose ("!!Executing comand $command $args")
+                while (-not $completed) {
+                    try {
+                        & $command $args 2>&1
+                        if ($LastExitCode -eq 0) {
+                          Write-Verbose ("Command [{0}] succeeded." -f $command)
+                          $completed = $true
+                        } else {
+                          throw "exit code failed"
+                        }
+                    } catch {
+                        if ($retrycount -ge $retries) {
+                            Write-Verbose ("Command [{0}] failed the maximum number of {1} times." -f $command, $retrycount)
+                            break
+                        } else {
+                            Write-Verbose ("Command [{0}] failed. Retrying in {1} seconds." -f $command, $secondsDelay)
+                            Start-Sleep $secondsDelay
+                            $retrycount++
+                        }
+                    }
+                }
+            }
+            for($retries = 0; $retries -lt 2; $retries++) {
+              if($(CheckIsJoined)) {
+                Write-Host "The node is joined to the Kubernetes cluster"
+                exit 0
+              }
+              Retry-Command -Command "kubeadm" -Args @( "join", "phase", "preflight", "--ignore-preflight-errors=DirAvailable--etc-kubernetes-manifests", "--config=/tmp/kubeadm-join-config.yaml", "--v=5") -Verbose
+              Retry-Command -Command "kubeadm" -Args @( "join", "phase", "kubelet-start", "--config=/tmp/kubeadm-join-config.yaml", "--v=5") -Verbose
+            }
         - path: C:\ECP-Cache\WaitForDocker.ps1
           permissions: "0744"
           content: |
@@ -110,11 +166,12 @@ spec:
         - powershell C:\ECP-Cache\WaitForDocker.ps1
         - docker network create -d nat host
         - powershell -C "ipmo C:\ECP-Cache\hns.psm1;New-HNSNetwork -Type \"overlay\" -AddressPrefix \"192.168.255.0/30\" -Gateway \"192.168.255.1\" -Name \"External\" -AdapterName \"Ethernet 2\" -SubnetPolicies @(@{Type = \"VSID\"; VSID = 9999; }); start-sleep 10;"
-        - powershell C:\ECP-Cache\WaitForWins.ps1        
-      postKubeadmCommands:
-        - powershell C:\ECP-Cache\StartFlannel.ps1
+        - powershell C:\ECP-Cache\WaitForWins.ps1
         - copy C:\Users\Administrator\.ssh\authorized_keys C:\ProgramData\ssh\administrators_authorized_keys
         - icacls C:\ProgramData\ssh\administrators_authorized_keys /inheritance:r /grant "NT AUTHORITY\SYSTEM":R
+      postKubeadmCommands:
+        - powershell -C "powershell C:\ECP-Cache\RetryJoinIfNecessary.ps1 > C:\tmp\retry.log 2>&1; type C:\tmp\retry.log; del C:\tmp\retry.log"
+        - powershell C:\ECP-Cache\StartFlannel.ps1
 ---
 apiVersion: cluster.x-k8s.io/v1alpha3
 kind: Cluster
