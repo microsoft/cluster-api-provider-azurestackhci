@@ -25,6 +25,3 @@ flavors_dir="${root}/templates/flavors/"
 
 kustomize build ${flavors_dir}/mgmt > ${templates_dir}/cluster-template-mgmt.yaml
 kustomize build ${flavors_dir}/default > ${templates_dir}/cluster-template.yaml
-
-# Workaround: Can't run the base cluster-template through kustomize with the windows addons.yaml
-#cat ${flavors_dir}/base/cluster-template.yaml > ${templates_dir}/cluster-template.yaml
