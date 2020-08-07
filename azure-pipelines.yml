@@ -59,19 +59,17 @@ steps:
     git config --global url.ssh://git@github.com/.insteadOf https://github.com/
     chmod +x hack/ensure-kustomize.sh
     chmod +x hack/set-acr.sh
-    chmod +x hack/prepare-directory.sh
     hack/ensure-kustomize.sh
     hack/set-acr.sh
-    hack/prepare-directory.sh
 
     GOPATH_BIN="$(go env GOPATH)/bin/"
     PATH=$GOPATH_BIN:$PATH
 
     RANDOM=$$
     TagNum=$(( $RANDOM % 1000 ))
-    cp ../cluster-api-provider-azurestackhci/out/infrastructure-components.yaml deployment/infrastructure-azurestackhci/v0.3.3
-    cp ../cluster-api-provider-azurestackhci/templates/cluster-template.yaml deployment/infrastructure-azurestackhci/v0.3.3
-    cp ../cluster-api-provider-azurestackhci/templates/cluster-template-mgmt.yaml deployment/infrastructure-azurestackhci/v0.3.3
+    cp ../cluster-api-provider-azurestackhci/out/infrastructure-components.yaml deployment/infrastructure-azurestackhci/v0.3.2
+    cp ../cluster-api-provider-azurestackhci/templates/cluster-template.yaml deployment/infrastructure-azurestackhci/v0.3.2
+    cp ../cluster-api-provider-azurestackhci/templates/cluster-template-mgmt.yaml deployment/infrastructure-azurestackhci/v0.3.2
 
     make IMG=mocimages.azurecr.io/cloud-operator-staging:$TagNum docker-build docker-push
     make IMG=mocimages.azurecr.io/cloud-operator-staging:$TagNum release
