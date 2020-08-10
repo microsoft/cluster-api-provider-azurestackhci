@@ -59,8 +59,9 @@ steps:
     git config --global url.ssh://git@github.com/.insteadOf https://github.com/
     chmod +x hack/ensure-kustomize.sh
     chmod +x hack/set-acr.sh
+    chmod +x hack/prepare-directory.sh
     hack/ensure-kustomize.sh
-    hack/set-acr.sh
+    hack/prepare-directory.sh
 
     GOPATH_BIN="$(go env GOPATH)/bin/"
     PATH=$GOPATH_BIN:$PATH
