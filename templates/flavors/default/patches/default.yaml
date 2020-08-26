@@ -7,7 +7,7 @@ spec:
   clusterNetwork:
     pods:
       cidrBlocks: ["${AZURESTACKHCI_POD_CIDR}"]
-    sevices:
+    services:
       cidrBlocks: ["${AZURESTACKHCI_SERVICE_CIDR}"]
   infrastructureRef:
     apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
