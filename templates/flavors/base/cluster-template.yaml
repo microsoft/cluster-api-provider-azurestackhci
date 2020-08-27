@@ -118,6 +118,26 @@ spec:
               Retry-Command -Command "kubeadm" -Args @( "join", "phase", "preflight", "--ignore-preflight-errors=DirAvailable--etc-kubernetes-manifests", "--config=/tmp/kubeadm-join-config.yaml", "--v=5") -Verbose
               Retry-Command -Command "kubeadm" -Args @( "join", "phase", "kubelet-start", "--config=/tmp/kubeadm-join-config.yaml", "--v=5") -Verbose
             }
+        - path: C:\ECP-Cache\AddHNSNetwork.ps1
+          permissions: "0744"
+          content: |
+            #ps1
+            ipmo C:\ECP-Cache\hns.psm1
+            for($tries = 0; $tries -lt 5; $tries++) {
+              try {
+                $out = New-HNSNetwork -Type "overlay" -AddressPrefix "192.168.255.0/30" -Gateway "192.168.255.1" -Name "External" -AdapterName "Ethernet 2" -SubnetPolicies @(@{Type = "VSID"; VSID = 9999; });
+                if ($out) {
+                  echo "New-HNSNetwork succeeded. $out"
+                  break;
+                } else {
+                  throw "exit code failed"
+                }
+              } catch {
+                echo "Retrying($tries) 'New-HNSNetwork'..."
+                Start-Sleep 5
+              }
+            }
+            Start-Sleep 10
         - path: C:\ECP-Cache\WaitForDocker.ps1
           permissions: "0744"
           content: |
@@ -165,8 +185,8 @@ spec:
         - icacls C:\var\lib\kubelet\pki /inheritance:r /grant Administrators:(OI)(CI)(IO)(F) /grant system:(OI)(CI)(IO)(F)
         - powershell C:\ECP-Cache\WaitForDocker.ps1
         - docker network create -d nat host
-        - powershell -C "ipmo C:\ECP-Cache\hns.psm1;New-HNSNetwork -Type \"overlay\" -AddressPrefix \"192.168.255.0/30\" -Gateway \"192.168.255.1\" -Name \"External\" -AdapterName \"Ethernet 2\" -SubnetPolicies @(@{Type = \"VSID\"; VSID = 9999; }); start-sleep 10;"
         - powershell C:\ECP-Cache\WaitForWins.ps1
+        - powershell C:\ECP-Cache\AddHNSNetwork.ps1
         - copy C:\Users\Administrator\.ssh\authorized_keys C:\ProgramData\ssh\administrators_authorized_keys
         - icacls C:\ProgramData\ssh\administrators_authorized_keys /inheritance:r /grant "NT AUTHORITY\SYSTEM":R
       postKubeadmCommands:
