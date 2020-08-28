@@ -123,21 +123,22 @@ spec:
           content: |
             #ps1
             ipmo C:\ECP-Cache\hns.psm1
-            for($tries = 0; $tries -lt 5; $tries++) {
-              try {
-                $out = New-HNSNetwork -Type "overlay" -AddressPrefix "192.168.255.0/30" -Gateway "192.168.255.1" -Name "External" -AdapterName "Ethernet 2" -SubnetPolicies @(@{Type = "VSID"; VSID = 9999; });
+            $adapterName = "Ethernet 2"
+            for($tries = 0; $tries -lt 12; $tries++) {
+              Get-NetAdapter $adapterName
+              if ($?) {
+                echo "Adapter '$adapterName' found."
+                $out = New-HNSNetwork -Type "overlay" -AddressPrefix "192.168.255.0/30" -Gateway "192.168.255.1" -Name "External" -AdapterName $adapterName -SubnetPolicies @(@{Type = "VSID"; VSID = 9999; });
                 if ($out) {
-                  echo "New-HNSNetwork succeeded. $out"
-                  break;
-                } else {
-                  throw "exit code failed"
+                  echo "New-HNSNetwork succeeded: $out"
+                  Start-Sleep 10
+                  exit 0
                 }
-              } catch {
-                echo "Retrying($tries) 'New-HNSNetwork'..."
-                Start-Sleep 5
+                echo "Retrying... "
               }
+              Start-Sleep 5
             }
-            Start-Sleep 10
+            echo "Failed to create HNS Network."
         - path: C:\ECP-Cache\WaitForDocker.ps1
           permissions: "0744"
           content: |
