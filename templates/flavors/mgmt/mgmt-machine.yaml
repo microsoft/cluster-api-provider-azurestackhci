@@ -8,7 +8,7 @@ metadata:
   name: ${CLUSTER_NAME}-control-plane-0
   namespace: default
 spec:
-  version: v1.18.2
+  version: "${KUBERNETES_VERSION}"
   providerID: moc://${CLUSTER_NAME}-control-plane-0
   clusterName: ${CLUSTER_NAME}
   bootstrap:
