@@ -10,7 +10,7 @@ spec:
         osType: "Linux"
       location: "westus"
       vmSize: ${AZURESTACKHCI_WORKER_MACHINE_TYPE}
-      sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY}
+      sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY:=""}
 ---
 kind: AzureStackHCIMachineTemplate
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
@@ -23,7 +23,7 @@ spec:
         osType: "Linux"
       location: "westus"
       vmSize: ${AZURESTACKHCI_CONTROL_PLANE_MACHINE_TYPE}
-      sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY}
+      sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY:=""}
 ---
 apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
 kind: KubeadmConfigTemplate
@@ -52,7 +52,7 @@ spec:
         osType: "Windows"
       location: "westus"
       vmSize: ${AZURESTACKHCI_WINDOWS_WORKER_MACHINE_TYPE}
-      sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY}
+      sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY:=""}
 ---
 apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
 kind: KubeadmConfigTemplate
@@ -201,9 +201,11 @@ metadata:
 spec:
   clusterNetwork:
     pods:
-      cidrBlocks: ["${AZURESTACKHCI_POD_CIDR}"]
+      cidrBlocks: 
+      - ${AZURESTACKHCI_POD_CIDR:=""}
     services:
-      cidrBlocks: ["${AZURESTACKHCI_SERVICE_CIDR}"]
+      cidrBlocks: 
+      - ${AZURESTACKHCI_SERVICE_CIDR:=""}
   infrastructureRef:
     apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
     kind: AzureStackHCICluster
@@ -222,7 +224,7 @@ spec:
   azureStackHCILoadBalancer:
     image:
       osType: "Linux"
-    sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY}
+    sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY:=""}
     vmSize: "${AZURESTACKHCI_LOAD_BALANCER_MACHINE_TYPE}"
   version: "${KUBERNETES_VERSION}"
 ---
