@@ -19,7 +19,6 @@ package controllers
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"fmt"
@@ -40,7 +39,6 @@ import (
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
 	capierrors "sigs.k8s.io/cluster-api/errors"
 	"sigs.k8s.io/cluster-api/util"
-	"sigs.k8s.io/cluster-api/util/patch"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -56,12 +54,6 @@ type AzureStackHCIMachineReconciler struct {
 	Log      logr.Logger
 	Recorder record.EventRecorder
 }
-
-const (
-	ManagementClusterControlPlaneName = "control-plane-0"
-)
-
-var managementClusterOverridenError = errors.New("Management Cluster is already overriden")
 
 func (r *AzureStackHCIMachineReconciler) SetupWithManager(mgr ctrl.Manager, options controller.Options) error {
 	return ctrl.NewControllerManagedBy(mgr).
@@ -160,24 +152,6 @@ func (r *AzureStackHCIMachineReconciler) Reconcile(req ctrl.Request) (_ ctrl.Res
 	})
 	if err != nil {
 		return reconcile.Result{}, errors.Errorf("failed to create scope: %+v", err)
-	}
-
-	// If we are creating the Management Cluster, we need to check if an override is needed
-	if machineScope.AzureStackHCICluster.Spec.Management {
-
-		err := r.managementClusterOverride(machineScope, clusterScope)
-		if err == nil {
-			logger.Info("Management Cluster Override Complete")
-			return reconcile.Result{}, nil
-		}
-
-		if err != managementClusterOverridenError {
-			return reconcile.Result{}, errors.Errorf("failed to overide controlplane: %+v", err)
-		}
-
-		// Log and continue
-		logger.Info("Management Cluster Override Already Complete")
-
 	}
 
 	// Always close the scope when exiting this function so we can persist any AzureStackHCIMachine changes.
@@ -436,86 +410,4 @@ func (r *AzureStackHCIMachineReconciler) getVMImage(scope *scope.MachineScope) (
 	}
 
 	return azurestackhci.GetDefaultImage(scope.AzureStackHCIMachine.Spec.Image.OSType, to.String(scope.Machine.Spec.Version))
-}
-
-var (
-	// managementClusterOverrides is used to ensure only one goroutine attempts the override
-	managementClusterOverrides  = map[apitypes.UID]struct{}{}
-	managementClusterOverrideMu sync.Mutex
-)
-
-func (r *AzureStackHCIMachineReconciler) managementClusterOverride(machineScope *scope.MachineScope, clusterScope *scope.ClusterScope) error {
-
-	managementClusterOverrideMu.Lock()
-	defer managementClusterOverrideMu.Unlock()
-	if _, ok := managementClusterOverrides[clusterScope.Cluster.UID]; ok {
-		machineScope.Info("Management Cluster is already overriden")
-		return managementClusterOverridenError
-	}
-
-	controlPlaneName := fmt.Sprintf("%s-%s", clusterScope.AzureStackHCICluster.Name, ManagementClusterControlPlaneName)
-
-	replacementMachine := &infrav1.AzureStackHCIMachine{}
-	azureStackMachineName := client.ObjectKey{
-		Namespace: machineScope.AzureStackHCIMachine.Namespace,
-		Name:      controlPlaneName,
-	}
-	if err := r.Client.Get(clusterScope.Context, azureStackMachineName, replacementMachine); err == nil {
-		machineScope.Info("replacement machine is already created")
-		return managementClusterOverridenError
-	}
-
-	replacementMachine = &infrav1.AzureStackHCIMachine{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: machineScope.AzureStackHCIMachine.Namespace,
-			Name:      controlPlaneName,
-		},
-		Spec: infrav1.AzureStackHCIMachineSpec{
-			Location:     machineScope.AzureStackHCIMachine.Spec.Location,
-			SSHPublicKey: machineScope.AzureStackHCIMachine.Spec.SSHPublicKey,
-			VMSize:       machineScope.AzureStackHCIMachine.Spec.VMSize,
-		},
-	}
-
-	machineHelper, err := patch.NewHelper(machineScope.Machine, r.Client)
-	if err != nil {
-		return errors.Wrap(err, "Machine patch helper failure")
-	}
-
-	for _, ref := range machineScope.AzureStackHCIMachine.ObjectMeta.OwnerReferences {
-		replacementMachine.ObjectMeta.OwnerReferences = append(replacementMachine.ObjectMeta.OwnerReferences, ref)
-	}
-	replacementMachine.ObjectMeta.Labels = make(map[string]string)
-	for key, value := range machineScope.AzureStackHCIMachine.ObjectMeta.Labels {
-		replacementMachine.ObjectMeta.Labels[key] = value
-	}
-
-	machineScope.Machine.Spec.InfrastructureRef = corev1.ObjectReference{
-		APIVersion: infrav1.GroupVersion.String(),
-		Kind:       "AzureStackHCIMachine",
-		Name:       replacementMachine.Name,
-		Namespace:  replacementMachine.Namespace,
-		UID:        replacementMachine.UID,
-	}
-
-	err = machineHelper.Patch(clusterScope.Context, machineScope.Machine)
-	if err != nil {
-		return errors.Wrap(err, "Machine patch failure")
-	}
-
-	if err := r.Client.Create(clusterScope.Context, replacementMachine); err != nil {
-		if !apierrors.IsNotFound(err) {
-			return errors.Wrapf(err, "Creating override machine failed ")
-		}
-	}
-
-	if err := r.Client.Delete(clusterScope.Context, machineScope.AzureStackHCIMachine); err != nil {
-		if !apierrors.IsNotFound(err) {
-			return errors.Wrapf(err, "Deleting overriden machine failed ")
-		}
-	}
-
-	managementClusterOverrides[clusterScope.Cluster.UID] = struct{}{}
-
-	return nil
 }
