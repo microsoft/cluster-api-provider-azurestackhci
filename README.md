@@ -94,3 +94,4 @@ We also use the issue tracker to track features. If you have an idea for a featu
 [feature_request]: https://github.com/microsoft/cluster-api-provider-azurestackhci/issues/new?template=feature_request.md
 [cluster_api]: https://github.com/kubernetes-sigs/cluster-api
 [quickstart]: https://cluster-api.sigs.k8s.io/user/quick-start.html
+[slack_info]: https://kubernetes.slack.com/archives/C8TSNPY4T

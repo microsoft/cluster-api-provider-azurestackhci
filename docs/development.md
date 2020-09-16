@@ -1,4 +1,4 @@
-## Testing changes
+## Development guide
 
 ## Building and pushing dev images
 

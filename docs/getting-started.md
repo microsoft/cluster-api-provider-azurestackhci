@@ -23,7 +23,7 @@
 
 ### Setting up your AzureStackHCI environment
 
-There is an assumption that the AzureStackHCI environment is fully deployed and the MOC FQDN is reachable from your dev environment.
+There is an assumption that the AzureStackHCI environment is fully deployed and the MOC FQDN is reachable from your dev environment. See <INSTRUCTIONS_TO_COME_SOON> for more details on how to satisfy these prerequisites.
 
 #### Provision MOC image gallery with kubernetes vhd
 
@@ -41,7 +41,7 @@ Then you need to create an identity so that ClusterAPI AzureStackHCI can talk to
 ```bash
 echo "name: caphuser" > .\caphuser.yaml
 mocctl security identity create --config .\caphuser.yaml
-mocctl security identity get --name zach --query [*].token > identity-token.yaml
+mocctl security identity get --name caphuser --query [*].token > identity-token.yaml
 ```
 
 Then using the name, token and certificate of the endpoint, you will need to create a `moclogintoken.yaml` which will look like...
