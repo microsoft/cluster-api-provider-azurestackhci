@@ -2,12 +2,9 @@
 
 ## Quick start
 
-TODO
+- [Getting started](getting-started.md)
+- [Cluster API quick start](https://cluster-api.sigs.k8s.io/user/quick-start.html)
 
 ## Development
 
-TODO
-
-## Project Documentation
-
-TODO
+- [Development guide](development.md)

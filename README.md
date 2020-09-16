@@ -30,12 +30,12 @@ This provider's versions are compatible with the following versions of Cluster A
 
 This provider's versions are able to install and manage the following versions of Kubernetes:
 
-|  | AzureStackHCI Provider `v0.2.x` | Azure Provider `v0.3.x`
+|  | AzureStackHCI Provider `v0.2.x` | AzureStackHCI Provider `v0.3.x`
 |---|---|---|
-| Kubernetes 1.14 | ✓ | ✓ |
-| Kubernetes 1.15 | ✓ | ✓ |
 | Kubernetes 1.16 | ✓ | ✓ |
-| Kubernetes 1.17 |  |  |
+| Kubernetes 1.17 | ✓ | ✓ |
+| Kubernetes 1.18 | ✓ | ✓ |
+
 
 Each version of Cluster API for Azure Stack HCI will attempt to support at least two Kubernetes versions e.g., Cluster API for Azure Stack HCI `v0.2` may support Kubernetes 1.14 and Kubernetes 1.15.
 
@@ -75,7 +75,7 @@ If you think you have found a bug please follow the instructions below.
 
 ### Tracking new features
 
-We also use the issue tracker to track features. If you have an idea for a feature, or think you can help kops become even more awesome follow the steps below.
+We also use the issue tracker to track features. If you have an idea for a feature, or think you can help ClusterAPI become even more awesome follow the steps below.
 
 - Open a [feature request][feature_request].
 - Remember users might be searching for your issue in the future, so please
@@ -94,3 +94,4 @@ We also use the issue tracker to track features. If you have an idea for a featu
 [feature_request]: https://github.com/microsoft/cluster-api-provider-azurestackhci/issues/new?template=feature_request.md
 [cluster_api]: https://github.com/kubernetes-sigs/cluster-api
 [quickstart]: https://cluster-api.sigs.k8s.io/user/quick-start.html
+[slack_info]: https://kubernetes.slack.com/archives/C8TSNPY4T

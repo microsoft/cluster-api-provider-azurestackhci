@@ -271,8 +271,8 @@ github.com/matttproud/golang_protobuf_extensions v1.0.1 h1:4hp9jkHxhMHkqkrB3Ix0j
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
 github.com/mholt/certmagic v0.6.2-0.20190624175158-6a42ef9fe8c2/go.mod h1:g4cOPxcjV0oFq3qwpjSA30LReKD8AoIfwAY9VvG35NY=
 github.com/microsoft/moc v0.10.1-alpha.2/go.mod h1:FXDFQa7/tOXZBMSWpVnzVahSpCDVgdSkEdz9rOmT3G0=
-github.com/microsoft/moc v0.10.1-alpha.3 h1:BtfEFLEyBWODAY+e8s07G7+gSZ7TrLvmtPSpk1tCFjQ=
-github.com/microsoft/moc v0.10.1-alpha.3/go.mod h1:oK8iLrb4IOdvmokCAgbMWzPj2m7PcARZnCa3g3tNrFI=
+github.com/microsoft/moc v0.10.1-alpha.4 h1:5P6UR+2kq+X9dsjVA2OBDPLNBg0YOgGsqqURIej774E=
+github.com/microsoft/moc v0.10.1-alpha.4/go.mod h1:oK8iLrb4IOdvmokCAgbMWzPj2m7PcARZnCa3g3tNrFI=
 github.com/microsoft/moc-sdk-for-go v0.10.1-alpha.1 h1:rU0ec4KfkZ2Gmw1U4Zg7gOraeEqm9a40SFWTjVs5/es=
 github.com/microsoft/moc-sdk-for-go v0.10.1-alpha.1/go.mod h1:qWMWuKLImyoYPO6vsXz21onA2AE7UaBfzaS/giQpOMU=
 github.com/miekg/dns v1.1.3/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3Nrg=
