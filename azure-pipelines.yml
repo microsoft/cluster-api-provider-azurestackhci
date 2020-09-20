@@ -43,7 +43,6 @@ steps:
     chmod +x hack/for-pipeline.sh
     hack/ensure-kustomize.sh
     hack/for-pipeline.sh
-    kustomize version
 
     GOPATH_BIN="$(go env GOPATH)/bin/"
     PATH=$GOPATH_BIN:$PATH
