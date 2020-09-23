@@ -50,6 +50,11 @@ spec:
     spec:  
       image:
         osType: "Windows"
+        name: "Windows_k8s"
+        publisher: "na"
+        offer: "windows"
+        sku: "windows"
+        version: "latest"
       location: "westus"
       vmSize: ${AZURESTACKHCI_WINDOWS_WORKER_MACHINE_TYPE}
       sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY:=""}
@@ -173,6 +178,30 @@ spec:
               & sc.exe start rancher-wins
               echo "Trying to start WINS service..."
             }
+        - path: C:\ECP-Cache\ExpandKubernetesWithVersion.ps1
+          permissions: "0744"
+          content: |
+            #ps1
+            $dir = "c:\ECP-Cache"
+            $binDir = [IO.Path]::Combine($dir, "kubernetes-archives")
+            $kubeZip = "${KUBERNETES_VERSION}" + ".zip"
+            $zipPath = [IO.Path]::Combine($binDir, $kubeZip)
+            $dest = "c:\ECP-Cache\kubernetes"
+            
+            New-Item -ItemType Directory $dest -Force | Out-Null
+            Expand-Archive -Path $zipPath -DestinationPath $dir
+            $unzippedPath = [IO.Path]::Combine($dir, "${KUBERNETES_VERSION}")
+            Get-ChildItem -Path $unzippedPath -Recurse -Force | Copy-Item -Destination $dest
+            Get-ChildItem $unzippedPath -Force | Sort-Object -Property FullName -Descending | ForEach-Object { try { Remove-Item -Path $_.FullName -Force -Recurse -ErrorAction SilentlyContinue; } catch { } }
+            Remove-Item -Path $unzippedPath -Force -Recurse
+        - path: C:\ECP-Cache\StartKubeletService.ps1
+          permissions: "0744"
+          content: |
+            #ps1
+            New-Item -path C:\var\lib\kubelet\etc\kubernetes\pki -type SymbolicLink -value C:\etc\kubernetes\pki\
+            New-Service -Name "kubelet" -StartupType Automatic -DependsOn "docker" -BinaryPathName "C:\ECP-Cache\kubernetes\kubelet.exe --windows-service --cert-dir=$env:SYSTEMDRIVE\var\lib\kubelet\pki --cni-bin-dir=C:\ECP-Cache\cni --config=/var/lib/kubelet/config.yaml --bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf --pod-infra-container-image=`"mcr.microsoft.com/oss/kubernetes/pause:1.2.0-windows-1809-amd64`" --enable-debugging-handlers  --cgroups-per-qos=false --enforce-node-allocatable=`"`" --network-plugin=cni --resolv-conf=`"`" --log-dir=/var/log/kubelet --logtostderr=false --image-pull-progress-deadline=20m --cloud-provider=external"
+            & sc.exe failure kubelet reset= 600 actions= restart/5000/restart/15000/restart/30000/restart/30000
+            New-NetFirewallRule -Name kubelet -DisplayName 'kubelet' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 10250
       joinConfiguration:
         nodeRegistration:
           name: '{{ v1.local_hostname }}'
@@ -185,6 +214,9 @@ spec:
         - icacls C:\var\lib\kube-proxy\var\run\secrets\kubernetes.io\serviceaccount /inheritance:r /grant Administrators:(OI)(CI)(IO)(F) /grant system:(OI)(CI)(IO)(F)
         - icacls C:\var\lib\kubelet\pki /inheritance:r /grant Administrators:(OI)(CI)(IO)(F) /grant system:(OI)(CI)(IO)(F)
         - powershell C:\ECP-Cache\WaitForDocker.ps1
+        - powershell C:\ECP-Cache\ExpandKubernetesWithVersion.ps1
+        - docker tag kubeproxywin/kube-proxy-${KUBERNETES_VERSION}:latest kubeproxywin/kube-proxy:latest
+        - powershell C:\ECP-Cache\StartKubeletService.ps1
         - docker network create -d nat host
         - powershell C:\ECP-Cache\WaitForWins.ps1
         - powershell C:\ECP-Cache\AddHNSNetwork.ps1
