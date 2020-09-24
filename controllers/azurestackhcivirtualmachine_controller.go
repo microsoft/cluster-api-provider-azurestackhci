@@ -23,6 +23,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
 	"github.com/pkg/errors"
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
@@ -171,6 +172,7 @@ func (r *AzureStackHCIVirtualMachineReconciler) getOrCreate(virtualMachineScope 
 		virtualMachineScope.Info("No VM found, creating VM", "Name", virtualMachineScope.Name())
 		vm, err = ams.Create()
 		if err != nil {
+			r.Recorder.Eventf(virtualMachineScope.AzureStackHCIVirtualMachine, corev1.EventTypeWarning, "Error creating VM", errors.Wrapf(err, "failed to create AzureStackHCIVirtualMachine").Error())
 			return nil, errors.Wrapf(err, "failed to create AzureStackHCIVirtualMachine")
 		}
 	}
