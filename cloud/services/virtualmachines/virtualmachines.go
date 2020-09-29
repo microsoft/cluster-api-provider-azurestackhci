@@ -23,6 +23,7 @@ import (
 	"crypto/rsa"
 	"encoding/base64"
 	"fmt"
+	mathrand "math/rand"
 
 	"github.com/Azure/go-autorest/autorest/to"
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
@@ -34,6 +35,12 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh"
 	"k8s.io/klog"
+)
+
+const (
+	computerNamePrefix = "caph-"
+	computerNameChars  = "abcdefghijklmnopqrstuvwxyz0123456789"
+	computerNameLength = 14
 )
 
 // Spec input specification for Get/CreateOrUpdate/Delete calls
@@ -111,12 +118,14 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		return errors.Wrapf(err, "failed to generate random string")
 	}
 
+	computerName := generateComputerName(vmSpec.Image.OSType)
+
 	virtualMachine := compute.VirtualMachine{
 		Name: to.StringPtr(vmSpec.Name),
 		VirtualMachineProperties: &compute.VirtualMachineProperties{
 			StorageProfile: storageProfile,
 			OsProfile: &compute.OSProfile{
-				ComputerName:  to.StringPtr(vmSpec.Name),
+				ComputerName:  to.StringPtr(computerName),
 				AdminUsername: to.StringPtr(azurestackhci.DefaultUserName),
 				AdminPassword: to.StringPtr(randomPassword),
 				CustomData:    to.StringPtr(vmSpec.CustomData),
@@ -300,4 +309,30 @@ func GenerateRandomString(n int) (string, error) {
 		return "", err
 	}
 	return base64.URLEncoding.EncodeToString(b), err
+}
+
+// generateComputerName returns a unique OS computer name which is expected to be valid on any
+// operating system. To satisfy Windows requirements, we generate a length-restricted name. The
+// generated computer name has the following format: <prefix><os_identifer><random chars>
+func generateComputerName(os infrav1.OSType) string {
+	computerName := computerNamePrefix
+
+	switch os {
+	case infrav1.OSTypeWindows:
+		computerName += "w"
+	case infrav1.OSTypeLinux:
+		computerName += "l"
+	default: // Unknown OS
+		computerName += "u"
+	}
+
+	if len(computerName) < computerNameLength {
+		b := make([]byte, (computerNameLength - len(computerName)))
+		for i := range b {
+			b[i] = computerNameChars[mathrand.Intn(len(computerNameChars))]
+		}
+		computerName += string(b)
+	}
+
+	return computerName
 }
