@@ -46,7 +46,7 @@ make deployment
 
 That will take care of bringing everything up for you.
 
-Once you are done testing with the cluster, it can be fully removed by running...
+Once you are done testing with the cluster, it can be fully removed by running the following...
 
 ```bash
 make kind-reset
