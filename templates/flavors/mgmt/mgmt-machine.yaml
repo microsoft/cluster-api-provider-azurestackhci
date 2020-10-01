@@ -69,7 +69,5 @@ spec:
       kubeletExtraArgs:
         cloud-provider: external
       name: '{{ ds.meta_data["local_hostname"] }}'
-  preKubeadmCommands:
-  - /etc/rc.d/init.d/docker-import-mcr-k8s.sh
   useExperimentalRetryJoin: true
 ---

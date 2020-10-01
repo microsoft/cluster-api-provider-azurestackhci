@@ -32,8 +32,6 @@ metadata:
 spec:
   template:
     spec:
-      preKubeadmCommands:
-      - /etc/rc.d/init.d/docker-import-mcr-k8s.sh
       useExperimentalRetryJoin: true
       joinConfiguration:
         nodeRegistration:
@@ -271,8 +269,6 @@ spec:
     apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
     name: "${CLUSTER_NAME}-control-plane"
   kubeadmConfigSpec:
-    preKubeadmCommands:
-    - /etc/rc.d/init.d/docker-import-mcr-k8s.sh
     useExperimentalRetryJoin: true
     initConfiguration:
       nodeRegistration:
