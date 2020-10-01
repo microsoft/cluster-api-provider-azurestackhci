@@ -9,6 +9,7 @@ resources:
   - repository: cloud-operator
     type: git
     name: cloud-operator
+    endpoint: microsoft
 
 trigger:
 - master
