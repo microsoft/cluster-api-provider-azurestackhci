@@ -45,12 +45,12 @@ steps:
     make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging PATCH_VER=$TagNum docker-build docker-push
     make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging PATCH_VER=$TagNum release
     make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging PATCH_VER=$TagNum generate-flavors
-  workingDirectory: '$(System.DefaultWorkingDirectory)/cluster-api-provider-azurestackhci'
+  workingDirectory: '$(System.DefaultWorkingDirectory)'
   displayName: 'Build CAPH'
 
-- publish: $(System.DefaultWorkingDirectory)/cluster-api-provider-azurestackhci/out
+- publish: $(System.DefaultWorkingDirectory)/out
   artifact: releases
 
-- publish: $(System.DefaultWorkingDirectory)/cluster-api-provider-azurestackhci/templates
+- publish: $(System.DefaultWorkingDirectory)/templates
   artifact: templates
   
