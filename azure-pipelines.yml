@@ -4,12 +4,6 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
-resources:
-  repositories:
-  - repository: cloud-operator
-    type: git
-    name: cloud-operator
-
 trigger:
 - master
 
@@ -18,7 +12,6 @@ pool:
 
 steps:
 - checkout: self
-- checkout: cloud-operator
 - task: InstallSSHKey@0
   inputs:
     knownHostsEntry: '$(KNOWN_HOST)' 
@@ -52,36 +45,12 @@ steps:
     make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging PATCH_VER=$TagNum docker-build docker-push
     make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging PATCH_VER=$TagNum release
     make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging PATCH_VER=$TagNum generate-flavors
-  workingDirectory: '$(System.DefaultWorkingDirectory)/cluster-api-provider-azurestackhci'
+  workingDirectory: '$(System.DefaultWorkingDirectory)'
   displayName: 'Build CAPH'
 
-- script: |
-    git config --global url.ssh://git@github.com/.insteadOf https://github.com/
-    chmod +x hack/ensure-kustomize.sh
-    chmod +x hack/set-acr.sh
-    chmod +x hack/prepare-directory.sh
-    hack/ensure-kustomize.sh
-    hack/prepare-directory.sh
-
-    GOPATH_BIN="$(go env GOPATH)/bin/"
-    PATH=$GOPATH_BIN:$PATH
-
-    RANDOM=$$
-    TagNum=$(( $RANDOM % 1000 ))
-    cp ../cluster-api-provider-azurestackhci/out/infrastructure-components.yaml deployment/infrastructure-azurestackhci/v0.3.4
-    cp ../cluster-api-provider-azurestackhci/templates/cluster-template.yaml deployment/infrastructure-azurestackhci/v0.3.4
-    cp ../cluster-api-provider-azurestackhci/templates/cluster-template-mgmt.yaml deployment/infrastructure-azurestackhci/v0.3.4
-
-    make IMG=mocimages.azurecr.io/cloud-operator-staging:$TagNum docker-build docker-push
-    make IMG=mocimages.azurecr.io/cloud-operator-staging:$TagNum release
-  workingDirectory: '$(System.DefaultWorkingDirectory)/cloud-operator'
-  displayName: 'Build Cloud Operator'
-
-- publish: $(System.DefaultWorkingDirectory)/cluster-api-provider-azurestackhci/out
+- publish: $(System.DefaultWorkingDirectory)/out
   artifact: releases
 
-- publish: $(System.DefaultWorkingDirectory)/cluster-api-provider-azurestackhci/templates
+- publish: $(System.DefaultWorkingDirectory)/templates
   artifact: templates
   
-- publish: $(System.DefaultWorkingDirectory)/cloud-operator/deployment/cloud-operator.yaml
-  artifact: deployment
