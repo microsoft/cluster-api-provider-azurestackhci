@@ -248,6 +248,10 @@ spec:
               ready:
                 description: Ready is true when the provider resource is ready.
                 type: boolean
+              phase:
+                description: Phase represents the current phase of cluster actuation.
+                  E.g. Pending, Running, Terminating, Failed etc.
+                type: string
             type: object
         type: object
     served: true
