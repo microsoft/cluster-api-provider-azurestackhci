@@ -27,6 +27,7 @@ import (
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
 	infrav1util "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/util"
 	"github.com/pkg/errors"
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	apitypes "k8s.io/apimachinery/pkg/types"
@@ -92,6 +93,7 @@ func (r *AzureStackHCIClusterReconciler) Reconcile(req ctrl.Request) (_ ctrl.Res
 		AzureStackHCICluster: azureStackHCICluster,
 	})
 	if err != nil {
+		r.Recorder.Eventf(azureStackHCICluster, corev1.EventTypeWarning, "CreateClusterScopeFailed", errors.Wrapf(err, "failed to create cluster scope").Error())
 		return reconcile.Result{}, errors.Errorf("failed to create scope: %+v", err)
 	}
 
@@ -125,7 +127,9 @@ func (r *AzureStackHCIClusterReconciler) reconcileNormal(clusterScope *scope.Clu
 
 	err := newAzureStackHCIClusterReconciler(clusterScope).Reconcile()
 	if err != nil {
-		return reconcile.Result{}, errors.Wrap(err, "failed to reconcile cluster services")
+		wrappedErr := errors.Wrap(err, "failed to reconcile cluster services")
+		r.Recorder.Eventf(azureStackHCICluster, corev1.EventTypeWarning, "ClusterReconcileFailed", wrappedErr.Error())
+		return reconcile.Result{}, wrappedErr
 	}
 
 	if ready, err := r.reconcileAzureStackHCILoadBalancer(clusterScope); !ready {
@@ -143,7 +147,9 @@ func (r *AzureStackHCIClusterReconciler) reconcileNormal(clusterScope *scope.Clu
 	// the kubeconfig to be written to secrets.
 	err = newAzureStackHCIClusterReconciler(clusterScope).ReconcileKubeConfig()
 	if err != nil {
-		return reconcile.Result{}, errors.Wrap(err, "failed to reconcile cluster services")
+		wrappedErr := errors.Wrap(err, "failed to reconcile kube config from cluster")
+		r.Recorder.Eventf(azureStackHCICluster, corev1.EventTypeWarning, "ClusterReconcilerKubeConfigFailed", wrappedErr.Error())
+		return reconcile.Result{}, wrappedErr
 	}
 
 	return reconcile.Result{}, nil
@@ -161,7 +167,9 @@ func (r *AzureStackHCIClusterReconciler) reconcileDelete(clusterScope *scope.Clu
 	// 4. Delete the Cluster
 	azhciMachines, err := infrav1util.GetAzureStackHCIMachinesInCluster(clusterScope.Context, clusterScope.Client, clusterScope.AzureStackHCICluster.Namespace, clusterScope.AzureStackHCICluster.Name)
 	if err != nil {
-		return reconcile.Result{}, errors.Wrapf(err, "unable to list AzureStackHCIMachines part of AzureStackHCIClusters %s/%s", clusterScope.AzureStackHCICluster.Namespace, clusterScope.AzureStackHCICluster.Name)
+		wrappedErr := errors.Wrapf(err, "unable to list AzureStackHCIMachines part of AzureStackHCIClusters %s/%s", clusterScope.AzureStackHCICluster.Namespace, clusterScope.AzureStackHCICluster.Name)
+		r.Recorder.Eventf(azureStackHCICluster, corev1.EventTypeWarning, "FailureListMachinesInCluster", wrappedErr.Error())
+		return reconcile.Result{}, wrappedErr
 	}
 
 	if len(azhciMachines) > 0 {
@@ -187,8 +195,12 @@ func (r *AzureStackHCIClusterReconciler) reconcileDelete(clusterScope *scope.Clu
 	}
 
 	if err := newAzureStackHCIClusterReconciler(clusterScope).Delete(); err != nil {
-		return reconcile.Result{}, errors.Wrapf(err, "error deleting AzureStackHCICluster %s/%s", azureStackHCICluster.Namespace, azureStackHCICluster.Name)
+		wrappedErr := errors.Wrapf(err, "error deleting AzureStackHCICluster %s/%s", azureStackHCICluster.Namespace, azureStackHCICluster.Name)
+		r.Recorder.Eventf(azureStackHCICluster, corev1.EventTypeWarning, "FailureClusterDelete", wrappedErr.Error())
+		return reconcile.Result{}, wrappedErr
 	}
+
+	r.Recorder.Eventf(azureStackHCICluster, corev1.EventTypeNormal, "SuccessfulDeleteCluster", "Successfully deleted AzureStackHCICluster %s/%s", azureStackHCICluster.Namespace, azureStackHCICluster.Name)
 
 	// Cluster is deleted so remove the finalizer.
 	controllerutil.RemoveFinalizer(clusterScope.AzureStackHCICluster, infrav1.ClusterFinalizer)

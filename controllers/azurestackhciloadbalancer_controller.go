@@ -34,6 +34,7 @@ import (
 	"github.com/microsoft/moc-sdk-for-go/services/cloud"
 	"github.com/microsoft/moc-sdk-for-go/services/network"
 	"github.com/pkg/errors"
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	apitypes "k8s.io/apimachinery/pkg/types"
@@ -116,6 +117,7 @@ func (r *AzureStackHCILoadBalancerReconciler) Reconcile(req ctrl.Request) (_ ctr
 		AzureStackHCICluster: azureStackHCICluster,
 	})
 	if err != nil {
+		r.Recorder.Eventf(azureStackHCICluster, corev1.EventTypeWarning, "CreateClusterScopeFailed", errors.Wrapf(err, "failed to create cluster scope").Error())
 		return reconcile.Result{}, err
 	}
 
@@ -128,6 +130,7 @@ func (r *AzureStackHCILoadBalancerReconciler) Reconcile(req ctrl.Request) (_ ctr
 		Cluster:                   cluster,
 	})
 	if err != nil {
+		r.Recorder.Eventf(azureStackHCILoadBalancer, corev1.EventTypeWarning, "CreateLoadBalancerScopeFailed", errors.Wrapf(err, "failed to create loadbalancer scope").Error())
 		return reconcile.Result{}, errors.Errorf("failed to create scope: %+v", err)
 	}
 
@@ -188,6 +191,7 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileNormal(loadBalancerScope 
 	// reconcile the loadbalancer
 	err = r.reconcileLoadBalancer(loadBalancerScope, clusterScope)
 	if err != nil {
+		r.Recorder.Eventf(loadBalancerScope.AzureStackHCILoadBalancer, corev1.EventTypeWarning, "FailureReconcileLB", errors.Wrapf(err, "Failed to reconcile AzureStackHCILoadBalancer").Error())
 		return reconcile.Result{}, err
 	}
 
@@ -195,6 +199,7 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileNormal(loadBalancerScope 
 	if loadBalancerScope.Address() == "" {
 		err := r.reconcileLoadBalancerAddress(loadBalancerScope, clusterScope)
 		if err != nil {
+			r.Recorder.Eventf(loadBalancerScope.AzureStackHCILoadBalancer, corev1.EventTypeWarning, "FailureReconcileLBAddress", errors.Wrapf(err, "Failed to reconcile LoadBalancer Address").Error())
 			return reconcile.Result{}, err
 		}
 		if loadBalancerScope.Address() == "" {
@@ -339,6 +344,7 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileDelete(loadBalancerScope 
 	loadBalancerScope.Info("Handling deleted AzureStackHCILoadBalancer")
 
 	if err := r.reconcileDeleteLoadBalancer(loadBalancerScope, clusterScope); err != nil {
+		r.Recorder.Eventf(loadBalancerScope.AzureStackHCILoadBalancer, corev1.EventTypeWarning, "FailureDeleteLoadBalancer", errors.Wrapf(err, "Error deleting AzureStackHCILoadBalancer %s", loadBalancerScope.Name()).Error())
 		return reconcile.Result{}, err
 	}
 
