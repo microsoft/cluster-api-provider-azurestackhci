@@ -138,6 +138,7 @@ func (r *AzureStackHCIMachineReconciler) Reconcile(req ctrl.Request) (_ ctrl.Res
 		AzureStackHCICluster: azureStackHCICluster,
 	})
 	if err != nil {
+		r.Recorder.Eventf(azureStackHCIMachine, corev1.EventTypeWarning, "CreateClusterScopeFailed", errors.Wrapf(err, "failed to create cluster scope").Error())
 		return reconcile.Result{}, err
 	}
 
@@ -151,6 +152,7 @@ func (r *AzureStackHCIMachineReconciler) Reconcile(req ctrl.Request) (_ ctrl.Res
 		AzureStackHCIMachine: azureStackHCIMachine,
 	})
 	if err != nil {
+		r.Recorder.Eventf(azureStackHCIMachine, corev1.EventTypeWarning, "FailureCreateMachineScope", errors.Wrapf(err, "failed to create machine scope").Error())
 		return reconcile.Result{}, errors.Errorf("failed to create scope: %+v", err)
 	}
 
@@ -175,6 +177,7 @@ func (r *AzureStackHCIMachineReconciler) reconcileNormal(machineScope *scope.Mac
 	// If the AzureStackHCIMachine is in an error state, return early.
 	if machineScope.AzureStackHCIMachine.Status.FailureReason != nil || machineScope.AzureStackHCIMachine.Status.FailureMessage != nil {
 		machineScope.Info("Error state detected, skipping reconciliation")
+		r.Recorder.Eventf(machineScope.AzureStackHCIMachine, corev1.EventTypeWarning, "ErrorStateAzureStackHCIMachine", "AzureStackHCIMachine is in an error state")
 		return reconcile.Result{}, nil
 	}
 
