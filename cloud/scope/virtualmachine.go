@@ -28,7 +28,9 @@ import (
 	"github.com/pkg/errors"
 	"k8s.io/klog/klogr"
 	"k8s.io/utils/pointer"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
 	capierrors "sigs.k8s.io/cluster-api/errors"
+	"sigs.k8s.io/cluster-api/util/conditions"
 	"sigs.k8s.io/cluster-api/util/patch"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -179,7 +181,22 @@ func (m *VirtualMachineScope) SetAnnotation(key, value string) {
 
 // PatchObject persists the virtual machine spec and status.
 func (m *VirtualMachineScope) PatchObject() error {
-	return m.patchHelper.Patch(context.TODO(), m.AzureStackHCIVirtualMachine)
+	conditions.SetSummary(m.AzureStackHCIVirtualMachine,
+		conditions.WithConditions(
+			infrav1.VMRunningCondition,
+		),
+		conditions.WithStepCounterIfOnly(
+			infrav1.VMRunningCondition,
+		),
+	)
+
+	return m.patchHelper.Patch(context.TODO(),
+		m.AzureStackHCIVirtualMachine,
+		patch.WithOwnedConditions{Conditions: []clusterv1.ConditionType{
+			clusterv1.ReadyCondition,
+			infrav1.VMRunningCondition,
+		}})
+
 }
 
 // Close the VirtualMachineScope by updating the machine spec, machine status.
