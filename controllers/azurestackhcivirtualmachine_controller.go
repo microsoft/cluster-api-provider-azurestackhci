@@ -28,6 +28,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
 	capierrors "sigs.k8s.io/cluster-api/errors"
+	"sigs.k8s.io/cluster-api/util/conditions"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -151,12 +152,15 @@ func (r *AzureStackHCIVirtualMachineReconciler) reconcileNormal(ctx context.Cont
 	case infrav1.VMStateSucceeded:
 		virtualMachineScope.Info("Machine VM is running", "name", virtualMachineScope.Name())
 		virtualMachineScope.SetReady()
+		conditions.MarkTrue(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition)
 	case infrav1.VMStateUpdating:
 		virtualMachineScope.Info("Machine VM is updating", "name", virtualMachineScope.Name())
+		conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.VMUpdatingReason, clusterv1.ConditionSeverityInfo, "")
 	default:
 		virtualMachineScope.SetFailureReason(capierrors.UpdateMachineError)
 		virtualMachineScope.SetFailureMessage(errors.Errorf("AzureStackHCI VM state %q is unexpected", vm.State))
 		r.Recorder.Eventf(virtualMachineScope.AzureStackHCIVirtualMachine, corev1.EventTypeWarning, "UnexpectedVMState", "AzureStackHCIVirtualMachine is in an unexpected state %q", vm.State)
+		conditions.MarkUnknown(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, "", "")
 	}
 
 	return reconcile.Result{}, nil
@@ -178,6 +182,7 @@ func (r *AzureStackHCIVirtualMachineReconciler) getOrCreate(virtualMachineScope 
 		if err != nil {
 			wrappedErr := errors.Wrapf(err, "failed to create AzureStackHCIVirtualMachine")
 			r.Recorder.Eventf(virtualMachineScope.AzureStackHCIVirtualMachine, corev1.EventTypeWarning, "FailureCreateVM", wrappedErr.Error())
+			conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.VMCreateFailedReason, clusterv1.ConditionSeverityError, err.Error())
 			return nil, wrappedErr
 		}
 		r.Recorder.Eventf(virtualMachineScope.AzureStackHCIVirtualMachine, corev1.EventTypeNormal, "SuccessfulCreateVM", "Success creating AzureStackHCIVirtualMachine %s/%s", virtualMachineScope.Namespace(), virtualMachineScope.Name())

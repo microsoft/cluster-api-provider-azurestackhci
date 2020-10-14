@@ -20,6 +20,7 @@ package v1alpha3
 import (
 	v1core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
 	"sigs.k8s.io/cluster-api/errors"
 )
 
@@ -66,6 +67,10 @@ type AzureStackHCIVirtualMachineStatus struct {
 
 	// +optional
 	FailureMessage *string `json:"failureMessage,omitempty"`
+
+	// Conditions defines current service state of the AzureStackHCIVirtualMachine.
+	// +optional
+	Conditions clusterv1.Conditions `json:"conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true
@@ -79,6 +84,16 @@ type AzureStackHCIVirtualMachine struct {
 
 	Spec   AzureStackHCIVirtualMachineSpec   `json:"spec,omitempty"`
 	Status AzureStackHCIVirtualMachineStatus `json:"status,omitempty"`
+}
+
+// GetConditions returns the list of conditions for the AzureStackHCIVirtualMachine.
+func (m *AzureStackHCIVirtualMachine) GetConditions() clusterv1.Conditions {
+	return m.Status.Conditions
+}
+
+// SetConditions sets the conditions for the AzureStackHCIVirtualMachine.
+func (m *AzureStackHCIVirtualMachine) SetConditions(conditions clusterv1.Conditions) {
+	m.Status.Conditions = conditions
 }
 
 // +kubebuilder:object:root=true
