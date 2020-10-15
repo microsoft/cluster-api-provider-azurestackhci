@@ -302,6 +302,11 @@ release-binary: $(RELEASE_DIR)
 release-staging: ## Builds and push container images to the staging bucket.
 	REGISTRY=$(STAGING_REGISTRY) $(MAKE) docker-build-all docker-push-all release-alias-tag
 
+.PHONY: release-pipelines
+release-pipelines: $(RELEASE_DIR) ## Builds the manifests to publish with a release
+	$(MAKE) set-manifest-image MANIFEST_IMG=$(PROD_REGISTRY)/$(IMAGE_NAME) MANIFEST_TAG=$(RELEASE_TAG)
+	kustomize build config/manager > $(RELEASE_DIR)/deployment.yaml
+
 RELEASE_ALIAS_TAG=$(PULL_BASE_REF)
 
 .PHONY: release-alias-tag
