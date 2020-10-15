@@ -201,7 +201,7 @@ func (m *VirtualMachineScope) PatchObject() error {
 
 // Close the VirtualMachineScope by updating the machine spec, machine status.
 func (m *VirtualMachineScope) Close() error {
-	return m.patchHelper.Patch(context.TODO(), m.AzureStackHCIVirtualMachine)
+	return m.PatchObject()
 }
 
 // AzureStackHCILoadBalancerVM returns true if the AzureStackHCIVirtualMachine is owned by a LoadBalancer resource and false otherwise (Tenant).
