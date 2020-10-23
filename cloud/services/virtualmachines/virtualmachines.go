@@ -40,7 +40,7 @@ import (
 const (
 	computerNamePrefix = "caph-"
 	computerNameChars  = "abcdefghijklmnopqrstuvwxyz0123456789"
-	computerNameLength = 14
+	computerNameLength = 15
 )
 
 // Spec input specification for Get/CreateOrUpdate/Delete calls
