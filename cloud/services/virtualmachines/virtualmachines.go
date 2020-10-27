@@ -38,7 +38,7 @@ import (
 )
 
 const (
-	computerNamePrefix = "caph-"
+	computerNamePrefix = "moc-"
 	computerNameChars  = "abcdefghijklmnopqrstuvwxyz0123456789"
 	computerNameLength = 15
 )
