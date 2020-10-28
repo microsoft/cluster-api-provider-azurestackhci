@@ -58,11 +58,38 @@ type AzureStackHCIClusterStatus struct {
 	// Ready is true when the provider resource is ready.
 	// +optional
 	Ready bool `json:"ready"`
+
+	// Phase represents the current phase of cluster actuation.
+	// E.g. Pending, Running, Terminating, Failed etc.
+	// +optional
+	Phase string `json:"phase,omitempty"`
+}
+
+// SetTypedPhase sets the Phase field to the string representation of AzureStackHCIClusterPhase.
+func (c *AzureStackHCIClusterStatus) SetTypedPhase(p AzureStackHCIClusterPhase) {
+	c.Phase = string(p)
+}
+
+// GetTypedPhase attempts to parse the Phase field and return
+// the typed AzureStackHCIClusterPhase representation as described in `types.go`.
+func (c *AzureStackHCIClusterStatus) GetTypedPhase() AzureStackHCIClusterPhase {
+	switch phase := AzureStackHCIClusterPhase(c.Phase); phase {
+	case
+		AzureStackHCIClusterPhasePending,
+		AzureStackHCIClusterPhaseProvisioning,
+		AzureStackHCIClusterPhaseProvisioned,
+		AzureStackHCIClusterPhaseDeleting,
+		AzureStackHCIClusterPhaseFailed:
+		return phase
+	default:
+		return AzureStackHCIClusterPhaseUnknown
+	}
 }
 
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:path=azurestackhciclusters,scope=Namespaced,categories=cluster-api
 // +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Phase",type="string",JSONPath=".status.phase",description="AzureStackHCICluster status such as Pending/Provisioning/Provisioned/Deleting/Failed"
 
 // AzureStackHCICluster is the Schema for the azurestackhciclusters API
 type AzureStackHCICluster struct {

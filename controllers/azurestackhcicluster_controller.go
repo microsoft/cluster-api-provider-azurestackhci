@@ -65,6 +65,7 @@ func (r *AzureStackHCIClusterReconciler) Reconcile(req ctrl.Request) (_ ctrl.Res
 
 	// Fetch the AzureStackHCICluster instance
 	azureStackHCICluster := &infrav1.AzureStackHCICluster{}
+
 	err := r.Get(ctx, req.NamespacedName, azureStackHCICluster)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
@@ -99,6 +100,8 @@ func (r *AzureStackHCIClusterReconciler) Reconcile(req ctrl.Request) (_ ctrl.Res
 
 	// Always close the scope when exiting this function so we can persist any AzureStackHCIMachine changes.
 	defer func() {
+		r.reconcilePhase(clusterScope)
+
 		if err := clusterScope.Close(); err != nil && reterr == nil {
 			reterr = err
 		}
@@ -289,4 +292,24 @@ func (r *AzureStackHCIClusterReconciler) reconcileDeleteAzureStackHCILoadBalance
 	}
 
 	return nil
+}
+
+func (r *AzureStackHCIClusterReconciler) reconcilePhase(clusterScope *scope.ClusterScope) {
+	azureStackHCICluster := clusterScope.AzureStackHCICluster
+
+	if azureStackHCICluster.Status.Phase == "" {
+		azureStackHCICluster.Status.SetTypedPhase(infrav1.AzureStackHCIClusterPhasePending)
+	}
+
+	if !azureStackHCICluster.Status.Ready {
+		azureStackHCICluster.Status.SetTypedPhase(infrav1.AzureStackHCIClusterPhaseProvisioning)
+	}
+
+	if azureStackHCICluster.Status.Ready { // && azureStackHCICluster.Spec.ControlPlaneEndpoint.IsValid() {
+		azureStackHCICluster.Status.SetTypedPhase(infrav1.AzureStackHCIClusterPhaseProvisioned)
+	}
+
+	if !azureStackHCICluster.DeletionTimestamp.IsZero() {
+		azureStackHCICluster.Status.SetTypedPhase(infrav1.AzureStackHCIClusterPhaseDeleting)
+	}
 }

@@ -212,3 +212,35 @@ const (
 	ValueReady                           = "true"
 	AnnotationControlPlaneReady          = "azurestackhci.cluster.sigs.k8s.io/control-plane-ready"
 )
+
+type AzureStackHCIClusterPhase string
+
+const (
+	// AzureStackHCIClusterPhasePending is the first state a Cluster is assigned by
+	// Cluster API Cluster controller after being created.
+	AzureStackHCIClusterPhasePending = AzureStackHCIClusterPhase("pending")
+
+	// AzureStackHCIClusterPhaseProvisioning is the state when the Cluster has a provider infrastructure
+	// object associated and can start provisioning.
+	AzureStackHCIClusterPhaseProvisioning = AzureStackHCIClusterPhase("provisioning")
+
+	// AzureStackHCIClusterPhaseProvisioned is the state when its
+	// infrastructure has been created and configured.
+	AzureStackHCIClusterPhaseProvisioned = AzureStackHCIClusterPhase("provisioned")
+
+	// AzureStackHCIClusterPhaseDeleting is the Cluster state when a delete
+	// request has been sent to the API Server,
+	// but its infrastructure has not yet been fully deleted.
+	AzureStackHCIClusterPhaseDeleting = AzureStackHCIClusterPhase("deleting")
+
+	// AzureStackHCIClusterPhaseFailed is the Cluster state when the system
+	// might require user intervention.
+	AzureStackHCIClusterPhaseFailed = AzureStackHCIClusterPhase("failed")
+
+	// AzureStackHCIClusterPhaseUpgrading is the Cluster state when the system
+	// is in the middle of a update.
+	AzureStackHCIClusterPhaseUpgrading = AzureStackHCIClusterPhase("upgrading")
+
+	// AzureStackHCIClusterPhaseUnknown is returned if the Cluster state cannot be determined.
+	AzureStackHCIClusterPhaseUnknown = AzureStackHCIClusterPhase("")
+)
