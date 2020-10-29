@@ -196,12 +196,7 @@ func (r *AzureStackHCIVirtualMachineReconciler) reconcileDelete(virtualMachineSc
 	}
 	r.Recorder.Eventf(virtualMachineScope.AzureStackHCIVirtualMachine, corev1.EventTypeNormal, "SuccessfulDeleteVM", "Success deleting AzureStackHCIVirtualMachine %s/%s", virtualMachineScope.Namespace(), virtualMachineScope.Name())
 
-	defer func() {
-		if reterr == nil {
-			// VM is deleted so remove the finalizer.
-			controllerutil.RemoveFinalizer(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VirtualMachineFinalizer)
-		}
-	}()
+	controllerutil.RemoveFinalizer(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VirtualMachineFinalizer)
 
 	return reconcile.Result{}, nil
 }
