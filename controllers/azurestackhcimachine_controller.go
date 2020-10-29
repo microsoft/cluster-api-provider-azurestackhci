@@ -314,19 +314,14 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineNormal(machineSc
 	return vm, nil
 }
 
-func (r *AzureStackHCIMachineReconciler) reconcileDelete(machineScope *scope.MachineScope, clusterScope *scope.ClusterScope) (_ reconcile.Result, reterr error) {
-	machineScope.Info("Handling deleted AzureStackHCIMachine")
+func (r *AzureStackHCIMachineReconciler) reconcileDelete(machineScope *scope.MachineScope, clusterScope *scope.ClusterScope) (reconcile.Result, error) {
+	machineScope.Info("Handling deleted AzureStackHCIMachine", "MachineName", machineScope.AzureStackHCIMachine.Name)
 
 	if err := r.reconcileVirtualMachineDelete(machineScope, clusterScope); err != nil {
 		return reconcile.Result{}, err
 	}
 
-	defer func() {
-		if reterr == nil {
-			// VM is deleted so remove the finalizer.
-			controllerutil.RemoveFinalizer(machineScope.AzureStackHCIMachine, infrav1.MachineFinalizer)
-		}
-	}()
+	controllerutil.RemoveFinalizer(machineScope.AzureStackHCIMachine, infrav1.MachineFinalizer)
 
 	return reconcile.Result{}, nil
 }

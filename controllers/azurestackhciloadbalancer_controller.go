@@ -340,8 +340,8 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileLoadBalancer(loadBalancer
 	return nil
 }
 
-func (r *AzureStackHCILoadBalancerReconciler) reconcileDelete(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) (_ reconcile.Result, reterr error) {
-	loadBalancerScope.Info("Handling deleted AzureStackHCILoadBalancer")
+func (r *AzureStackHCILoadBalancerReconciler) reconcileDelete(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) (reconcile.Result, error) {
+	loadBalancerScope.Info("Handling deleted AzureStackHCILoadBalancer", "LoadBalancer", loadBalancerScope.AzureStackHCILoadBalancer.Name)
 
 	if err := r.reconcileDeleteLoadBalancer(loadBalancerScope, clusterScope); err != nil {
 		r.Recorder.Eventf(loadBalancerScope.AzureStackHCILoadBalancer, corev1.EventTypeWarning, "FailureDeleteLoadBalancer", errors.Wrapf(err, "Error deleting AzureStackHCILoadBalancer %s", loadBalancerScope.Name()).Error())
@@ -352,12 +352,7 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileDelete(loadBalancerScope 
 		return reconcile.Result{}, err
 	}
 
-	defer func() {
-		if reterr == nil {
-			// VM is deleted so remove the finalizer.
-			controllerutil.RemoveFinalizer(loadBalancerScope.AzureStackHCILoadBalancer, infrav1.AzureStackHCILoadBalancerFinalizer)
-		}
-	}()
+	controllerutil.RemoveFinalizer(loadBalancerScope.AzureStackHCILoadBalancer, infrav1.AzureStackHCILoadBalancerFinalizer)
 
 	return reconcile.Result{}, nil
 }
