@@ -7,5 +7,3 @@ patchesStrategicMerge:
   - manager_pull_policy.yaml
   - manager_image_patch.yaml
   - manager_auth_proxy_patch.yaml
-
-namespace: caph-system
