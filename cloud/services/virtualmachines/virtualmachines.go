@@ -24,6 +24,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	mathrand "math/rand"
+	"time"
 
 	"github.com/Azure/go-autorest/autorest/to"
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
@@ -41,6 +42,10 @@ const (
 	computerNamePrefix = "moc-"
 	computerNameChars  = "abcdefghijklmnopqrstuvwxyz0123456789"
 	computerNameLength = 15
+)
+
+var (
+	rnd = mathrand.New(mathrand.NewSource(time.Now().UnixNano()))
 )
 
 // Spec input specification for Get/CreateOrUpdate/Delete calls
@@ -329,7 +334,7 @@ func generateComputerName(os infrav1.OSType) string {
 	if len(computerName) < computerNameLength {
 		b := make([]byte, (computerNameLength - len(computerName)))
 		for i := range b {
-			b[i] = computerNameChars[mathrand.Intn(len(computerNameChars))]
+			b[i] = computerNameChars[rnd.Intn(len(computerNameChars))]
 		}
 		computerName += string(b)
 	}
