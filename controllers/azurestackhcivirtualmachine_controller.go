@@ -99,7 +99,7 @@ func (r *AzureStackHCIVirtualMachineReconciler) Reconcile(req ctrl.Request) (_ c
 	}
 
 	// Handle non-deleted machines
-	return r.reconcileNormal(ctx, virtualMachineScope)
+	return r.reconcileNormal(virtualMachineScope)
 }
 
 // findVM queries the AzureStackHCI APIs and retrieves the VM if it exists, returns nil otherwise.
@@ -114,7 +114,7 @@ func (r *AzureStackHCIVirtualMachineReconciler) findVM(scope *scope.VirtualMachi
 	return vm, nil
 }
 
-func (r *AzureStackHCIVirtualMachineReconciler) reconcileNormal(ctx context.Context, virtualMachineScope *scope.VirtualMachineScope) (reconcile.Result, error) {
+func (r *AzureStackHCIVirtualMachineReconciler) reconcileNormal(virtualMachineScope *scope.VirtualMachineScope) (reconcile.Result, error) {
 	virtualMachineScope.Info("Reconciling AzureStackHCIVirtualMachine")
 	// If the AzureStackHCIVirtualMachine is in an error state, return early.
 	if virtualMachineScope.AzureStackHCIVirtualMachine.Status.FailureReason != nil || virtualMachineScope.AzureStackHCIVirtualMachine.Status.FailureMessage != nil {

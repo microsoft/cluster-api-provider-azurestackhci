@@ -190,7 +190,7 @@ func (m *VirtualMachineScope) PatchObject() error {
 		),
 	)
 
-	return m.patchHelper.Patch(context.TODO(),
+	return m.patchHelper.Patch(m.Context,
 		m.AzureStackHCIVirtualMachine,
 		patch.WithOwnedConditions{Conditions: []clusterv1.ConditionType{
 			clusterv1.ReadyCondition,

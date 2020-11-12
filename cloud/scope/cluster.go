@@ -170,7 +170,7 @@ func (s *ClusterScope) PatchObject() error {
 		),
 	)
 
-	return s.patchHelper.Patch(context.TODO(),
+	return s.patchHelper.Patch(s.Context,
 		s.AzureStackHCICluster,
 		patch.WithOwnedConditions{Conditions: []clusterv1.ConditionType{
 			clusterv1.ReadyCondition,
