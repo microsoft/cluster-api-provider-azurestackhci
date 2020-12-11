@@ -34,6 +34,7 @@ import (
 	"k8s.io/client-go/tools/record"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
 	"sigs.k8s.io/cluster-api/util"
+	"sigs.k8s.io/cluster-api/util/conditions"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -132,6 +133,7 @@ func (r *AzureStackHCIClusterReconciler) reconcileNormal(clusterScope *scope.Clu
 	if err != nil {
 		wrappedErr := errors.Wrap(err, "failed to reconcile cluster services")
 		r.Recorder.Eventf(azureStackHCICluster, corev1.EventTypeWarning, "ClusterReconcileFailed", wrappedErr.Error())
+		conditions.MarkFalse(azureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, infrav1.ClusterReconciliationFailedReason, clusterv1.ConditionSeverityWarning, err.Error())
 		return reconcile.Result{}, wrappedErr
 	}
 
@@ -140,11 +142,13 @@ func (r *AzureStackHCIClusterReconciler) reconcileNormal(clusterScope *scope.Clu
 			return reconcile.Result{}, err
 		}
 		clusterScope.Info("AzureStackHCILoadBalancer Address is not ready yet")
+		conditions.MarkFalse(azureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, infrav1.LoadBalancerProvisioningReason, clusterv1.ConditionSeverityWarning, err.Error())
 		return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 20}, nil
 	}
 
 	// No errors, so mark us ready so the Cluster API Cluster Controller can pull it
 	azureStackHCICluster.Status.Ready = true
+	conditions.MarkTrue(azureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition)
 
 	// We mark the Cluster as Ready so CAPI can progress on ... but we still need to wait for
 	// the kubeconfig to be written to secrets.
@@ -162,6 +166,7 @@ func (r *AzureStackHCIClusterReconciler) reconcileDelete(clusterScope *scope.Clu
 	clusterScope.Info("Reconciling AzureStackHCICluster delete")
 
 	azureStackHCICluster := clusterScope.AzureStackHCICluster
+	conditions.MarkFalse(azureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, clusterv1.DeletedReason, clusterv1.ConditionSeverityInfo, "")
 
 	// Steps to delete a cluster
 	// 1. Wait for machines in the cluster to be deleted
@@ -172,11 +177,13 @@ func (r *AzureStackHCIClusterReconciler) reconcileDelete(clusterScope *scope.Clu
 	if err != nil {
 		wrappedErr := errors.Wrapf(err, "unable to list AzureStackHCIMachines part of AzureStackHCIClusters %s/%s", clusterScope.AzureStackHCICluster.Namespace, clusterScope.AzureStackHCICluster.Name)
 		r.Recorder.Eventf(azureStackHCICluster, corev1.EventTypeWarning, "FailureListMachinesInCluster", wrappedErr.Error())
+		conditions.MarkFalse(azureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, clusterv1.DeletionFailedReason, clusterv1.ConditionSeverityWarning, err.Error())
 		return reconcile.Result{}, wrappedErr
 	}
 
 	if len(azhciMachines) > 0 {
 		clusterScope.Info("Waiting for AzureStackHCIMachines to be deleted", "count", len(azhciMachines))
+		conditions.MarkFalse(azureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, infrav1.AzureStackHCIMachinesDeletingReason, clusterv1.ConditionSeverityWarning, err.Error())
 		return reconcile.Result{RequeueAfter: 20 * time.Second}, nil
 	}
 
@@ -194,12 +201,14 @@ func (r *AzureStackHCIClusterReconciler) reconcileDelete(clusterScope *scope.Clu
 	// Try to get the AzureStackHCILoadBalancer; if it still exists, requeue
 	if err := r.Client.Get(clusterScope.Context, azureStackHCILoadBalancerName, azureStackHCILoadBalancer); err == nil {
 		clusterScope.Info("Waiting for AzureStackHCILoadBalancer to be deleted", "name", azureStackHCILoadBalancerName.Name)
+		conditions.MarkFalse(azureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, infrav1.LoadBalancerDeletingReason, clusterv1.ConditionSeverityWarning, err.Error())
 		return reconcile.Result{RequeueAfter: 20 * time.Second}, nil
 	}
 
 	if err := newAzureStackHCIClusterReconciler(clusterScope).Delete(); err != nil {
 		wrappedErr := errors.Wrapf(err, "error deleting AzureStackHCICluster %s/%s", azureStackHCICluster.Namespace, azureStackHCICluster.Name)
 		r.Recorder.Eventf(azureStackHCICluster, corev1.EventTypeWarning, "FailureClusterDelete", wrappedErr.Error())
+		conditions.MarkFalse(azureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, clusterv1.DeletionFailedReason, clusterv1.ConditionSeverityWarning, err.Error())
 		return reconcile.Result{}, wrappedErr
 	}
 
@@ -286,6 +295,7 @@ func (r *AzureStackHCIClusterReconciler) reconcileDeleteAzureStackHCILoadBalance
 		// If the AzureStackHCILoadBalancer is not already marked for deletion, delete it
 		if err := r.Client.Delete(clusterScope.Context, azureStackHCILoadBalancer); err != nil {
 			if !apierrors.IsNotFound(err) {
+				conditions.MarkFalse(clusterScope.AzureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, clusterv1.DeletionFailedReason, clusterv1.ConditionSeverityWarning, err.Error())
 				return errors.Wrapf(err, "Failed to delete AzureStackHCILoadBalancer %s", azureStackHCILoadBalancerName)
 			}
 		}

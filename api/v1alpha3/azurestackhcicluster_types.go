@@ -63,6 +63,10 @@ type AzureStackHCIClusterStatus struct {
 	// E.g. Pending, Running, Terminating, Failed etc.
 	// +optional
 	Phase string `json:"phase,omitempty"`
+
+	// Conditions defines current service state of the AzureStackHCICluster.
+	// +optional
+	Conditions clusterv1.Conditions `json:"conditions,omitempty"`
 }
 
 // SetTypedPhase sets the Phase field to the string representation of AzureStackHCIClusterPhase.
@@ -98,6 +102,16 @@ type AzureStackHCICluster struct {
 
 	Spec   AzureStackHCIClusterSpec   `json:"spec,omitempty"`
 	Status AzureStackHCIClusterStatus `json:"status,omitempty"`
+}
+
+// GetConditions returns the list of conditions for AzureStackHCICluster.
+func (c *AzureStackHCICluster) GetConditions() clusterv1.Conditions {
+	return c.Status.Conditions
+}
+
+// SetConditions sets the conditions for AzureStackHCICluster.
+func (c *AzureStackHCICluster) SetConditions(conditions clusterv1.Conditions) {
+	c.Status.Conditions = conditions
 }
 
 // +kubebuilder:object:root=true

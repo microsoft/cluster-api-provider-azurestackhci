@@ -30,6 +30,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/klog/klogr"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
+	"sigs.k8s.io/cluster-api/util/conditions"
 	"sigs.k8s.io/cluster-api/util/patch"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -160,12 +161,26 @@ func (s *ClusterScope) ListOptionsLabelSelector() client.ListOption {
 
 // PatchObject persists the cluster configuration and status.
 func (s *ClusterScope) PatchObject() error {
-	return s.patchHelper.Patch(context.TODO(), s.AzureStackHCICluster)
+	conditions.SetSummary(s.AzureStackHCICluster,
+		conditions.WithConditions(
+			infrav1.NetworkInfrastructureReadyCondition,
+		),
+		conditions.WithStepCounterIfOnly(
+			infrav1.NetworkInfrastructureReadyCondition,
+		),
+	)
+
+	return s.patchHelper.Patch(s.Context,
+		s.AzureStackHCICluster,
+		patch.WithOwnedConditions{Conditions: []clusterv1.ConditionType{
+			clusterv1.ReadyCondition,
+			infrav1.NetworkInfrastructureReadyCondition,
+		}})
 }
 
 // Close closes the current scope persisting the cluster configuration and status.
 func (s *ClusterScope) Close() error {
-	return s.patchHelper.Patch(context.TODO(), s.AzureStackHCICluster)
+	return s.PatchObject()
 }
 
 // APIServerPort returns the APIServerPort to use when creating the load balancer.

@@ -27,7 +27,9 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
 	capierrors "sigs.k8s.io/cluster-api/errors"
+	"sigs.k8s.io/cluster-api/util/conditions"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -97,7 +99,7 @@ func (r *AzureStackHCIVirtualMachineReconciler) Reconcile(req ctrl.Request) (_ c
 	}
 
 	// Handle non-deleted machines
-	return r.reconcileNormal(ctx, virtualMachineScope)
+	return r.reconcileNormal(virtualMachineScope)
 }
 
 // findVM queries the AzureStackHCI APIs and retrieves the VM if it exists, returns nil otherwise.
@@ -112,7 +114,7 @@ func (r *AzureStackHCIVirtualMachineReconciler) findVM(scope *scope.VirtualMachi
 	return vm, nil
 }
 
-func (r *AzureStackHCIVirtualMachineReconciler) reconcileNormal(ctx context.Context, virtualMachineScope *scope.VirtualMachineScope) (reconcile.Result, error) {
+func (r *AzureStackHCIVirtualMachineReconciler) reconcileNormal(virtualMachineScope *scope.VirtualMachineScope) (reconcile.Result, error) {
 	virtualMachineScope.Info("Reconciling AzureStackHCIVirtualMachine")
 	// If the AzureStackHCIVirtualMachine is in an error state, return early.
 	if virtualMachineScope.AzureStackHCIVirtualMachine.Status.FailureReason != nil || virtualMachineScope.AzureStackHCIVirtualMachine.Status.FailureMessage != nil {
@@ -151,12 +153,15 @@ func (r *AzureStackHCIVirtualMachineReconciler) reconcileNormal(ctx context.Cont
 	case infrav1.VMStateSucceeded:
 		virtualMachineScope.Info("Machine VM is running", "name", virtualMachineScope.Name())
 		virtualMachineScope.SetReady()
+		conditions.MarkTrue(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition)
 	case infrav1.VMStateUpdating:
 		virtualMachineScope.Info("Machine VM is updating", "name", virtualMachineScope.Name())
+		conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.VMUpdatingReason, clusterv1.ConditionSeverityInfo, "")
 	default:
 		virtualMachineScope.SetFailureReason(capierrors.UpdateMachineError)
 		virtualMachineScope.SetFailureMessage(errors.Errorf("AzureStackHCI VM state %q is unexpected", vm.State))
 		r.Recorder.Eventf(virtualMachineScope.AzureStackHCIVirtualMachine, corev1.EventTypeWarning, "UnexpectedVMState", "AzureStackHCIVirtualMachine is in an unexpected state %q", vm.State)
+		conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.VMProvisionFailedReason, clusterv1.ConditionSeverityWarning, "")
 	}
 
 	return reconcile.Result{}, nil
@@ -168,6 +173,7 @@ func (r *AzureStackHCIVirtualMachineReconciler) getOrCreate(virtualMachineScope 
 	if err != nil {
 		wrappedErr := errors.Wrapf(err, "Failed to query for AzureStackHCIVirtualMachine %s/%s", virtualMachineScope.Namespace(), virtualMachineScope.Name())
 		r.Recorder.Eventf(virtualMachineScope.AzureStackHCIVirtualMachine, corev1.EventTypeWarning, "FailureQueryForVM", wrappedErr.Error())
+		conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.VMNotFoundReason, clusterv1.ConditionSeverityError, err.Error())
 		return nil, err
 	}
 
@@ -178,6 +184,7 @@ func (r *AzureStackHCIVirtualMachineReconciler) getOrCreate(virtualMachineScope 
 		if err != nil {
 			wrappedErr := errors.Wrapf(err, "failed to create AzureStackHCIVirtualMachine")
 			r.Recorder.Eventf(virtualMachineScope.AzureStackHCIVirtualMachine, corev1.EventTypeWarning, "FailureCreateVM", wrappedErr.Error())
+			conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.VMProvisionFailedReason, clusterv1.ConditionSeverityError, err.Error())
 			return nil, wrappedErr
 		}
 		r.Recorder.Eventf(virtualMachineScope.AzureStackHCIVirtualMachine, corev1.EventTypeNormal, "SuccessfulCreateVM", "Success creating AzureStackHCIVirtualMachine %s/%s", virtualMachineScope.Namespace(), virtualMachineScope.Name())
@@ -189,9 +196,12 @@ func (r *AzureStackHCIVirtualMachineReconciler) getOrCreate(virtualMachineScope 
 func (r *AzureStackHCIVirtualMachineReconciler) reconcileDelete(virtualMachineScope *scope.VirtualMachineScope) (_ reconcile.Result, reterr error) {
 	virtualMachineScope.Info("Handling deleted AzureStackHCIVirtualMachine", "Name", virtualMachineScope.Name())
 
+	conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, clusterv1.DeletingReason, clusterv1.ConditionSeverityInfo, "")
+
 	if err := newAzureStackHCIVirtualMachineService(virtualMachineScope).Delete(); err != nil {
 		wrappedErr := errors.Wrapf(err, "error deleting AzureStackHCIVirtualMachine %s/%s", virtualMachineScope.Namespace(), virtualMachineScope.Name())
 		r.Recorder.Eventf(virtualMachineScope.AzureStackHCIVirtualMachine, corev1.EventTypeWarning, "FailureDeleteVM", wrappedErr.Error())
+		conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, clusterv1.DeletionFailedReason, clusterv1.ConditionSeverityWarning, err.Error())
 		return reconcile.Result{}, wrappedErr
 	}
 	r.Recorder.Eventf(virtualMachineScope.AzureStackHCIVirtualMachine, corev1.EventTypeNormal, "SuccessfulDeleteVM", "Success deleting AzureStackHCIVirtualMachine %s/%s", virtualMachineScope.Namespace(), virtualMachineScope.Name())
