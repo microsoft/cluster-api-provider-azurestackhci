@@ -293,22 +293,12 @@ github.com/mholt/certmagic v0.6.2-0.20190624175158-6a42ef9fe8c2/go.mod h1:g4cOPx
 github.com/microsoft/moc v0.10.1-alpha.2/go.mod h1:FXDFQa7/tOXZBMSWpVnzVahSpCDVgdSkEdz9rOmT3G0=
 github.com/microsoft/moc v0.10.1-alpha.4 h1:5P6UR+2kq+X9dsjVA2OBDPLNBg0YOgGsqqURIej774E=
 github.com/microsoft/moc v0.10.1-alpha.4/go.mod h1:oK8iLrb4IOdvmokCAgbMWzPj2m7PcARZnCa3g3tNrFI=
-<<<<<<< HEAD
 github.com/microsoft/moc v0.10.6-alpha.1 h1:bjrvFR5QOK5rwpmGhl0V5MQ20heGQ5xErucbI5dSCl8=
 github.com/microsoft/moc v0.10.6-alpha.1/go.mod h1:7rRzgOcL2Xd9d+Ft6Owl3Acux7zO7TT3DgzsY0UcTF4=
 github.com/microsoft/moc-sdk-for-go v0.10.1-alpha.1 h1:rU0ec4KfkZ2Gmw1U4Zg7gOraeEqm9a40SFWTjVs5/es=
 github.com/microsoft/moc-sdk-for-go v0.10.1-alpha.1/go.mod h1:qWMWuKLImyoYPO6vsXz21onA2AE7UaBfzaS/giQpOMU=
 github.com/microsoft/moc-sdk-for-go v0.10.6-alpha.1 h1:ss6ftjGBw+Y3AjiJKh/HNwWT5qVkirwNsaIP3UInYR4=
 github.com/microsoft/moc-sdk-for-go v0.10.6-alpha.1/go.mod h1:+0tW+HUW2T4NYqbww2sbxD8vxRXSqJb49emOJZLFrCA=
-=======
-github.com/microsoft/moc v0.10.6-alpha.1/go.mod h1:7rRzgOcL2Xd9d+Ft6Owl3Acux7zO7TT3DgzsY0UcTF4=
-github.com/microsoft/moc v0.10.6-alpha.3 h1:EIoSm4BPpZtpS9KuN/UwBc8qis2l+ST4fhlxT1OFbJo=
-github.com/microsoft/moc v0.10.6-alpha.3/go.mod h1:7rRzgOcL2Xd9d+Ft6Owl3Acux7zO7TT3DgzsY0UcTF4=
-github.com/microsoft/moc-sdk-for-go v0.10.1-alpha.1 h1:rU0ec4KfkZ2Gmw1U4Zg7gOraeEqm9a40SFWTjVs5/es=
-github.com/microsoft/moc-sdk-for-go v0.10.1-alpha.1/go.mod h1:qWMWuKLImyoYPO6vsXz21onA2AE7UaBfzaS/giQpOMU=
-github.com/microsoft/moc-sdk-for-go v0.10.6-alpha.4 h1:HIbutI+8mH2ieJaB8kMGTUegXK4JD7zzRiX0PydHEjQ=
-github.com/microsoft/moc-sdk-for-go v0.10.6-alpha.4/go.mod h1:dot+NlN0rxqSeoya17wuwUtslZLDtDq4qXR2wx/px4k=
->>>>>>> bump up moc
 github.com/miekg/dns v1.1.3/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3Nrg=
 github.com/mitchellh/go-homedir v1.1.0/go.mod h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrkLzIz1N1q0pr0=
 github.com/mitchellh/mapstructure v1.1.2 h1:fmNYVwqnSfB9mZU6OS2O6GsXM+wcskZDuKQzvN1EDeE=
@@ -698,21 +688,12 @@ modernc.org/strutil v1.0.0/go.mod h1:lstksw84oURvj9y3tn8lGvRxyRC1S2+g5uuIzNfIOBs
 modernc.org/xc v1.0.0/go.mod h1:mRNCo0bvLjGhHO9WsyuKVU4q0ceiDDDoEeWDJHrNx8I=
 sigs.k8s.io/cluster-api v0.3.3 h1:pNuvC6cm67SbxOaPriK8ZfLl1RSjmu/KX2GJiNQH3dU=
 sigs.k8s.io/cluster-api v0.3.3/go.mod h1:lgztyeCWCve8YB4DN6QeLR0blNYBvFX9+ATHrxs+zKU=
-<<<<<<< HEAD
 sigs.k8s.io/cluster-api v0.3.11 h1:sBXyOCDFAUMlfAL1Z/ttJolfUMsrIjWpyjKFUkADer4=
 sigs.k8s.io/cluster-api v0.3.11/go.mod h1:bKh9AXgYRu5d3483NpEVlcVJujDN+rBqMXpG5o69Xss=
 sigs.k8s.io/controller-runtime v0.5.2 h1:pyXbUfoTo+HA3jeIfr0vgi+1WtmNh0CwlcnQGLXwsSw=
 sigs.k8s.io/controller-runtime v0.5.2/go.mod h1:JZUwSMVbxDupo0lTJSSFP5pimEyxGynROImSsqIOx1A=
 sigs.k8s.io/controller-runtime v0.5.11 h1:U/FjGJ61aR2T2mCrdlBCxEcWgLEwLmK6YZKf0NC0a24=
 sigs.k8s.io/controller-runtime v0.5.11/go.mod h1:OTqxLuz7gVcrq+BHGUgedRu6b2VIKCEc7Pu4Jbwui0A=
-=======
-sigs.k8s.io/cluster-api v0.3.12 h1:iogA3mXvwRfNU3ZCZXbqM1ZVWUxtWobgu3zRd5IkMTM=
-sigs.k8s.io/cluster-api v0.3.12/go.mod h1:KuUGKyD9+8TwYIcwoqDaScWKsee74/bpPo2sqQMwy8o=
-sigs.k8s.io/controller-runtime v0.5.2 h1:pyXbUfoTo+HA3jeIfr0vgi+1WtmNh0CwlcnQGLXwsSw=
-sigs.k8s.io/controller-runtime v0.5.2/go.mod h1:JZUwSMVbxDupo0lTJSSFP5pimEyxGynROImSsqIOx1A=
-sigs.k8s.io/controller-runtime v0.5.14 h1:lmoRaPvLg9877ZOnjFivjtyIdqyLbWfcCEilxHXTEj4=
-sigs.k8s.io/controller-runtime v0.5.14/go.mod h1:OTqxLuz7gVcrq+BHGUgedRu6b2VIKCEc7Pu4Jbwui0A=
->>>>>>> bump up moc
 sigs.k8s.io/kind v0.7.1-0.20200303021537-981bd80d3802/go.mod h1:HIZ3PWUezpklcjkqpFbnYOqaqsAE1JeCTEwkgvPLXjk=
 sigs.k8s.io/structured-merge-diff v0.0.0-20190525122527-15d366b2352e/go.mod h1:wWxsB5ozmmv/SG7nM11ayaAW51xMvak/t1r0CSlcokI=
 sigs.k8s.io/structured-merge-diff v1.0.1-0.20191108220359-b1b620dd3f06/go.mod h1:/ULNhyfzRopfcjskuui0cTITekDduZ7ycKN3oUT9R18=
