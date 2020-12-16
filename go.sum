@@ -299,6 +299,8 @@ github.com/microsoft/moc-sdk-for-go v0.10.1-alpha.1 h1:rU0ec4KfkZ2Gmw1U4Zg7gOrae
 github.com/microsoft/moc-sdk-for-go v0.10.1-alpha.1/go.mod h1:qWMWuKLImyoYPO6vsXz21onA2AE7UaBfzaS/giQpOMU=
 github.com/microsoft/moc-sdk-for-go v0.10.6-alpha.1 h1:ss6ftjGBw+Y3AjiJKh/HNwWT5qVkirwNsaIP3UInYR4=
 github.com/microsoft/moc-sdk-for-go v0.10.6-alpha.1/go.mod h1:+0tW+HUW2T4NYqbww2sbxD8vxRXSqJb49emOJZLFrCA=
+github.com/microsoft/moc-sdk-for-go v0.10.6-alpha.2 h1:+WU7eKJfQn2aeIOooRJ1Lao4iGS43fcgIXhl/vSnGs8=
+github.com/microsoft/moc-sdk-for-go v0.10.6-alpha.2/go.mod h1:+0tW+HUW2T4NYqbww2sbxD8vxRXSqJb49emOJZLFrCA=
 github.com/miekg/dns v1.1.3/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3Nrg=
 github.com/mitchellh/go-homedir v1.1.0/go.mod h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrkLzIz1N1q0pr0=
 github.com/mitchellh/mapstructure v1.1.2 h1:fmNYVwqnSfB9mZU6OS2O6GsXM+wcskZDuKQzvN1EDeE=
