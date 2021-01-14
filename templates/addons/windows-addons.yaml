@@ -154,6 +154,7 @@ spec:
         name: host-var-proxy
       - hostPath:
           path: /etc/kube-proxy
+          type: DirectoryOrCreate
         name: host-wins-proxy
       - hostPath:
           path: /etc/cni/net.d/
