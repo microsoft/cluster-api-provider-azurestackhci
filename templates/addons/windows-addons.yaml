@@ -3,15 +3,14 @@ apiVersion: v1
 data:
   run-script.ps1: |-
     $ErrorActionPreference = "Stop";
-    mkdir -force /host/var/lib/kube-proxy/var/run/secrets/kubernetes.io/serviceaccount
-    mkdir -force /host/kube-proxy
-    cp -force /kube-proxy/* /host/kube-proxy
-    cp -force /var/lib/kube-proxy/* /host/var/lib/kube-proxy
-    cp -force /var/run/secrets/kubernetes.io/serviceaccount/* /host/var/lib/kube-proxy/var/run/secrets/kubernetes.io/serviceaccount #FIXME?
-    $networkName = (Get-Content /host/etc/cni/net.d/* | ConvertFrom-Json).name
+    mkdir -force /host-var-proxy/var/run/secrets/kubernetes.io/serviceaccount
+    cp -force /kube-proxy/* /host-wins-proxy
+    cp -force /var/lib/kube-proxy/* /host-var-proxy
+    cp -force /var/run/secrets/kubernetes.io/serviceaccount/* /host-var-proxy/var/run/secrets/kubernetes.io/serviceaccount #FIXME?
+    $networkName = (Get-Content /host-etc-cni/* | ConvertFrom-Json).name
     $sourceVip = ($env:POD_IP -split "\.")[0..2] + 0 -join "."
-    $filePath="/host/var/lib/kube-proxy/config.conf"
-    $tempFilePath="/host/var/lib/kube-proxy/configCopy.conf"
+    $filePath="/host-var-proxy/config.conf"
+    $tempFilePath="/host-var-proxy/configCopy.conf"
 
     $find = get-content $filePath | ForEach-Object -Process {if($_.Contains("sourceVip:")) {$_}}
     $replace = "  sourceVip: " + $sourceVip
@@ -71,7 +70,10 @@ data:
     }
     Remove-Item -Path $filePath
     Move-Item -Path $tempFilePath -Destination $filePath
-    wins cli process run --path /kube-proxy/kube-proxy.exe --args "--v=1 --config=/var/lib/kube-proxy/config.conf --hostname-override=$env:NODE_NAME --feature-gates=WinOverlay=true"
+
+    mkdir C:\etc
+    cmd /c mklink /d c:\etc\kube-proxy C:\kube-proxy
+    wins cli process run --path /etc/kube-proxy/kube-proxy.exe --args "--v=1 --config=/var/lib/kube-proxy/config.conf --hostname-override=$env:NODE_NAME --feature-gates=WinOverlay=true"
 kind: ConfigMap
 apiVersion: v1
 metadata:
@@ -117,8 +119,12 @@ spec:
         imagePullPolicy: IfNotPresent
         name: kube-proxy
         volumeMounts:
-        - name: host
-          mountPath: /host
+        - name: host-var-proxy
+          mountPath: /host-var-proxy
+        - name: host-wins-proxy
+          mountPath: /host-wins-proxy
+        - name: host-etc-cni
+          mountPath: /host-etc-cni
         - name: wins
           mountPath: \\.\pipe\rancher_wins
         - mountPath: /var/lib/kube-proxy
@@ -144,12 +150,18 @@ spec:
           name: kube-proxy
         name: kube-proxy
       - hostPath:
-          path: /
-        name: host
+          path: /var/lib/kube-proxy
+        name: host-var-proxy
+      - hostPath:
+          path: /etc/kube-proxy
+          type: DirectoryOrCreate
+        name: host-wins-proxy
+      - hostPath:
+          path: /etc/cni/net.d/
+        name: host-etc-cni
       - name: wins
         hostPath:
           path: \\.\pipe\rancher_wins
           type: null
   updateStrategy:
     type: RollingUpdate
-

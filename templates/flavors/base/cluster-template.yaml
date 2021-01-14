@@ -200,6 +200,26 @@ spec:
             New-Service -Name "kubelet" -StartupType Automatic -DependsOn "docker" -BinaryPathName "C:\ECP-Cache\kubernetes\kubelet.exe --windows-service --cert-dir=$env:SYSTEMDRIVE\var\lib\kubelet\pki --cni-bin-dir=C:\ECP-Cache\cni --config=/var/lib/kubelet/config.yaml --bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf --pod-infra-container-image=`"mcr.microsoft.com/oss/kubernetes/pause:1.2.0-windows-1809-amd64`" --enable-debugging-handlers  --cgroups-per-qos=false --enforce-node-allocatable=`"`" --network-plugin=cni --resolv-conf=`"`" --log-dir=/var/log/kubelet --logtostderr=false --image-pull-progress-deadline=20m --cloud-provider=external"
             & sc.exe failure kubelet reset= 600 actions= restart/5000/restart/15000/restart/30000/restart/30000
             New-NetFirewallRule -Name kubelet -DisplayName 'kubelet' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 10250
+        - path: C:\ECP-Cache\CreateWinsConfig.ps1
+          permissions: "0744"
+          content: |
+            $config = @{
+              whiteList = @{
+                  processPaths = @(
+                    "C:\etc\csi-proxy\csi-proxy.exe"
+                    "C:\etc\kube-proxy\kube-proxy.exe"
+                    "C:\kube-proxy\kube-proxy.exe"
+                  )
+              }
+            }
+
+            mkdir -f "c:\etc\rancher\wins"
+            icacls.exe C:\etc\rancher\wins /inheritance:r /grant "Administrators:(OI)(CI)(F)" /grant "system:(OI)(CI)(F)"
+            $config | ConvertTo-Json -Compress -Depth 32 | Out-File -NoNewline -Encoding utf8 -Force -FilePath "c:\etc\rancher\wins\config"
+
+            If (-not(Get-Service "rancher-wins" -ErrorAction SilentlyContinue)) {
+              c:\etc\rancher\wins\wins.exe srv app run --register
+            }
       joinConfiguration:
         nodeRegistration:
           name: '{{ v1.local_hostname }}'
@@ -208,9 +228,14 @@ spec:
       preKubeadmCommands:
         - powershell -c "mkdir -f C:\var\lib\kube-proxy\var\run\secrets\kubernetes.io\serviceaccount"
         - powershell -c "mkdir -f C:\var\lib\kubelet\pki"
-        - icacls C:\etc\kubernetes /inheritance:r /grant Administrators:(OI)(CI)(IO)(F) /grant system:(OI)(CI)(IO)(F)
-        - icacls C:\var\lib\kube-proxy\var\run\secrets\kubernetes.io\serviceaccount /inheritance:r /grant Administrators:(OI)(CI)(IO)(F) /grant system:(OI)(CI)(IO)(F)
-        - icacls C:\var\lib\kubelet\pki /inheritance:r /grant Administrators:(OI)(CI)(IO)(F) /grant system:(OI)(CI)(IO)(F)
+        - icacls C:\etc\kubernetes /inheritance:r /grant Administrators:(OI)(CI)(F) /grant system:(OI)(CI)(F)
+        - icacls C:\var\lib\kube-proxy\var\run\secrets\kubernetes.io\serviceaccount /inheritance:r /grant Administrators:(OI)(CI)(F) /grant system:(OI)(CI)(F)
+        - icacls C:\var\lib\kubelet\pki /inheritance:r /grant Administrators:(OI)(CI)(F) /grant system:(OI)(CI)(F)
+        - powershell -c "mkdir -f C:\etc\csi-proxy"
+        - icacls C:\etc\csi-proxy\ /inheritance:r /grant Administrators:(OI)(CI)(F) /grant system:(OI)(CI)(F)
+        - powershell -c "mkdir -f C:\etc\kube-proxy"
+        - icacls C:\etc\kube-proxy /inheritance:r /grant Administrators:(OI)(CI)(F) /grant system:(OI)(CI)(F)
+        - powershell C:\ECP-Cache\CreateWinsConfig.ps1
         - powershell C:\ECP-Cache\WaitForDocker.ps1
         - powershell C:\ECP-Cache\ExpandKubernetesWithVersion.ps1
         - docker tag kubeproxywin/kube-proxy-${KUBERNETES_VERSION}:latest kubeproxywin/kube-proxy:latest
