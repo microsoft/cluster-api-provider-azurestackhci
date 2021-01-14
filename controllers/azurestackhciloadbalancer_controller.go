@@ -27,11 +27,7 @@ import (
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
-	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/groups"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/loadbalancers"
-	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/networkinterfaces"
-	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/vippools"
-	"github.com/microsoft/moc-sdk-for-go/services/cloud"
 	"github.com/microsoft/moc-sdk-for-go/services/network"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
@@ -55,7 +51,6 @@ type AzureStackHCILoadBalancerReconciler struct {
 	client.Client
 	Log      logr.Logger
 	Recorder record.EventRecorder
-	useVIP   bool
 }
 
 func (r *AzureStackHCILoadBalancerReconciler) SetupWithManager(mgr ctrl.Manager, options controller.Options) error {
@@ -256,45 +251,21 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileNormalVirtualMachine(load
 }
 
 func (r *AzureStackHCILoadBalancerReconciler) reconcileLoadBalancerAddress(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) error {
-	if r.useVIP {
-		loadBalancerScope.Info("Attempting to vip for azurestackhciloadbalancer", "name", loadBalancerScope.AzureStackHCILoadBalancer.Name)
-		lbSpec := &loadbalancers.Spec{
-			Name: loadBalancerScope.AzureStackHCILoadBalancer.Name,
-		}
-		lbInterface, err := loadbalancers.NewService(clusterScope).Get(clusterScope.Context, lbSpec)
-		if err != nil {
-			return err
-		}
-
-		lb, ok := lbInterface.(network.LoadBalancer)
-		if !ok {
-			return errors.New("error getting load balancer")
-		}
-
-		loadBalancerScope.SetAddress(*((*lb.FrontendIPConfigurations)[0].IPAddress))
-	} else {
-		loadBalancerScope.Info("Attempting to get network interface information for loadbalancer", "name", loadBalancerScope.AzureStackHCILoadBalancer.Name)
-		nicInterface, err := networkinterfaces.NewService(clusterScope).Get(clusterScope.Context,
-			&networkinterfaces.Spec{
-				Name:     azurestackhci.GenerateNICName(loadBalancerScope.AzureStackHCILoadBalancer.Name),
-				VnetName: clusterScope.AzureStackHCICluster.Spec.NetworkSpec.Vnet.Name,
-			})
-		if err != nil {
-			return err
-		}
-
-		nic, ok := nicInterface.(network.Interface)
-		if !ok {
-			return errors.New("error getting network interface")
-		}
-
-		if nic.IPConfigurations != nil && len(*nic.IPConfigurations) > 0 && (*nic.IPConfigurations)[0].PrivateIPAddress != nil && *((*nic.IPConfigurations)[0].PrivateIPAddress) != "" {
-			loadBalancerScope.SetAddress(*((*nic.IPConfigurations)[0].PrivateIPAddress))
-			loadBalancerScope.Info("Load balancer address is available", "address", loadBalancerScope.Address())
-		} else {
-			loadBalancerScope.Info("Load balancer address is not yet available")
-		}
+	loadBalancerScope.Info("Attempting to vip for azurestackhciloadbalancer", "name", loadBalancerScope.AzureStackHCILoadBalancer.Name)
+	lbSpec := &loadbalancers.Spec{
+		Name: loadBalancerScope.AzureStackHCILoadBalancer.Name,
 	}
+	lbInterface, err := loadbalancers.NewService(clusterScope).Get(clusterScope.Context, lbSpec)
+	if err != nil {
+		return err
+	}
+
+	lb, ok := lbInterface.(network.LoadBalancer)
+	if !ok {
+		return errors.New("error getting load balancer")
+	}
+
+	loadBalancerScope.SetAddress(*((*lb.FrontendIPConfigurations)[0].IPAddress))
 	return nil
 }
 
@@ -306,31 +277,7 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileLoadBalancer(loadBalancer
 		BackendPoolName: backendPoolName,
 		FrontendPort:    loadBalancerScope.GetPort(),
 		BackendPort:     clusterScope.APIServerPort(),
-	}
-
-	// Currently, CAPI doesn't have correct location.
-	loadBalancerScope.Info("Attempting to get location for group", "group", clusterScope.GetResourceGroup())
-	groupInterface, err := groups.NewService(clusterScope).Get(clusterScope.Context, &groups.Spec{Name: clusterScope.GetResourceGroup()})
-	if err != nil {
-		return err
-	}
-
-	group, ok := groupInterface.(cloud.Group)
-	if !ok {
-		return errors.New("error getting group")
-	}
-	location := *group.Location
-
-	// If vippool does not exists, specify vnetname.
-	loadBalancerScope.Info("Attempting to get vippool for location", "location", location)
-	vippool, err := vippools.NewService(clusterScope).Get(clusterScope.Context, &vippools.Spec{Location: location})
-	if err == nil && vippool != nil {
-		loadBalancerScope.Info("Using vippool", "vippool", vippool)
-		r.useVIP = true
-	} else {
-		r.useVIP = false
-		loadBalancerScope.Info("Vippool does not exist at location. Using the ip address of the virtual machine as the frontend", "location", location)
-		lbSpec.VnetName = clusterScope.AzureStackHCICluster.Spec.NetworkSpec.Vnet.Name
+		VnetName:        clusterScope.AzureStackHCICluster.Spec.NetworkSpec.Vnet.Name,
 	}
 
 	if err := loadbalancers.NewService(clusterScope).Reconcile(clusterScope.Context, lbSpec); err != nil {

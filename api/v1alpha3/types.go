@@ -87,6 +87,9 @@ type VnetSpec struct {
 
 	// CidrBlock is the CIDR block to be used when the provider creates a managed virtual network.
 	CidrBlock string `json:"cidrBlock,omitempty"`
+
+	// Group is the resource group the vnet should use.
+	Group string `json:"group,omitempty"`
 }
 
 // Subnets is a slice of Subnet.

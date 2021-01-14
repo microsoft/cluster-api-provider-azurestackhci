@@ -62,6 +62,12 @@ func (r *azureStackHCIClusterReconciler) Reconcile() error {
 		Name: r.scope.Vnet().Name,
 		CIDR: azurestackhci.DefaultVnetCIDR,
 	}
+	if r.scope.Vnet().Group != "" {
+		vnetSpec.Group = r.scope.Vnet().Group
+	} else {
+		vnetSpec.Group = r.scope.GetResourceGroup()
+	}
+
 	if err := r.vnetSvc.Reconcile(r.scope.Context, vnetSpec); err != nil {
 		return errors.Wrapf(err, "failed to reconcile virtual network for cluster %s", r.scope.Name())
 	}
@@ -91,6 +97,12 @@ func (r *azureStackHCIClusterReconciler) Delete() error {
 		Name: r.scope.Vnet().Name,
 		CIDR: azurestackhci.DefaultVnetCIDR,
 	}
+	if r.scope.Vnet().Group != "" {
+		vnetSpec.Group = r.scope.Vnet().Group
+	} else {
+		vnetSpec.Group = r.scope.GetResourceGroup()
+	}
+
 	if err := r.vnetSvc.Delete(r.scope.Context, vnetSpec); err != nil {
 		if !azurestackhci.ResourceNotFound(err) {
 			return errors.Wrapf(err, "failed to delete virtual network %s for cluster %s", r.scope.Vnet().Name, r.scope.Name())
