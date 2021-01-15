@@ -26,10 +26,16 @@ import (
 	"k8s.io/klog"
 )
 
+const (
+	OWNER = "owner" //name used in tag
+	CAPH  = "CAPH"  //value of "owner" tag
+)
+
 // Spec input specification for Get/CreateOrUpdate/Delete calls
 type Spec struct {
-	Name string
-	CIDR string
+	Name  string
+	Group string
+	CIDR  string
 }
 
 // Get provides information about a virtual network.
@@ -38,7 +44,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 	if !ok {
 		return network.VirtualNetwork{}, errors.New("Invalid VNET Specification")
 	}
-	vnet, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), vnetSpec.Name)
+	vnet, err := s.Client.Get(ctx, vnetSpec.Group, vnetSpec.Name)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		return nil, errors.Wrapf(err, "vnet %s not found", vnetSpec.Name)
 	} else if err != nil {
@@ -64,14 +70,16 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
 	if _, err := s.Get(ctx, vnetSpec); err == nil {
 		// vnet already exists, cannot update since its immutable
+		klog.V(2).Infof("found vnet %s in resource group %s", vnetSpec.Name, vnetSpec.Group)
 		return nil
 	}
 
 	networkType := "Transparent"
 	//networkType := ""
+	caph := CAPH
 
-	klog.V(2).Infof("creating vnet %s ", vnetSpec.Name)
-	_, err := s.Client.CreateOrUpdate(ctx, s.Scope.GetResourceGroup(), vnetSpec.Name,
+	klog.V(2).Infof("creating vnet %s in resource group %s", vnetSpec.Name, vnetSpec.Group)
+	_, err := s.Client.CreateOrUpdate(ctx, vnetSpec.Group, vnetSpec.Name,
 		&network.VirtualNetwork{
 			Name: &vnetSpec.Name,
 			Type: &networkType,
@@ -80,12 +88,13 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 					AddressPrefixes: &[]string{vnetSpec.CIDR},
 				},
 			},
+			Tags: map[string]*string{OWNER: &caph},
 		})
 	if err != nil {
 		return err
 	}
 
-	klog.V(2).Infof("successfully created vnet %s ", vnetSpec.Name)
+	klog.V(2).Infof("successfully created vnet %s in resource group %s", vnetSpec.Name, vnetSpec.Group)
 	return err
 }
 
@@ -95,16 +104,29 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	if !ok {
 		return errors.New("Invalid VNET Specification")
 	}
-	klog.V(2).Infof("deleting vnet %s ", vnetSpec.Name)
-	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), vnetSpec.Name)
+
+	vnetInterface, err := s.Get(ctx, vnetSpec)
+	if err != nil {
+		return err
+	}
+	vnet, _ := vnetInterface.(network.VirtualNetwork)
+	owner, ok := vnet.Tags[OWNER]
+	if !ok || owner == nil || *owner == CAPH {
+		//We do not own this object, so don't free it
+		klog.V(2).Infof("skipping deletion of vnet %s in resource group %s because it is not owned by CAPH", vnetSpec.Name, vnetSpec.Group)
+		return nil
+	}
+
+	klog.V(2).Infof("deleting vnet %s in resource group %s", vnetSpec.Name, vnetSpec.Group)
+	err = s.Client.Delete(ctx, vnetSpec.Group, vnetSpec.Name)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted
 		return nil
 	}
 	if err != nil {
-		return errors.Wrapf(err, "failed to delete vnet %s in resource group %s", vnetSpec.Name, s.Scope.GetResourceGroup())
+		return errors.Wrapf(err, "failed to delete vnet %s in resource group %s", vnetSpec.Name, vnetSpec.Group)
 	}
 
-	klog.V(2).Infof("successfully deleted vnet %s ", vnetSpec.Name)
+	klog.V(2).Infof("successfully deleted vnet %s in resource group %s", vnetSpec.Name, vnetSpec.Group)
 	return err
 }

@@ -150,6 +150,9 @@ spec:
                       name:
                         description: Name defines a name for the virtual network resource.
                         type: string
+                      group:
+                        description: Group is the resource group the vnet should use.
+                        type: string
                     required:
                     - name
                     type: object
