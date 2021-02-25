@@ -247,3 +247,15 @@ const (
 	// AzureStackHCIClusterPhaseUnknown is returned if the Cluster state cannot be determined.
 	AzureStackHCIClusterPhaseUnknown = AzureStackHCIClusterPhase("")
 )
+
+// MachineType specifies what type of machine a node should be deployed on.
+type MachineType string
+
+const (
+	// MachineTypeVM specifies that the node should be deployed on a virtaul machine.
+	// Default value.
+	MachineTypeVM = MachineType("vm")
+
+	// MachineTypeBareMetal specifies that the node should be deployed on a bare metal machine.
+	MachineTypeBareMetal = MachineType("baremetal")
+)

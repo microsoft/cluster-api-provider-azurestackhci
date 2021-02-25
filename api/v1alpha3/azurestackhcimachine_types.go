@@ -35,6 +35,9 @@ type AzureStackHCIMachineSpec struct {
 	// +optional
 	ProviderID *string `json:"providerID,omitempty"`
 
+	// +optional
+	MachineType MachineType `json:"machineType,omitempty"`
+
 	VMSize string `json:"vmSize"`
 
 	AvailabilityZone AvailabilityZone `json:"availabilityZone,omitempty"`
