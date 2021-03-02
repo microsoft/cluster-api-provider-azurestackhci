@@ -261,13 +261,6 @@ func (s *Service) createOrUpdateBareMetal(ctx context.Context, resourceGroup str
 				NetworkProfile: &compute.BareMetalMachineNetworkProfile{
 					NetworkInterfaces: vmNetworkInterfacesToBareMetal(virtualMachine.VirtualMachineProperties.NetworkProfile.NetworkInterfaces),
 				},
-				HardwareProfile: &compute.BareMetalMachineHardwareProfile{
-					MachineSize: &compute.BareMetalMachineSize{
-						CpuCount: virtualMachine.VirtualMachineProperties.HardwareProfile.CustomSize.CpuCount,
-						GpuCount: nil,
-						MemoryMB: virtualMachine.VirtualMachineProperties.HardwareProfile.CustomSize.MemoryMB,
-					},
-				},
 				SecurityProfile:   virtualMachine.VirtualMachineProperties.SecurityProfile,
 				Host:              virtualMachine.VirtualMachineProperties.Host,
 				ProvisioningState: virtualMachine.VirtualMachineProperties.ProvisioningState,
@@ -277,7 +270,8 @@ func (s *Service) createOrUpdateBareMetal(ctx context.Context, resourceGroup str
 			// Try to apply the update.
 			_, err := s.BareMetalClient.CreateOrUpdate(ctx, resourceGroup, *bareMetalMachine.Name, &bareMetalMachine)
 			if mocerrors.IsInvalidVersion(err) {
-				// Another entity claimed the machine. Keep searching.
+				// Machine was updated by another entity. In all likelihood, the other entity claimed the machine.
+				// So, keep searching.
 				continue
 			} else if err != nil {
 				return nil, err
