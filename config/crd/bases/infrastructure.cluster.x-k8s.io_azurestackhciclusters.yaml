@@ -82,6 +82,10 @@ spec:
                     required:
                     - osType
                     type: object
+                  machineType:
+                    description: MachineType specifies what type of machine a node
+                      should be deployed on.
+                    type: string
                   sshPublicKey:
                     type: string
                   vmSize:

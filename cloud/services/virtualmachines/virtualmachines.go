@@ -51,20 +51,22 @@ var (
 
 // Spec input specification for Get/CreateOrUpdate/Delete calls
 type Spec struct {
-	Name        string
-	NICName     string
-	SSHKeyData  string
-	Size        string
-	Zone        string
-	Image       infrav1.Image
-	OSDisk      infrav1.OSDisk
-	CustomData  string
-	VMType      compute.VMType
-	MachineType infrav1.MachineType
+	Name              string
+	NICName           string
+	SSHKeyData        string
+	Size              string
+	Zone              string
+	Image             infrav1.Image
+	OSDisk            infrav1.OSDisk
+	CustomData        string
+	VMType            compute.VMType
+	MachineType       infrav1.MachineType
+	BareMetalNodeName string
 }
 
 // Get provides information about a virtual machine.
 func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error) {
+	var err error
 	vmSpec, ok := spec.(*Spec)
 	if !ok {
 		return compute.VirtualMachine{}, errors.New("invalid vm specification")
@@ -72,10 +74,15 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 
 	switch vmSpec.MachineType {
 	case infrav1.MachineTypeBareMetal:
-		baremetalmachine, err := s.BareMetalClient.Get(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
-		if err != nil {
-			return nil, err
+		var baremetalmachine *[]compute.BareMetalMachine
+
+		if vmSpec.BareMetalNodeName != "" {
+			baremetalmachine, err = s.BareMetalClient.Get(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
+			if err != nil {
+				return nil, err
+			}
 		}
+
 		if baremetalmachine == nil || len(*baremetalmachine) == 0 {
 			return nil, errors.Wrapf(err, "bare-metal machine %s not found", vmSpec.Name)
 		}
@@ -315,7 +322,9 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	switch vmSpec.MachineType {
 	case infrav1.MachineTypeBareMetal:
 		klog.V(2).Infof("deleting bare-metal machine %s ", vmSpec.Name)
-		err = s.BareMetalClient.Delete(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
+		if vmSpec.BareMetalNodeName != "" {
+			err = s.BareMetalClient.Delete(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
+		}
 
 	default:
 		klog.V(2).Infof("deleting vm %s ", vmSpec.Name)

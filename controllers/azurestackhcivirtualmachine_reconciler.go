@@ -72,7 +72,8 @@ func (s *azureStackHCIVirtualMachineService) Create() (*infrav1.VM, error) {
 // Delete reconciles all the services in pre determined order
 func (s *azureStackHCIVirtualMachineService) Delete() error {
 	vmSpec := &virtualmachines.Spec{
-		Name: s.vmScope.Name(),
+		Name:        s.vmScope.Name(),
+		MachineType: s.vmScope.AzureStackHCIVirtualMachine.Spec.MachineType,
 	}
 
 	err := s.virtualMachinesSvc.Delete(s.vmScope.Context, vmSpec)
@@ -105,7 +106,8 @@ func (s *azureStackHCIVirtualMachineService) Delete() error {
 func (s *azureStackHCIVirtualMachineService) VMIfExists() (*infrav1.VM, error) {
 
 	vmSpec := &virtualmachines.Spec{
-		Name: s.vmScope.Name(),
+		Name:        s.vmScope.Name(),
+		MachineType: s.vmScope.AzureStackHCIVirtualMachine.Spec.MachineType,
 	}
 	vmInterface, err := s.virtualMachinesSvc.Get(s.vmScope.Context, vmSpec)
 
@@ -170,7 +172,8 @@ func (s *azureStackHCIVirtualMachineService) createVirtualMachine(nicName string
 	}
 
 	vmSpec := &virtualmachines.Spec{
-		Name: s.vmScope.Name(),
+		Name:        s.vmScope.Name(),
+		MachineType: s.vmScope.AzureStackHCIVirtualMachine.Spec.MachineType,
 	}
 
 	vmInterface, err := s.virtualMachinesSvc.Get(s.vmScope.Context, vmSpec)
@@ -203,15 +206,16 @@ func (s *azureStackHCIVirtualMachineService) createVirtualMachine(nicName string
 		s.vmScope.Info("VM type is:", "vmType", vmType)
 
 		vmSpec = &virtualmachines.Spec{
-			Name:       s.vmScope.Name(),
-			NICName:    nicName,
-			SSHKeyData: string(decoded),
-			Size:       s.vmScope.AzureStackHCIVirtualMachine.Spec.VMSize,
-			OSDisk:     s.vmScope.AzureStackHCIVirtualMachine.Spec.OSDisk,
-			Image:      s.vmScope.AzureStackHCIVirtualMachine.Spec.Image,
-			CustomData: *s.vmScope.AzureStackHCIVirtualMachine.Spec.BootstrapData,
-			Zone:       vmZone,
-			VMType:     vmType,
+			Name:        s.vmScope.Name(),
+			NICName:     nicName,
+			SSHKeyData:  string(decoded),
+			Size:        s.vmScope.AzureStackHCIVirtualMachine.Spec.VMSize,
+			OSDisk:      s.vmScope.AzureStackHCIVirtualMachine.Spec.OSDisk,
+			Image:       s.vmScope.AzureStackHCIVirtualMachine.Spec.Image,
+			CustomData:  *s.vmScope.AzureStackHCIVirtualMachine.Spec.BootstrapData,
+			Zone:        vmZone,
+			VMType:      vmType,
+			MachineType: s.vmScope.AzureStackHCIVirtualMachine.Spec.MachineType,
 		}
 
 		err = s.virtualMachinesSvc.Reconcile(s.vmScope.Context, vmSpec)

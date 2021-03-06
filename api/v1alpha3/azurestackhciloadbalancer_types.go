@@ -30,7 +30,11 @@ const (
 type AzureStackHCILoadBalancerSpec struct {
 	SSHPublicKey string `json:"sshPublicKey"`
 	Image        Image  `json:"image"`
-	VMSize       string `json:"vmSize"`
+
+	// +optional
+	MachineType MachineType `json:"machineType,omitempty"`
+
+	VMSize string `json:"vmSize"`
 }
 
 type AzureStackHCILoadBalancerStatus struct {

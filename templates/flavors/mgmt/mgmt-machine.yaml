@@ -33,7 +33,8 @@ spec:
   location: westus
   providerID: moc://${CLUSTER_NAME}-control-plane-0
   sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY:=""}
-  vmSize: ${AZURESTACKHCI_CONTROL_PLANE_MACHINE_TYPE}
+  vmSize: ${AZURESTACKHCI_CONTROL_PLANE_VM_TYPE}
+  machineType: ${AZURESTACKHCI_CONTROL_PLANE_MACHINE_TYPE:-""}
 ---
 apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
 kind: KubeadmConfig
