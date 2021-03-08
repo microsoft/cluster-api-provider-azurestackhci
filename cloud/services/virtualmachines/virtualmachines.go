@@ -51,17 +51,17 @@ var (
 
 // Spec input specification for Get/CreateOrUpdate/Delete calls
 type Spec struct {
-	Name              string
-	NICName           string
-	SSHKeyData        string
-	Size              string
-	Zone              string
-	Image             infrav1.Image
-	OSDisk            infrav1.OSDisk
-	CustomData        string
-	VMType            compute.VMType
-	MachineType       infrav1.MachineType
-	BareMetalNodeName string
+	Name         string
+	NICName      string
+	SSHKeyData   string
+	Size         string
+	Zone         string
+	Image        infrav1.Image
+	OSDisk       infrav1.OSDisk
+	CustomData   string
+	VMType       compute.VMType
+	MachineType  infrav1.MachineType
+	ResourceName string
 }
 
 // Get provides information about a virtual machine.
@@ -76,8 +76,8 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 	case infrav1.MachineTypeBareMetal:
 		var baremetalmachine *[]compute.BareMetalMachine
 
-		if vmSpec.BareMetalNodeName != "" {
-			baremetalmachine, err = s.BareMetalClient.Get(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
+		if vmSpec.ResourceName != "" {
+			baremetalmachine, err = s.BareMetalClient.Get(ctx, s.Scope.GetResourceGroup(), vmSpec.ResourceName)
 			if err != nil {
 				return nil, err
 			}
@@ -208,7 +208,6 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		_, err = s.createOrUpdateBareMetal(
 			ctx,
 			s.Scope.GetResourceGroup(),
-			vmSpec.Name,
 			&virtualMachine)
 		if err != nil {
 			return errors.Wrapf(err, "cannot create bare-metal machine")
@@ -228,7 +227,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	return err
 }
 
-func (s *Service) createOrUpdateBareMetal(ctx context.Context, resourceGroup string, name string, virtualMachine *compute.VirtualMachine) (*compute.BareMetalMachine, error) {
+func (s *Service) createOrUpdateBareMetal(ctx context.Context, resourceGroup string, virtualMachine *compute.VirtualMachine) (*compute.BareMetalMachine, error) {
 	bareMetalMachineCount := 0
 
 	for unusedFound := true; unusedFound; unusedFound = false {
@@ -322,8 +321,8 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	switch vmSpec.MachineType {
 	case infrav1.MachineTypeBareMetal:
 		klog.V(2).Infof("deleting bare-metal machine %s ", vmSpec.Name)
-		if vmSpec.BareMetalNodeName != "" {
-			err = s.BareMetalClient.Delete(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
+		if vmSpec.ResourceName != "" {
+			err = s.BareMetalClient.Delete(ctx, s.Scope.GetResourceGroup(), vmSpec.ResourceName)
 		}
 
 	default:
