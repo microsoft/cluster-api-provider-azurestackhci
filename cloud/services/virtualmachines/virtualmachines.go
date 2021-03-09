@@ -69,7 +69,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 	var err error
 	vmSpec, ok := spec.(*Spec)
 	if !ok {
-		return compute.VirtualMachine{}, errors.New("invalid vm specification")
+		return nil, errors.New("invalid vm specification")
 	}
 
 	switch vmSpec.MachineType {
@@ -84,7 +84,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 		}
 
 		if baremetalmachine == nil || len(*baremetalmachine) == 0 {
-			return nil, errors.Wrapf(err, "bare-metal machine %s not found", vmSpec.Name)
+			return nil, errors.Errorf("bare-metal machine %s not found", vmSpec.Name)
 		}
 
 		return converters.BareMetalMachineConvertToCAPH((*baremetalmachine)[0])
@@ -95,7 +95,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 			return nil, err
 		}
 		if vm == nil || len(*vm) == 0 {
-			return nil, errors.Wrapf(err, "vm %s not found", vmSpec.Name)
+			return nil, errors.Errorf("vm %s not found", vmSpec.Name)
 		}
 
 		return converters.VMConvertToCAPH((*vm)[0])
