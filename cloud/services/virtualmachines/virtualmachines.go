@@ -77,7 +77,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 		var baremetalmachine *[]compute.BareMetalMachine
 
 		if vmSpec.ResourceName != "" {
-			baremetalmachine, err = s.BareMetalClient.Get(ctx, s.Scope.GetResourceGroup(), vmSpec.ResourceName)
+			baremetalmachine, err = s.BareMetalClient.Get(ctx, s.Scope.Location(), vmSpec.ResourceName)
 			if err != nil {
 				return nil, err
 			}
@@ -207,7 +207,6 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	case infrav1.MachineTypeBareMetal:
 		_, err = s.createOrUpdateBareMetal(
 			ctx,
-			s.Scope.GetResourceGroup(),
 			&virtualMachine)
 		if err != nil {
 			return errors.Wrapf(err, "cannot create bare-metal machine")
@@ -227,12 +226,12 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	return err
 }
 
-func (s *Service) createOrUpdateBareMetal(ctx context.Context, resourceGroup string, virtualMachine *compute.VirtualMachine) (*compute.BareMetalMachine, error) {
+func (s *Service) createOrUpdateBareMetal(ctx context.Context, virtualMachine *compute.VirtualMachine) (*compute.BareMetalMachine, error) {
 	bareMetalMachineCount := 0
 
 	for unusedFound := true; unusedFound; unusedFound = false {
 		// Get the complete list of bare-metal machines.
-		bareMetalMachineList, err := s.BareMetalClient.Get(ctx, resourceGroup, "")
+		bareMetalMachineList, err := s.BareMetalClient.Get(ctx, *virtualMachine.Location, "")
 		if err != nil {
 			return nil, err
 		}
@@ -274,7 +273,7 @@ func (s *Service) createOrUpdateBareMetal(ctx context.Context, resourceGroup str
 			}
 
 			// Try to apply the update.
-			_, err := s.BareMetalClient.CreateOrUpdate(ctx, resourceGroup, *bareMetalMachine.Name, &bareMetalMachine)
+			_, err := s.BareMetalClient.CreateOrUpdate(ctx, s.Scope.Location(), *bareMetalMachine.Name, &bareMetalMachine)
 			if mocerrors.IsInvalidVersion(err) {
 				// Machine was updated by another entity. In all likelihood, the other entity claimed the machine.
 				// So, keep searching.
@@ -322,7 +321,7 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	case infrav1.MachineTypeBareMetal:
 		klog.V(2).Infof("deleting bare-metal machine %s ", vmSpec.Name)
 		if vmSpec.ResourceName != "" {
-			err = s.BareMetalClient.Delete(ctx, s.Scope.GetResourceGroup(), vmSpec.ResourceName)
+			err = s.BareMetalClient.Delete(ctx, s.Scope.Location(), vmSpec.ResourceName)
 		}
 
 	default:
