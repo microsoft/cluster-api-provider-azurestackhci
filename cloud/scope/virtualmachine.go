@@ -181,7 +181,7 @@ func (m *VirtualMachineScope) SetAnnotation(key, value string) {
 
 // SetResourceName sets the AzureStackHCIVirtualMachine resource name.
 func (m *VirtualMachineScope) SetResourceName(resourceName string) {
-	m.AzureStackHCIVirtualMachine.Status.ResourceName = resourceName
+	m.AzureStackHCIVirtualMachine.Status.BackingResourceName = resourceName
 }
 
 // PatchObject persists the virtual machine spec and status.

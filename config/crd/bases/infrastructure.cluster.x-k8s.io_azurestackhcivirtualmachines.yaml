@@ -168,6 +168,11 @@ spec:
                   - type
                   type: object
                 type: array
+              backingResourceName:
+                description: BackingResourceName is the name resource used by the
+                  machine. For VMs, this will be the same as Name. For bare-metal
+                  machines, it will be the name of the host.
+                type: string
               conditions:
                 description: Conditions defines current service state of the AzureStackHCIVirtualMachine.
                 items:
@@ -221,11 +226,6 @@ spec:
               ready:
                 description: Ready is true when the provider resource is ready.
                 type: boolean
-              resourceName:
-                description: ResourceName is the name resource used by the machine.
-                  For VMs, this will be the same as Name. For bare-metal machines,
-                  it will be the name of the host.
-                type: string
               vmState:
                 description: VMState is the provisioning state of the AzureStackHCI
                   virtual machine.

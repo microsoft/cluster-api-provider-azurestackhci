@@ -75,11 +75,11 @@ type AzureStackHCIVirtualMachineStatus struct {
 	// +optional
 	Conditions clusterv1.Conditions `json:"conditions,omitempty"`
 
-	// ResourceName is the name resource used by the machine.
+	// BackingResourceName is the name resource used by the machine.
 	// For VMs, this will be the same as Name. For bare-metal machines, it will be the name
 	// of the host.
 	// +optional
-	ResourceName string `json:"resourceName,omitempty"`
+	BackingResourceName string `json:"backingResourceName,omitempty"`
 }
 
 // +kubebuilder:object:root=true
