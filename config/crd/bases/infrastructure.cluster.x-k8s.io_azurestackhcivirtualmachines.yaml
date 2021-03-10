@@ -55,6 +55,10 @@ spec:
                 type: string
               clusterName:
                 type: string
+              hostType:
+                description: HostType specifies what type of machine a node should
+                  be deployed on.
+                type: string
               identity:
                 description: VMIdentity defines the identity of the virtual machine,
                   if configured.
@@ -93,10 +97,6 @@ spec:
                 - osType
                 type: object
               location:
-                type: string
-              machineType:
-                description: MachineType specifies what type of machine a node should
-                  be deployed on.
                 type: string
               osDisk:
                 properties:

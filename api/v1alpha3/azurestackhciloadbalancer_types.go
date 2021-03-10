@@ -32,7 +32,7 @@ type AzureStackHCILoadBalancerSpec struct {
 	Image        Image  `json:"image"`
 
 	// +optional
-	MachineType MachineType `json:"machineType,omitempty"`
+	HostType HostType `json:"hostType,omitempty"`
 
 	VMSize string `json:"vmSize"`
 }

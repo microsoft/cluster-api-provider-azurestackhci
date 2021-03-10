@@ -248,14 +248,14 @@ const (
 	AzureStackHCIClusterPhaseUnknown = AzureStackHCIClusterPhase("")
 )
 
-// MachineType specifies what type of machine a node should be deployed on.
-type MachineType string
+// HostType specifies what type of machine a node should be deployed on.
+type HostType string
 
 const (
-	// MachineTypeVM specifies that the node should be deployed on a virtaul machine.
+	// HostTypeVM specifies that the node should be deployed on a virtaul machine.
 	// Default value.
-	MachineTypeVM = MachineType("vm")
+	HostTypeVM = HostType("vm")
 
-	// MachineTypeBareMetal specifies that the node should be deployed on a bare metal machine.
-	MachineTypeBareMetal = MachineType("baremetal")
+	// HostTypeBareMetal specifies that the node should be deployed on a bare metal machine.
+	HostTypeBareMetal = HostType("baremetal")
 )

@@ -60,7 +60,7 @@ type Spec struct {
 	OSDisk              infrav1.OSDisk
 	CustomData          string
 	VMType              compute.VMType
-	MachineType         infrav1.MachineType
+	HostType            infrav1.HostType
 	BackingResourceName string
 }
 
@@ -72,8 +72,8 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 		return nil, errors.New("invalid vm specification")
 	}
 
-	switch vmSpec.MachineType {
-	case infrav1.MachineTypeBareMetal:
+	switch vmSpec.HostType {
+	case infrav1.HostTypeBareMetal:
 		var baremetalmachine *[]compute.BareMetalMachine
 
 		if vmSpec.BackingResourceName != "" {
@@ -203,8 +203,8 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		}
 	}
 
-	switch vmSpec.MachineType {
-	case infrav1.MachineTypeBareMetal:
+	switch vmSpec.HostType {
+	case infrav1.HostTypeBareMetal:
 		baremetalMachine, err := s.createOrUpdateBareMetal(
 			ctx,
 			&virtualMachine)
@@ -325,8 +325,8 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	}
 
 	var err error
-	switch vmSpec.MachineType {
-	case infrav1.MachineTypeBareMetal:
+	switch vmSpec.HostType {
+	case infrav1.HostTypeBareMetal:
 		klog.V(2).Infof("deleting bare-metal machine %s ", vmSpec.Name)
 		err = s.clearBareMetalMachine(ctx, vmSpec)
 

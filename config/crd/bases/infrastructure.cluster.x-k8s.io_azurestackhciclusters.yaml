@@ -48,6 +48,10 @@ spec:
                 description: AzureStackHCILoadBalancer is used to declare the AzureStackHCILoadBalancerSpec
                   if a LoadBalancer is desired for the AzureStackHCICluster.
                 properties:
+                  hostType:
+                    description: HostType specifies what type of machine a node should
+                      be deployed on.
+                    type: string
                   image:
                     description: 'Image defines information about the image to use
                       for VM creation. There are three ways to specify an image: by
@@ -82,10 +86,6 @@ spec:
                     required:
                     - osType
                     type: object
-                  machineType:
-                    description: MachineType specifies what type of machine a node
-                      should be deployed on.
-                    type: string
                   sshPublicKey:
                     type: string
                   vmSize:

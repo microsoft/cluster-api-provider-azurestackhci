@@ -9,8 +9,8 @@ spec:
       image:
         osType: "Linux"
       location: "westus"
-      vmSize: ${AZURESTACKHCI_WORKER_VM_TYPE}
-      machineType: ${AZURESTACKHCI_WORKER_MACHINE_TYPE:-""}
+      vmSize: ${AZURESTACKHCI_WORKER_MACHINE_TYPE}
+      hostType: ${AZURESTACKHCI_WORKER_HOST_TYPE:-""}
       sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY:=""}
 ---
 kind: AzureStackHCIMachineTemplate
@@ -23,8 +23,8 @@ spec:
       image:
         osType: "Linux"
       location: "westus"
-      vmSize: ${AZURESTACKHCI_CONTROL_PLANE_VM_TYPE}
-      machineType: ${AZURESTACKHCI_CONTROL_PLANE_MACHINE_TYPE:-""}
+      vmSize: ${AZURESTACKHCI_CONTROL_PLANE_MACHINE_TYPE}
+      hostType: ${AZURESTACKHCI_CONTROL_PLANE_HOST_TYPE:-""}
       sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY:=""}
 ---
 apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
@@ -56,8 +56,8 @@ spec:
         sku: "windows"
         version: "latest"
       location: "westus"
-      vmSize: ${AZURESTACKHCI_WINDOWS_WORKER_VM_TYPE}
-      machineType: ${AZURESTACKHCI_WINDOWS_WORKER_MACHINE_TYPE:-""}
+      vmSize: ${AZURESTACKHCI_WINDOWS_WORKER_MACHINE_TYPE}
+      hostType: ${AZURESTACKHCI_WINDOWS_WORKER_HOST_TYPE:-""}
       sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY:=""}
 ---
 apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
@@ -283,8 +283,8 @@ spec:
     image:
       osType: "Linux"
     sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY:=""}
-    vmSize: "${AZURESTACKHCI_LOAD_BALANCER_VM_TYPE}"
-    machineType: ${AZURESTACKHCI_LOAD_BALANCER_MACHINE_TYPE:-""}
+    vmSize: ${AZURESTACKHCI_LOAD_BALANCER_MACHINE_TYPE}
+    hostType: ${AZURESTACKHCI_LOAD_BALANCER_HOST_TYPE:-""}
   version: "${KUBERNETES_VERSION}"
 ---
 kind: KubeadmControlPlane

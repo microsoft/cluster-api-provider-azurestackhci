@@ -33,7 +33,7 @@ const (
 // AzureStackHCIVirtualMachineSpec defines the desired state of AzureStackHCIVirtualMachine
 type AzureStackHCIVirtualMachineSpec struct {
 	// +optional
-	MachineType MachineType `json:"machineType,omitempty"`
+	HostType HostType `json:"hostType,omitempty"`
 
 	VMSize           string           `json:"vmSize"`
 	AvailabilityZone AvailabilityZone `json:"availabilityZone,omitempty"`

@@ -73,7 +73,7 @@ func (s *azureStackHCIVirtualMachineService) Create() (*infrav1.VM, error) {
 func (s *azureStackHCIVirtualMachineService) Delete() error {
 	vmSpec := &virtualmachines.Spec{
 		Name:                s.vmScope.Name(),
-		MachineType:         s.vmScope.AzureStackHCIVirtualMachine.Spec.MachineType,
+		HostType:            s.vmScope.AzureStackHCIVirtualMachine.Spec.HostType,
 		BackingResourceName: s.vmScope.AzureStackHCIVirtualMachine.Status.BackingResourceName,
 	}
 
@@ -108,7 +108,7 @@ func (s *azureStackHCIVirtualMachineService) VMIfExists() (*infrav1.VM, error) {
 
 	vmSpec := &virtualmachines.Spec{
 		Name:                s.vmScope.Name(),
-		MachineType:         s.vmScope.AzureStackHCIVirtualMachine.Spec.MachineType,
+		HostType:            s.vmScope.AzureStackHCIVirtualMachine.Spec.HostType,
 		BackingResourceName: s.vmScope.AzureStackHCIVirtualMachine.Status.BackingResourceName,
 	}
 	vmInterface, err := s.virtualMachinesSvc.Get(s.vmScope.Context, vmSpec)
@@ -175,7 +175,7 @@ func (s *azureStackHCIVirtualMachineService) createVirtualMachine(nicName string
 
 	vmSpec := &virtualmachines.Spec{
 		Name:                s.vmScope.Name(),
-		MachineType:         s.vmScope.AzureStackHCIVirtualMachine.Spec.MachineType,
+		HostType:            s.vmScope.AzureStackHCIVirtualMachine.Spec.HostType,
 		BackingResourceName: s.vmScope.AzureStackHCIVirtualMachine.Status.BackingResourceName,
 	}
 
@@ -218,7 +218,7 @@ func (s *azureStackHCIVirtualMachineService) createVirtualMachine(nicName string
 			CustomData:          *s.vmScope.AzureStackHCIVirtualMachine.Spec.BootstrapData,
 			Zone:                vmZone,
 			VMType:              vmType,
-			MachineType:         s.vmScope.AzureStackHCIVirtualMachine.Spec.MachineType,
+			HostType:            s.vmScope.AzureStackHCIVirtualMachine.Spec.HostType,
 			BackingResourceName: s.vmScope.AzureStackHCIVirtualMachine.Status.BackingResourceName,
 		}
 
