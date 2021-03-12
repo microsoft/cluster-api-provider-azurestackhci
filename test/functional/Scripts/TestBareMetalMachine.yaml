@@ -1,0 +1,9 @@
+name: testbaremetalmachine
+baremetalmachineproperties:
+  host:
+    id: testnode
+  osprofile:
+    computername: "lumaster"
+    adminusername: "localadmin"
+    adminpassword: ""
+    customdata: "testcustomdata"
