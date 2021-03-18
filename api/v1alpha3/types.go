@@ -252,7 +252,7 @@ const (
 type HostType string
 
 const (
-	// HostTypeVM specifies that the node should be deployed on a virtaul machine.
+	// HostTypeVM specifies that the node should be deployed on a virtual machine.
 	// Default value.
 	HostTypeVM = HostType("vm")
 

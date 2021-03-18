@@ -51,17 +51,17 @@ var (
 
 // Spec input specification for Get/CreateOrUpdate/Delete calls
 type Spec struct {
-	Name                string
-	NICName             string
-	SSHKeyData          string
-	Size                string
-	Zone                string
-	Image               infrav1.Image
-	OSDisk              infrav1.OSDisk
-	CustomData          string
-	VMType              compute.VMType
-	HostType            infrav1.HostType
-	BackingResourceName string
+	Name              string
+	NICName           string
+	SSHKeyData        string
+	Size              string
+	Zone              string
+	Image             infrav1.Image
+	OSDisk            infrav1.OSDisk
+	CustomData        string
+	VMType            compute.VMType
+	HostType          infrav1.HostType
+	CloudResourceName string
 }
 
 // Get provides information about a virtual machine.
@@ -76,15 +76,15 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 	case infrav1.HostTypeBareMetal:
 		var baremetalmachine *[]compute.BareMetalMachine
 
-		if vmSpec.BackingResourceName != "" {
-			baremetalmachine, err = s.BareMetalClient.Get(ctx, s.Scope.Location(), vmSpec.BackingResourceName)
+		if vmSpec.CloudResourceName != "" {
+			baremetalmachine, err = s.BareMetalClient.Get(ctx, s.Scope.Location(), vmSpec.CloudResourceName)
 			if err != nil {
 				return nil, err
 			}
 		}
 
 		if baremetalmachine == nil || len(*baremetalmachine) == 0 {
-			return nil, errors.Errorf("bare-metal machine %s (%s) not found", vmSpec.Name, vmSpec.BackingResourceName)
+			return nil, errors.Errorf("bare-metal machine %s (%s) not found", vmSpec.Name, vmSpec.CloudResourceName)
 		}
 
 		return converters.BareMetalMachineConvertToCAPH((*baremetalmachine)[0])
@@ -213,7 +213,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		}
 
 		// Pass up the name of the the bare-metal machine host.
-		vmSpec.BackingResourceName = *baremetalMachine.Name
+		vmSpec.CloudResourceName = *baremetalMachine.Name
 
 	default:
 		_, err = s.VMClient.CreateOrUpdate(
@@ -292,7 +292,7 @@ func (s *Service) createOrUpdateBareMetal(ctx context.Context, virtualMachine *c
 		}
 	}
 
-	return nil, mocerrors.Wrapf(mocerrors.OutOfCapacity, "No free bare-metal nodes. Total nodes [%d]", bareMetalMachineCount)
+	return nil, errors.Wrapf(mocerrors.OutOfCapacity, "No free bare-metal nodes. Total nodes [%d]", bareMetalMachineCount)
 }
 
 func isBareMetalMachineInUse(bareMetalMachine *compute.BareMetalMachine) bool {
@@ -348,19 +348,19 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 }
 
 func (s *Service) clearBareMetalMachine(ctx context.Context, vmSpec *Spec) error {
-	if vmSpec.BackingResourceName == "" {
+	if vmSpec.CloudResourceName == "" {
 		// Machine has not been deployed onto a bare-metal host.
 		return nil
 	}
 
-	bareMetalMachineList, err := s.BareMetalClient.Get(ctx, s.Scope.Location(), vmSpec.BackingResourceName)
+	bareMetalMachineList, err := s.BareMetalClient.Get(ctx, s.Scope.Location(), vmSpec.CloudResourceName)
 	if err != nil {
 		return err
 	}
 
 	if bareMetalMachineList == nil || len(*bareMetalMachineList) < 1 {
 		// Bare metal host doesn't exist anymore. So, nothing to do.
-		klog.V(2).Infof("bare-metal host no longer exists %s (%s)", vmSpec.Name, vmSpec.BackingResourceName)
+		klog.V(2).Infof("bare-metal host no longer exists %s (%s)", vmSpec.Name, vmSpec.CloudResourceName)
 		return nil
 	}
 
