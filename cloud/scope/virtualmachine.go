@@ -177,6 +177,11 @@ func (m *VirtualMachineScope) SetAnnotation(key, value string) {
 	m.AzureStackHCIVirtualMachine.Annotations[key] = value
 }
 
+// SetCloudResourceName sets the AzureStackHCIVirtualMachine resource name.
+func (m *VirtualMachineScope) SetCloudResourceName(resourceName string) {
+	m.AzureStackHCIVirtualMachine.Status.CloudResourceName = resourceName
+}
+
 // PatchObject persists the virtual machine spec and status.
 func (m *VirtualMachineScope) PatchObject() error {
 	return m.patchHelper.Patch(context.TODO(), m.AzureStackHCIVirtualMachine)

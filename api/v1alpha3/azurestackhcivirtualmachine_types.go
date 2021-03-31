@@ -31,6 +31,9 @@ const (
 
 // AzureStackHCIVirtualMachineSpec defines the desired state of AzureStackHCIVirtualMachine
 type AzureStackHCIVirtualMachineSpec struct {
+	// +optional
+	HostType HostType `json:"hostType,omitempty"`
+
 	VMSize           string           `json:"vmSize"`
 	AvailabilityZone AvailabilityZone `json:"availabilityZone,omitempty"`
 	Image            Image            `json:"image"`
@@ -66,6 +69,12 @@ type AzureStackHCIVirtualMachineStatus struct {
 
 	// +optional
 	FailureMessage *string `json:"failureMessage,omitempty"`
+
+	// CloudResourceName is the name resource used by the machine.
+	// For VMs, this will be the same as Name. For bare-metal machines, it will be the name
+	// of the host.
+	// +optional
+	CloudResourceName string `json:"cloudResourceName,omitempty"`
 }
 
 // +kubebuilder:object:root=true

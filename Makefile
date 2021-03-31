@@ -212,10 +212,13 @@ docker-login: ## Login docker to a private registry
 	@if [ -z "${DOCKER_PASSWORD}" ]; then echo "DOCKER_PASSWORD is not set"; exit 1; fi
 	docker login $(STAGING_REGISTRY) -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
 
-.PHONY: docker-build
-docker-build: manager ## Build the docker image for controller-manager
+.PHONY: docker-build-img
+docker-build-img: manager
 	#docker build --pull --build-arg ARCH=$(ARCH) . -t $(CONTROLLER_IMG)-$(ARCH):$(TAG)
 	docker build --pull --build-arg ARCH=$(ARCH) . -t $(CONTROLLER_IMG):$(TAG)
+
+.PHONY: docker-build
+docker-build: docker-build-img ## Build the docker image for controller-manager
 	#MANIFEST_IMG=$(CONTROLLER_IMG)-$(ARCH) MANIFEST_TAG=$(TAG) $(MAKE) set-manifest-image
 	MANIFEST_IMG=$(CONTROLLER_IMG) MANIFEST_TAG=$(TAG) $(MAKE) set-manifest-image
 	$(MAKE) set-manifest-pull-policy
@@ -345,6 +348,14 @@ create-cluster:
 
 .PHONY: deployment
 deployment: dev-release create-cluster  ## Build and deploy caph in a kind management cluster.
+
+# Build CAPH K8s definitions for dev purposes.
+# Useful when a custom $REGISTRY URL has been set. (For example, when using a local docker container registry.)
+.PHONY: dev-manifests
+dev-manifests: $(RELEASE_DIR)
+	cp ./dev/manager_image_patch_template.yaml ./dev/manager_image_patch.yaml
+	sed -i'' -e 's@value: .*@value: '"${CONTROLLER_IMG}:$(TAG)"'@' ./dev/manager_image_patch.yaml
+	kustomize build dev > $(RELEASE_DIR)/infrastructure-components.yaml
 
 ## --------------------------------------
 ## Kind

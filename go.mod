@@ -7,7 +7,7 @@ require (
 	github.com/Azure/go-autorest/autorest/to v0.3.0
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/go-logr/logr v0.1.0
-	github.com/microsoft/moc v0.10.1-alpha.4
+	github.com/microsoft/moc v0.10.7-alpha.5
 	github.com/microsoft/moc-sdk-for-go v0.10.1-alpha.1
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/pflag v1.0.5
@@ -23,4 +23,8 @@ require (
 	sigs.k8s.io/controller-runtime v0.5.2
 )
 
-replace github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.4.0+incompatible
+replace (
+	github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.4.0+incompatible
+	github.com/microsoft/moc => ../moc
+	github.com/microsoft/moc-sdk-for-go => ../moc-sdk-for-go
+)

@@ -230,6 +230,7 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileNormalVirtualMachine(load
 		vm.Spec.SubnetName = azurestackhci.GenerateNodeSubnetName(clusterScope.Name())
 		bootstrapdata := ""
 		vm.Spec.BootstrapData = &bootstrapdata
+		vm.Spec.HostType = loadBalancerScope.AzureStackHCILoadBalancer.Spec.HostType
 		vm.Spec.VMSize = loadBalancerScope.AzureStackHCILoadBalancer.Spec.VMSize
 		vm.Spec.Location = clusterScope.Location()
 		vm.Spec.SSHPublicKey = loadBalancerScope.AzureStackHCILoadBalancer.Spec.SSHPublicKey
