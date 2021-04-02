@@ -23,14 +23,13 @@ import (
 	"crypto/rsa"
 	"encoding/base64"
 	"fmt"
-	mathrand "math/rand"
-	"time"
 
 	"github.com/Azure/go-autorest/autorest/to"
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/converters"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/networkinterfaces"
+	infrav1util "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/util"
 	"github.com/microsoft/moc-sdk-for-go/services/compute"
 	"github.com/microsoft/moc-sdk-for-go/services/network"
 	"github.com/pkg/errors"
@@ -40,12 +39,7 @@ import (
 
 const (
 	computerNamePrefix = "moc-"
-	computerNameChars  = "abcdefghijklmnopqrstuvwxyz0123456789"
 	computerNameLength = 15
-)
-
-var (
-	rnd = mathrand.New(mathrand.NewSource(time.Now().UnixNano()))
 )
 
 // Spec input specification for Get/CreateOrUpdate/Delete calls
@@ -332,11 +326,7 @@ func generateComputerName(os infrav1.OSType) string {
 	}
 
 	if len(computerName) < computerNameLength {
-		b := make([]byte, (computerNameLength - len(computerName)))
-		for i := range b {
-			b[i] = computerNameChars[rnd.Intn(len(computerNameChars))]
-		}
-		computerName += string(b)
+		computerName += infrav1util.RandomAlphaNumericString(computerNameLength - len(computerName))
 	}
 
 	return computerName

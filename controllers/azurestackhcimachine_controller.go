@@ -84,7 +84,7 @@ func (r *AzureStackHCIMachineReconciler) SetupWithManager(mgr ctrl.Manager, opti
 
 func (r *AzureStackHCIMachineReconciler) Reconcile(req ctrl.Request) (_ ctrl.Result, reterr error) {
 	ctx := context.TODO()
-	logger := r.Log.WithValues("namespace", req.Namespace, "azureStackHCIMachine", req.Name)
+	logger := r.Log.WithValues("azureStackHCIMachine", req.Name)
 
 	// Fetch the AzureStackHCIMachine VM.
 	azureStackHCIMachine := &infrav1.AzureStackHCIMachine{}

@@ -96,6 +96,18 @@ func (m *AzureStackHCIVirtualMachine) SetConditions(conditions clusterv1.Conditi
 	m.Status.Conditions = conditions
 }
 
+// VirtualMachinesByCreationTimestamp sorts a list of AzureStackHCIVirtualMachine by creation timestamp, using their names as a tie breaker.
+type VirtualMachinesByCreationTimestamp []*AzureStackHCIVirtualMachine
+
+func (o VirtualMachinesByCreationTimestamp) Len() int      { return len(o) }
+func (o VirtualMachinesByCreationTimestamp) Swap(i, j int) { o[i], o[j] = o[j], o[i] }
+func (o VirtualMachinesByCreationTimestamp) Less(i, j int) bool {
+	if o[i].CreationTimestamp.Equal(&o[j].CreationTimestamp) {
+		return o[i].Name < o[j].Name
+	}
+	return o[i].CreationTimestamp.Before(&o[j].CreationTimestamp)
+}
+
 // +kubebuilder:object:root=true
 
 // AzureStackHCIVirtualMachineList contains a list of AzureStackHCIVirtualMachine

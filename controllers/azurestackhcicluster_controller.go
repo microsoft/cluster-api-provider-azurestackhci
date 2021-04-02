@@ -59,10 +59,11 @@ func (r *AzureStackHCIClusterReconciler) SetupWithManager(mgr ctrl.Manager, opti
 // +kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=azurestackhciclusters,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=azurestackhciclusters/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=cluster.x-k8s.io,resources=clusters;clusters/status,verbs=get;list;watch
+// +kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io;bootstrap.cluster.x-k8s.io;controlplane.cluster.x-k8s.io,resources=*,verbs=get;list;watch
 
 func (r *AzureStackHCIClusterReconciler) Reconcile(req ctrl.Request) (_ ctrl.Result, reterr error) {
 	ctx := context.TODO()
-	log := r.Log.WithValues("namespace", req.Namespace, "azureStackHCICluster", req.Name)
+	log := r.Log.WithValues("azureStackHCICluster", req.Name)
 
 	// Fetch the AzureStackHCICluster instance
 	azureStackHCICluster := &infrav1.AzureStackHCICluster{}
@@ -226,12 +227,6 @@ func (r *AzureStackHCIClusterReconciler) reconcileAzureStackHCILoadBalancer(clus
 		return true, nil
 	}
 
-	// if there are some existing control plane endpoints, skip AzureStackHCILoadBalancer reconcile
-	if clusterScope.AzureStackHCICluster.Spec.ControlPlaneEndpoint.Host != "" {
-		clusterScope.Info("Skipping load balancer reconciliation since a control plane endpoint is already present")
-		return true, nil
-	}
-
 	azureStackHCILoadBalancer := &infrav1.AzureStackHCILoadBalancer{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: clusterScope.Namespace(),
@@ -249,7 +244,17 @@ func (r *AzureStackHCIClusterReconciler) reconcileAzureStackHCILoadBalancer(clus
 				Name:       clusterScope.Name(),
 				UID:        clusterScope.UID(),
 			}))
-		azureStackHCILoadBalancer.Spec = *clusterScope.AzureStackHCILoadBalancer().DeepCopy()
+
+		labels := azureStackHCILoadBalancer.GetLabels()
+		if labels == nil {
+			labels = map[string]string{}
+		}
+		labels[infrav1.OSVersionLabelName] = clusterScope.Cluster.Labels[infrav1.OSVersionLabelName]
+		azureStackHCILoadBalancer.SetLabels(labels)
+
+		clusterScope.AzureStackHCILoadBalancer().Image.DeepCopyInto(&azureStackHCILoadBalancer.Spec.Image)
+		azureStackHCILoadBalancer.Spec.SSHPublicKey = clusterScope.AzureStackHCILoadBalancer().SSHPublicKey
+		azureStackHCILoadBalancer.Spec.VMSize = clusterScope.AzureStackHCILoadBalancer().VMSize
 		return nil
 	}
 
@@ -259,15 +264,17 @@ func (r *AzureStackHCIClusterReconciler) reconcileAzureStackHCILoadBalancer(clus
 		}
 	}
 
-	// wait for the load balancer ip to be available and update the control plane endpoints list
-	if azureStackHCILoadBalancer.Status.Address == "" {
+	// Wait for the load balancer to be fully provisioned
+	if conditions.IsFalse(azureStackHCILoadBalancer, infrav1.LoadBalancerInfrastructureReadyCondition) {
 		return false, nil
 	}
 
-	// Set APIEndpoints so the Cluster API Cluster Controller can pull them
-	clusterScope.AzureStackHCICluster.Spec.ControlPlaneEndpoint = clusterv1.APIEndpoint{
-		Host: azureStackHCILoadBalancer.Status.Address,
-		Port: clusterScope.APIServerPort(),
+	if azureStackHCILoadBalancer.Status.Address != "" {
+		// Set APIEndpoints so the Cluster API Cluster Controller can pull them
+		clusterScope.AzureStackHCICluster.Spec.ControlPlaneEndpoint = clusterv1.APIEndpoint{
+			Host: azureStackHCILoadBalancer.Status.Address,
+			Port: clusterScope.APIServerPort(),
+		}
 	}
 
 	return true, nil
