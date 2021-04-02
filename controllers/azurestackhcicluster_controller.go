@@ -142,7 +142,7 @@ func (r *AzureStackHCIClusterReconciler) reconcileNormal(clusterScope *scope.Clu
 		if err != nil {
 			return reconcile.Result{}, err
 		}
-		clusterScope.Info("AzureStackHCILoadBalancer Address is not ready yet")
+		clusterScope.Info("AzureStackHCILoadBalancer is not ready yet")
 		conditions.MarkFalse(azureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, infrav1.LoadBalancerProvisioningReason, clusterv1.ConditionSeverityWarning, "")
 		return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 20}, nil
 	}
@@ -244,13 +244,6 @@ func (r *AzureStackHCIClusterReconciler) reconcileAzureStackHCILoadBalancer(clus
 				Name:       clusterScope.Name(),
 				UID:        clusterScope.UID(),
 			}))
-
-		labels := azureStackHCILoadBalancer.GetLabels()
-		if labels == nil {
-			labels = map[string]string{}
-		}
-		labels[infrav1.OSVersionLabelName] = clusterScope.Cluster.Labels[infrav1.OSVersionLabelName]
-		azureStackHCILoadBalancer.SetLabels(labels)
 
 		clusterScope.AzureStackHCILoadBalancer().Image.DeepCopyInto(&azureStackHCILoadBalancer.Spec.Image)
 		azureStackHCILoadBalancer.Spec.SSHPublicKey = clusterScope.AzureStackHCILoadBalancer().SSHPublicKey

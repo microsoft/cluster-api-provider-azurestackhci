@@ -151,7 +151,7 @@ func (r *AzureStackHCILoadBalancerReconciler) createOrUpdateVirtualMachine(loadB
 		if labels == nil {
 			labels = map[string]string{}
 		}
-		labels[infrav1.OSVersionLabelName] = loadBalancerScope.Cluster.Labels[infrav1.OSVersionLabelName]
+		labels[infrav1.OSVersionLabelName] = loadBalancerScope.OSVersion()
 		labels[infrav1.LoadBalancerLabel] = loadBalancerScope.Name()
 		vm.SetLabels(labels)
 
@@ -230,13 +230,10 @@ func (r *AzureStackHCILoadBalancerReconciler) selectVirtualMachineForScaleDown(l
 		return nil, fmt.Errorf("no machines were provided for scale down selection")
 	}
 
-	latestOSVersion := lbs.Cluster.Labels[infrav1.OSVersionLabelName]
-
 	// find the oldest machine which is not running the latest os version
 	sort.Sort(infrav1.VirtualMachinesByCreationTimestamp(vmList))
 	for _, vm := range vmList {
-		currentOSVersion := vm.Labels[infrav1.OSVersionLabelName]
-		if currentOSVersion != latestOSVersion {
+		if vm.Labels[infrav1.OSVersionLabelName] != lbs.OSVersion() {
 			return vm, nil
 		}
 	}
@@ -340,10 +337,8 @@ func (r *AzureStackHCILoadBalancerReconciler) isScaleDownRequired(loadBalancerSc
 
 // isUpgradeRequired determines if there are any replicas which need to be upgraded
 func (r *AzureStackHCILoadBalancerReconciler) isUpgradeRequired(lbs *scope.LoadBalancerScope, vmList []*infrav1.AzureStackHCIVirtualMachine) bool {
-	latestOSVersion := lbs.Cluster.Labels[infrav1.OSVersionLabelName]
 	for _, vm := range vmList {
-		currentOSVersion := vm.Labels[infrav1.OSVersionLabelName]
-		if currentOSVersion != latestOSVersion {
+		if vm.Labels[infrav1.OSVersionLabelName] != lbs.OSVersion() {
 			return true
 		}
 	}

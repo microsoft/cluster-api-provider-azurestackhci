@@ -97,9 +97,12 @@ func (l *LoadBalancerScope) Address() string {
 	return l.AzureStackHCILoadBalancer.Status.Address
 }
 
-// OSVersion returns the OS version label of the AzureStackHCILoadBalancer, if it exists.
+// OSVersion returns the AzureStackHCILoadBalancer image OS version
 func (l *LoadBalancerScope) OSVersion() string {
-	return l.AzureStackHCILoadBalancer.Labels[infrav1.OSVersionLabelName]
+	if l.AzureStackHCILoadBalancer.Spec.Image.Version != nil {
+		return *l.AzureStackHCILoadBalancer.Spec.Image.Version
+	}
+	return ""
 }
 
 // SetAnnotation sets a key value annotation on the AzureStackHCILoadBalancer
