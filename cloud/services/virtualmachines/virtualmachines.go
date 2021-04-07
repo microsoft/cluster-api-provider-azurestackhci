@@ -284,10 +284,9 @@ func (s *Service) createOrUpdateBareMetal(ctx context.Context, virtualMachine *c
 func isBareMetalMachineInUse(bareMetalMachine *compute.BareMetalMachine) bool {
 	// Check if an OS image has been set.
 	return bareMetalMachine.BareMetalMachineProperties != nil &&
-		bareMetalMachine.BareMetalMachineProperties.StorageProfile != nil &&
-		bareMetalMachine.BareMetalMachineProperties.StorageProfile.ImageReference != nil &&
-		bareMetalMachine.BareMetalMachineProperties.StorageProfile.ImageReference.Name != nil &&
-		*bareMetalMachine.BareMetalMachineProperties.StorageProfile.ImageReference.Name != ""
+		bareMetalMachine.BareMetalMachineProperties.OsProfile != nil &&
+		bareMetalMachine.BareMetalMachineProperties.OsProfile.CustomData != nil &&
+		*bareMetalMachine.BareMetalMachineProperties.OsProfile.CustomData != ""
 }
 
 func vmNetworkInterfacesToBareMetal(interfaces *[]compute.NetworkInterfaceReference) *[]compute.BareMetalMachineNetworkInterface {
