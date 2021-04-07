@@ -257,7 +257,7 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileLoadBalancerService(loadB
 func (r *AzureStackHCILoadBalancerReconciler) reconcileDelete(lbs *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) (reconcile.Result, error) {
 	lbs.Info("Handling deleted AzureStackHCILoadBalancer", "LoadBalancer", lbs.AzureStackHCILoadBalancer.Name)
 
-	if err := r.reconcileDeleteLoadBalancer(lbs, clusterScope); err != nil {
+	if err := r.reconcileDeleteLoadBalancerService(lbs, clusterScope); err != nil {
 		r.Recorder.Eventf(lbs.AzureStackHCILoadBalancer, corev1.EventTypeWarning, "FailureDeleteLoadBalancer", errors.Wrapf(err, "Error deleting AzureStackHCILoadBalancer %s", lbs.Name()).Error())
 		conditions.MarkFalse(lbs.AzureStackHCILoadBalancer, infrav1.LoadBalancerInfrastructureReadyCondition, clusterv1.DeletionFailedReason, clusterv1.ConditionSeverityWarning, err.Error())
 		return reconcile.Result{}, err
@@ -276,7 +276,7 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileDelete(lbs *scope.LoadBal
 	return reconcile.Result{}, nil
 }
 
-func (r *AzureStackHCILoadBalancerReconciler) reconcileDeleteLoadBalancer(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) error {
+func (r *AzureStackHCILoadBalancerReconciler) reconcileDeleteLoadBalancerService(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) error {
 	lbSpec := &loadbalancers.Spec{
 		Name: loadBalancerScope.AzureStackHCILoadBalancer.Name,
 	}
