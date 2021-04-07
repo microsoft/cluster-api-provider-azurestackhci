@@ -62,7 +62,9 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileVirtualMachines(lbs *scop
 
 	// check if we need to scale up
 	if r.isScaleUpRequired(lbs) {
-		conditions.MarkFalse(lbs.AzureStackHCILoadBalancer, infrav1.LoadBalancerReplicasReadyCondition, infrav1.LoadBalancerReplicasScalingUpReason, clusterv1.ConditionSeverityInfo, "")
+		if !r.replicasAreUpgrading(lbs) {
+			conditions.MarkFalse(lbs.AzureStackHCILoadBalancer, infrav1.LoadBalancerReplicasReadyCondition, infrav1.LoadBalancerReplicasScalingUpReason, clusterv1.ConditionSeverityInfo, "")
+		}
 
 		err = r.scaleUpVirtualMachines(lbs, clusterScope)
 		if err != nil {
