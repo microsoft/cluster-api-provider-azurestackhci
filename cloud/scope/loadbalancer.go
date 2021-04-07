@@ -82,6 +82,11 @@ type LoadBalancerScope struct {
 	AzureStackHCICluster      *infrav1.AzureStackHCICluster
 }
 
+const (
+	// The maximum number of Replicas that can be created above the desired amount.
+	MaxSurge = 1
+)
+
 // Name returns the Name of the AzureStackHCILoadBalancer
 func (l *LoadBalancerScope) Name() string {
 	return l.AzureStackHCILoadBalancer.Name
@@ -90,6 +95,14 @@ func (l *LoadBalancerScope) Name() string {
 // Address returns the address of the AzureStackHCILoadBalancer, if it exists.
 func (l *LoadBalancerScope) Address() string {
 	return l.AzureStackHCILoadBalancer.Status.Address
+}
+
+// OSVersion returns the AzureStackHCILoadBalancer image OS version
+func (l *LoadBalancerScope) OSVersion() string {
+	if l.AzureStackHCILoadBalancer.Spec.Image.Version != nil {
+		return *l.AzureStackHCILoadBalancer.Spec.Image.Version
+	}
+	return ""
 }
 
 // SetAnnotation sets a key value annotation on the AzureStackHCILoadBalancer
@@ -115,15 +128,64 @@ func (l *LoadBalancerScope) SetReady() {
 	l.AzureStackHCILoadBalancer.Status.Ready = true
 }
 
-// GetVMState returns the AzureStackHCILoadBalancer VM state.
-func (l *LoadBalancerScope) GetVMState() *infrav1.VMState {
-	return l.AzureStackHCILoadBalancer.Status.VMState
+// GetReady returns the AzureStackHCILoadBalancer Ready Status
+func (l *LoadBalancerScope) GetReady() bool {
+	return l.AzureStackHCILoadBalancer.Status.Ready
 }
 
-// SetVMState sets the AzureStackHCILoadBalancer VM state.
-func (l *LoadBalancerScope) SetVMState(v *infrav1.VMState) {
-	l.AzureStackHCILoadBalancer.Status.VMState = new(infrav1.VMState)
-	*l.AzureStackHCILoadBalancer.Status.VMState = *v
+// AddReplica increments the AzureStackHCILoadBalancer Replica status
+func (l *LoadBalancerScope) AddReplica() {
+	l.AzureStackHCILoadBalancer.Status.Replicas++
+}
+
+// RemoveReplica decrements the AzureStackHCILoadBalancer Replica status
+func (l *LoadBalancerScope) RemoveReplica() {
+	if l.AzureStackHCILoadBalancer.Status.Replicas > 0 {
+		l.AzureStackHCILoadBalancer.Status.Replicas--
+	}
+}
+
+// SetReplicas sets the AzureStackHCILoadBalancer Replica status
+func (l *LoadBalancerScope) SetReplicas(replicas int32) {
+	l.AzureStackHCILoadBalancer.Status.Replicas = replicas
+}
+
+// GetReplicas returns the AzureStackHCILoadBalancer Replica status
+func (l *LoadBalancerScope) GetReplicas() int32 {
+	return l.AzureStackHCILoadBalancer.Status.Replicas
+}
+
+// SetReadyReplicas sets the AzureStackHCILoadBalancer ReadyReplica status
+func (l *LoadBalancerScope) SetReadyReplicas(replicas int32) {
+	l.AzureStackHCILoadBalancer.Status.ReadyReplicas = replicas
+}
+
+// GetReadyReplicas returns the AzureStackHCILoadBalancer ReadyReplica status
+func (l *LoadBalancerScope) GetReadyReplicas() int32 {
+	return l.AzureStackHCILoadBalancer.Status.ReadyReplicas
+}
+
+// SetFailedReplicas sets the AzureStackHCILoadBalancer FailedReplica status
+func (l *LoadBalancerScope) SetFailedReplicas(replicas int32) {
+	l.AzureStackHCILoadBalancer.Status.FailedReplicas = replicas
+}
+
+// GetFailedReplicas returns the AzureStackHCILoadBalancer FailedReplica status
+func (l *LoadBalancerScope) GetFailedReplicas() int32 {
+	return l.AzureStackHCILoadBalancer.Status.FailedReplicas
+}
+
+// GetDesiredReplicas returns the AzureStackHCILoadBalancer spec.Replicas
+func (l *LoadBalancerScope) GetDesiredReplicas() int32 {
+	if l.AzureStackHCILoadBalancer.Spec.Replicas == nil {
+		return 0
+	}
+	return *l.AzureStackHCILoadBalancer.Spec.Replicas
+}
+
+// GetMaxReplicas returns the maximum number of Replicas that can be created
+func (l *LoadBalancerScope) GetMaxReplicas() int32 {
+	return (l.GetDesiredReplicas() + MaxSurge)
 }
 
 // SetErrorMessage sets the AzureStackHCILoadBalancer status error message.
@@ -149,4 +211,14 @@ func (l *LoadBalancerScope) SetPort(port int32) {
 // GetPort returns the Port field of the AzureStackHCILoadBalancer Status.
 func (l *LoadBalancerScope) GetPort() int32 {
 	return l.AzureStackHCILoadBalancer.Status.Port
+}
+
+// SetPhase sets the Phase field of the AzureStackHCILoadBalancer Status.
+func (l *LoadBalancerScope) SetPhase(p infrav1.AzureStackHCILoadBalancerPhase) {
+	l.AzureStackHCILoadBalancer.Status.SetTypedPhase(p)
+}
+
+// SetSelector sets the Selector field of the AzureStackHCILoadBalancer Status.
+func (l *LoadBalancerScope) SetSelector(selector string) {
+	l.AzureStackHCILoadBalancer.Status.Selector = selector
 }

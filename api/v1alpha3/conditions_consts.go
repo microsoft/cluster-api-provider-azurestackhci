@@ -46,3 +46,33 @@ const (
 	// AzureStackHCIMachinesDeletingReason used when waiting on machines to be deleted
 	AzureStackHCIMachinesDeletingReason = "AzureStackHCIMachineDeleting"
 )
+
+// Conditions and condition Reasons for the AzureStackHCILoadBalancer object
+
+const (
+	// LoadBalancerInfrastructureReadyCondition reports on current status of the AzureStackHCILoadBalancer
+	LoadBalancerInfrastructureReadyCondition clusterv1.ConditionType = "LoadBalancerInfrastructureReady"
+	// LoadBalancerServiceReconciliationFailedReason used for service failures during loadbalancer reconciliation.
+	LoadBalancerServiceReconciliationFailedReason = "ServiceReconciliationFailed"
+	// LoadBalancerServiceStatusFailedReason used for service status failures.
+	LoadBalancerServiceStatusFailedReason = "ServiceStatusFailed"
+	// LoadBalancerMachineReconciliationFailedReason used for machine failures during loadbalancer reconciliation.
+	LoadBalancerMachineReconciliationFailedReason = "MachineReconciliationFailed"
+	// LoadBalancerAddressUnavailableReason used when waiting for loadbalancer to have an address.
+	LoadBalancerAddressUnavailableReason = "AddressUnavailable"
+	// LoadBalancerNoReplicasReadyReason used when no replicas are in a ready state.
+	LoadBalancerNoReplicasReadyReason = "NoReplicasReady"
+
+	// LoadBalancerReplicasReadyCondition reports on current status of the AzureStackHCILoadBalancer machine replicas
+	LoadBalancerReplicasReadyCondition clusterv1.ConditionType = "LoadBalancerReplicasReady"
+	// LoadBalancerWaitingForReplicasReadyReason used when we are waiting for replicas to be ready.
+	LoadBalancerWaitingForReplicasReadyReason = "WaitingForReplicasToBeReady"
+	// LoadBalancerReplicasScalingUpReason used when we are scaling up the replicas.
+	LoadBalancerReplicasScalingUpReason = "ScalingUp"
+	// LoadBalancerReplicasScalingDownReason used when we are scaling down the replicas.
+	LoadBalancerReplicasScalingDownReason = "ScalingDown"
+	// LoadBalancerReplicasUpgradingReason used when we are upgrading the replicas.
+	LoadBalancerReplicasUpgradingReason = "Upgrading"
+	// LoadBalancerReplicasFailedReason used when we have failed replicas.
+	LoadBalancerReplicasFailedReason = "FailedReplicas"
+)

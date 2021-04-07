@@ -22,6 +22,7 @@ import (
 
 	"github.com/blang/semver"
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
+	infrav1util "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/util"
 	"github.com/pkg/errors"
 	"k8s.io/utils/pointer"
 )
@@ -127,6 +128,11 @@ func GenerateOSDiskName(machineName string) string {
 // GenerateAzureStackHCILoadBalancerName generates the name of a load balancer based on the name of a cluster.
 func GenerateAzureStackHCILoadBalancerName(clusterName string) string {
 	return fmt.Sprintf("%s-load-balancer", clusterName)
+}
+
+// GenerateAzureStackHCILoadBalancerMachineName generates the name of a load balancer machine based on the name of the load balancer.
+func GenerateAzureStackHCILoadBalancerMachineName(loadBalancerName string) string {
+	return fmt.Sprintf("%s-%s", loadBalancerName, infrav1util.RandomAlphaNumericString(5))
 }
 
 // GenerateControlPlaneBackendPoolName generates the name of a control plane backend pool based on the name of a cluster.
