@@ -148,6 +148,7 @@ func (r *AzureStackHCIVirtualMachineReconciler) reconcileNormal(virtualMachineSc
 
 	// Proceed to reconcile the AzureStackHCIVirtualMachine state.
 	virtualMachineScope.SetVMState(vm.State)
+	virtualMachineScope.SetCloudResourceName(vm.Name)
 
 	switch vm.State {
 	case infrav1.VMStateSucceeded:

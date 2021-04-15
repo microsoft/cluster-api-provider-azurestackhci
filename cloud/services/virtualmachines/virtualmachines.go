@@ -33,6 +33,7 @@ import (
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/networkinterfaces"
 	"github.com/microsoft/moc-sdk-for-go/services/compute"
 	"github.com/microsoft/moc-sdk-for-go/services/network"
+	mocerrors "github.com/microsoft/moc/pkg/errors"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh"
 	"k8s.io/klog"
@@ -50,33 +51,55 @@ var (
 
 // Spec input specification for Get/CreateOrUpdate/Delete calls
 type Spec struct {
-	Name       string
-	NICName    string
-	SSHKeyData string
-	Size       string
-	Zone       string
-	Image      infrav1.Image
-	OSDisk     infrav1.OSDisk
-	CustomData string
-	VMType     compute.VMType
+	Name              string
+	NICName           string
+	SSHKeyData        string
+	Size              string
+	Zone              string
+	Image             infrav1.Image
+	OSDisk            infrav1.OSDisk
+	CustomData        string
+	VMType            compute.VMType
+	HostType          infrav1.HostType
+	CloudResourceName string
 }
 
 // Get provides information about a virtual machine.
 func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error) {
+	var err error
 	vmSpec, ok := spec.(*Spec)
 	if !ok {
-		return compute.VirtualMachine{}, errors.New("invalid vm specification")
+		return nil, errors.New("invalid vm specification")
 	}
 
-	vm, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
-	if err != nil {
-		return nil, err
-	}
-	if vm == nil || len(*vm) == 0 {
-		return nil, errors.Wrapf(err, "vm %s not found", vmSpec.Name)
-	}
+	switch vmSpec.HostType {
+	case infrav1.HostTypeBareMetal:
+		var baremetalmachine *[]compute.BareMetalMachine
 
-	return converters.SDKToVM((*vm)[0])
+		if vmSpec.CloudResourceName != "" {
+			baremetalmachine, err = s.BareMetalClient.Get(ctx, s.Scope.Location(), vmSpec.CloudResourceName)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		if baremetalmachine == nil || len(*baremetalmachine) == 0 {
+			return nil, errors.Errorf("bare-metal machine %s (%s) not found", vmSpec.Name, vmSpec.CloudResourceName)
+		}
+
+		return converters.BareMetalMachineConvertToCAPH((*baremetalmachine)[0])
+
+	default:
+		vm, err := s.VMClient.Get(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
+		if err != nil {
+			return nil, err
+		}
+		if vm == nil || len(*vm) == 0 {
+			return nil, errors.Errorf("vm %s not found", vmSpec.Name)
+		}
+
+		return converters.VMConvertToCAPH((*vm)[0])
+	}
 }
 
 // Reconcile gets/creates/updates a virtual machine.
@@ -180,17 +203,117 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		}
 	}
 
-	_, err = s.Client.CreateOrUpdate(
-		ctx,
-		s.Scope.GetResourceGroup(),
-		vmSpec.Name,
-		&virtualMachine)
-	if err != nil {
-		return errors.Wrapf(err, "cannot create vm")
-	}
+	switch vmSpec.HostType {
+	case infrav1.HostTypeBareMetal:
+		baremetalMachine, err := s.createOrUpdateBareMetal(
+			ctx,
+			&virtualMachine)
+		if err != nil {
+			return errors.Wrapf(err, "cannot create bare-metal machine")
+		}
 
+		// Pass up the name of the the bare-metal machine host.
+		vmSpec.CloudResourceName = *baremetalMachine.Name
+
+	default:
+		_, err = s.VMClient.CreateOrUpdate(
+			ctx,
+			s.Scope.GetResourceGroup(),
+			vmSpec.Name,
+			&virtualMachine)
+		if err != nil {
+			return errors.Wrapf(err, "cannot create vm")
+		}
+	}
 	klog.V(2).Infof("successfully created vm %s ", vmSpec.Name)
 	return err
+}
+
+func (s *Service) createOrUpdateBareMetal(ctx context.Context, virtualMachine *compute.VirtualMachine) (*compute.BareMetalMachine, error) {
+	bareMetalMachineCount := 0
+
+	for unusedFound := true; unusedFound; {
+		unusedFound = false
+
+		// Get the complete list of bare-metal machines.
+		bareMetalMachineList, err := s.BareMetalClient.Get(ctx, s.Scope.Location(), "")
+		if err != nil {
+			return nil, err
+		}
+
+		bareMetalMachineCount = len(*bareMetalMachineList)
+
+		// Go through list and try to find an unused machine.
+		for _, bareMetalMachine := range *bareMetalMachineList {
+			if isBareMetalMachineInUse(&bareMetalMachine) {
+				// Machine is already in use. Keep searching.
+				continue
+			}
+
+			unusedFound = true
+
+			// Apply the OS image to the bare-metal machine.
+			bareMetalMachine.BareMetalMachineProperties = &compute.BareMetalMachineProperties{
+				StorageProfile: &compute.BareMetalMachineStorageProfile{
+					ImageReference: &compute.BareMetalMachineImageReference{
+						ID:   virtualMachine.VirtualMachineProperties.StorageProfile.ImageReference.ID,
+						Name: virtualMachine.VirtualMachineProperties.StorageProfile.ImageReference.Name,
+					},
+					Disks: nil,
+				},
+				OsProfile: &compute.BareMetalMachineOSProfile{
+					ComputerName:       virtualMachine.VirtualMachineProperties.OsProfile.ComputerName,
+					AdminUsername:      virtualMachine.VirtualMachineProperties.OsProfile.AdminUsername,
+					AdminPassword:      virtualMachine.VirtualMachineProperties.OsProfile.AdminPassword,
+					CustomData:         virtualMachine.VirtualMachineProperties.OsProfile.CustomData,
+					LinuxConfiguration: virtualMachine.VirtualMachineProperties.OsProfile.LinuxConfiguration,
+				},
+				NetworkProfile: &compute.BareMetalMachineNetworkProfile{
+					NetworkInterfaces: vmNetworkInterfacesToBareMetal(virtualMachine.VirtualMachineProperties.NetworkProfile.NetworkInterfaces),
+				},
+				SecurityProfile:   virtualMachine.VirtualMachineProperties.SecurityProfile,
+				Host:              virtualMachine.VirtualMachineProperties.Host,
+				ProvisioningState: virtualMachine.VirtualMachineProperties.ProvisioningState,
+				Statuses:          virtualMachine.VirtualMachineProperties.Statuses,
+			}
+
+			// Try to apply the update.
+			_, err := s.BareMetalClient.CreateOrUpdate(ctx, s.Scope.Location(), *bareMetalMachine.Name, &bareMetalMachine)
+			if mocerrors.IsInvalidVersion(err) {
+				// Machine was updated by another entity. In all likelihood, the other entity claimed the machine.
+				// So, keep searching.
+				continue
+			} else if err != nil {
+				return nil, err
+			}
+
+			// Success!
+			return &bareMetalMachine, nil
+		}
+	}
+
+	return nil, errors.Wrapf(mocerrors.OutOfCapacity, "No free bare-metal nodes. Total nodes [%d]", bareMetalMachineCount)
+}
+
+func isBareMetalMachineInUse(bareMetalMachine *compute.BareMetalMachine) bool {
+	// Check if an OS image has been set.
+	return bareMetalMachine.BareMetalMachineProperties != nil &&
+		bareMetalMachine.BareMetalMachineProperties.OsProfile != nil &&
+		bareMetalMachine.BareMetalMachineProperties.OsProfile.CustomData != nil &&
+		*bareMetalMachine.BareMetalMachineProperties.OsProfile.CustomData != ""
+}
+
+func vmNetworkInterfacesToBareMetal(interfaces *[]compute.NetworkInterfaceReference) *[]compute.BareMetalMachineNetworkInterface {
+	if interfaces == nil {
+		return nil
+	}
+	result := []compute.BareMetalMachineNetworkInterface(nil)
+	for _, networkInterface := range *interfaces {
+		result = append(result, compute.BareMetalMachineNetworkInterface{
+			Name: networkInterface.ID,
+		})
+	}
+	return &result
 }
 
 // Delete deletes the virtual machine with the provided name.
@@ -199,8 +322,18 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	if !ok {
 		return errors.New("invalid vm Specification")
 	}
-	klog.V(2).Infof("deleting vm %s ", vmSpec.Name)
-	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
+
+	var err error
+	switch vmSpec.HostType {
+	case infrav1.HostTypeBareMetal:
+		klog.V(2).Infof("deleting bare-metal machine %s ", vmSpec.Name)
+		err = s.clearBareMetalMachine(ctx, vmSpec)
+
+	default:
+		klog.V(2).Infof("deleting vm %s ", vmSpec.Name)
+		err = s.VMClient.Delete(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
+	}
+
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted
 		return nil
@@ -211,6 +344,58 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 
 	klog.V(2).Infof("successfully deleted vm %s ", vmSpec.Name)
 	return err
+}
+
+func (s *Service) clearBareMetalMachine(ctx context.Context, vmSpec *Spec) error {
+	if vmSpec.CloudResourceName == "" {
+		// Machine has not been deployed onto a bare-metal host.
+		return nil
+	}
+
+	bareMetalMachineList, err := s.BareMetalClient.Get(ctx, s.Scope.Location(), vmSpec.CloudResourceName)
+	if err != nil {
+		return err
+	}
+
+	if bareMetalMachineList == nil || len(*bareMetalMachineList) < 1 {
+		// Bare metal host doesn't exist anymore. So, nothing to do.
+		klog.V(2).Infof("bare-metal host no longer exists %s (%s)", vmSpec.Name, vmSpec.CloudResourceName)
+		return nil
+	}
+
+	bareMetalMachine := (*bareMetalMachineList)[0]
+
+	// The number of updates to attempt before giving up.
+	// Note that there is also an update loop on the K8s controller as well that has an exponential time backoff.
+	// So, this doesn't need to be a large value.
+	const updateRetries = 3
+
+	// Try to apply the update.
+	for i := 0; i < updateRetries; i++ {
+		bareMetalMachine.BareMetalMachineProperties = &compute.BareMetalMachineProperties{
+			StorageProfile:    nil,
+			OsProfile:         nil,
+			NetworkProfile:    nil,
+			SecurityProfile:   nil,
+			Host:              nil,
+			ProvisioningState: nil,
+			Statuses:          nil,
+		}
+
+		_, err := s.BareMetalClient.CreateOrUpdate(ctx, s.Scope.Location(), *bareMetalMachine.Name, &bareMetalMachine)
+		if mocerrors.IsInvalidVersion(err) {
+			// Machine was updated by another entity. So, try again.
+			continue
+		}
+
+		if err != nil {
+			return err
+		}
+
+		break
+	}
+
+	return nil
 }
 
 // generateStorageProfile generates a pointer to a compute.StorageProfile which can utilized for VM creation.
