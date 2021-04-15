@@ -192,7 +192,9 @@ func (s *ClusterScope) APIServerPort() int32 {
 }
 
 func (s *ClusterScope) AzureStackHCILoadBalancer() *infrav1.AzureStackHCILoadBalancerSpec {
-	return s.AzureStackHCICluster.Spec.AzureStackHCILoadBalancer
+	// Disable the load balancer for baremetal machine scenarios
+	// return s.AzureStackHCICluster.Spec.AzureStackHCILoadBalancer
+	return nil
 }
 
 // GetNamespaceOrDefault returns the default namespace if given empty
