@@ -10,3 +10,4 @@ bases:
 
 patchesStrategicMerge:
   - manager_credentials_patch.yaml
+  - manager_volume_patch.yaml
