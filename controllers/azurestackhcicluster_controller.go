@@ -146,14 +146,6 @@ func (r *AzureStackHCIClusterReconciler) reconcileNormal(clusterScope *scope.Clu
 		return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 20}, nil
 	}
 
-	if clusterScope.AzureStackHCICluster.Name != "clustergroup-management" {
-		// Set APIEndpoints so the Cluster API Cluster Controller can pull them
-		clusterScope.AzureStackHCICluster.Spec.ControlPlaneEndpoint = clusterv1.APIEndpoint{
-			Host: "10.137.185.128", // TODO update
-			Port: clusterScope.APIServerPort(),
-		}
-	}
-
 	// No errors, so mark us ready so the Cluster API Cluster Controller can pull it
 	azureStackHCICluster.Status.Ready = true
 	conditions.MarkTrue(azureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition)
@@ -229,6 +221,7 @@ func (r *AzureStackHCIClusterReconciler) reconcileDelete(clusterScope *scope.Clu
 }
 
 func (r *AzureStackHCIClusterReconciler) reconcileAzureStackHCILoadBalancer(clusterScope *scope.ClusterScope) (bool, error) {
+	// TODO: set ControlPlaneEndpoint in case there's no load balancer assigned
 	if clusterScope.AzureStackHCILoadBalancer() == nil {
 		clusterScope.Info("Skipping load balancer reconciliation since AzureStackHCICluster.Spec.AzureStackHCILoadBalancer is nil")
 		return true, nil

@@ -74,12 +74,6 @@ type AzureStackHCIVirtualMachineStatus struct {
 	// Conditions defines current service state of the AzureStackHCIVirtualMachine.
 	// +optional
 	Conditions clusterv1.Conditions `json:"conditions,omitempty"`
-
-	// CloudResourceName is the name resource used by the machine.
-	// For VMs, this will be the same as Name. For bare-metal machines, it will be the name
-	// of the host.
-	// +optional
-	CloudResourceName string `json:"cloudResourceName,omitempty"`
 }
 
 // +kubebuilder:object:root=true
