@@ -1,0 +1,10 @@
+bases:
+  - ../../config
+
+patchesJson6902:
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: controller-manager
+    path: manager_image_patch.yaml
