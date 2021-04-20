@@ -247,3 +247,15 @@ const (
 	// AzureStackHCIClusterPhaseUnknown is returned if the Cluster state cannot be determined.
 	AzureStackHCIClusterPhaseUnknown = AzureStackHCIClusterPhase("")
 )
+
+// HostType specifies what type of machine a node should be deployed on.
+type HostType string
+
+const (
+	// HostTypeVM specifies that the node should be deployed on a virtual machine.
+	// Default value.
+	HostTypeVM = HostType("vm")
+
+	// HostTypeBareMetal specifies that the node should be deployed on a bare metal machine.
+	HostTypeBareMetal = HostType("baremetal")
+)

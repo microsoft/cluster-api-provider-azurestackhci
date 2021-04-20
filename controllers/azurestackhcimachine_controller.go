@@ -297,6 +297,7 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineNormal(machineSc
 		}
 		image.DeepCopyInto(&vm.Spec.Image)
 
+		vm.Spec.HostType = machineScope.AzureStackHCIMachine.Spec.HostType
 		vm.Spec.VMSize = machineScope.AzureStackHCIMachine.Spec.VMSize
 		machineScope.AzureStackHCIMachine.Spec.AvailabilityZone.DeepCopyInto(&vm.Spec.AvailabilityZone)
 		machineScope.AzureStackHCIMachine.Spec.OSDisk.DeepCopyInto(&vm.Spec.OSDisk)

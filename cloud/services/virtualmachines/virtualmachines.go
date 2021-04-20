@@ -59,24 +59,43 @@ type Spec struct {
 	OSDisk     infrav1.OSDisk
 	CustomData string
 	VMType     compute.VMType
+	HostType   infrav1.HostType
 }
 
 // Get provides information about a virtual machine.
 func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error) {
+	var err error
 	vmSpec, ok := spec.(*Spec)
 	if !ok {
-		return compute.VirtualMachine{}, errors.New("invalid vm specification")
+		return nil, errors.New("invalid vm specification")
 	}
 
-	vm, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
-	if err != nil {
-		return nil, err
-	}
-	if vm == nil || len(*vm) == 0 {
-		return nil, errors.Wrapf(err, "vm %s not found", vmSpec.Name)
-	}
+	switch vmSpec.HostType {
+	case infrav1.HostTypeBareMetal:
+		var baremetalmachine *[]compute.BareMetalMachine
 
-	return converters.SDKToVM((*vm)[0])
+		baremetalmachine, err = s.BareMetalClient.Get(ctx, s.Scope.Location(), vmSpec.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		if baremetalmachine == nil || len(*baremetalmachine) == 0 {
+			return nil, errors.Errorf("bare-metal machine %s not found", vmSpec.Name)
+		}
+
+		return converters.BareMetalMachineConvertToCAPH((*baremetalmachine)[0])
+
+	default:
+		vm, err := s.VMClient.Get(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
+		if err != nil {
+			return nil, err
+		}
+		if vm == nil || len(*vm) == 0 {
+			return nil, errors.Errorf("vm %s not found", vmSpec.Name)
+		}
+
+		return converters.VMConvertToCAPH((*vm)[0])
+	}
 }
 
 // Reconcile gets/creates/updates a virtual machine.
@@ -180,17 +199,63 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		}
 	}
 
-	_, err = s.Client.CreateOrUpdate(
-		ctx,
-		s.Scope.GetResourceGroup(),
-		vmSpec.Name,
-		&virtualMachine)
-	if err != nil {
-		return errors.Wrapf(err, "cannot create vm")
-	}
+	switch vmSpec.HostType {
+	case infrav1.HostTypeBareMetal:
+		_, err := s.createOrUpdateBareMetal(
+			ctx,
+			&virtualMachine)
+		if err != nil {
+			return errors.Wrapf(err, "cannot create bare-metal machine")
+		}
 
+	default:
+		_, err = s.VMClient.CreateOrUpdate(
+			ctx,
+			s.Scope.GetResourceGroup(),
+			vmSpec.Name,
+			&virtualMachine)
+		if err != nil {
+			return errors.Wrapf(err, "cannot create vm")
+		}
+	}
 	klog.V(2).Infof("successfully created vm %s ", vmSpec.Name)
 	return err
+}
+
+func (s *Service) createOrUpdateBareMetal(ctx context.Context, virtualMachine *compute.VirtualMachine) (*compute.BareMetalMachine, error) {
+	// Create a new baremetal machine
+	bareMetalMachine := &compute.BareMetalMachine{
+		Name: virtualMachine.Name,
+	}
+
+	bareMetalMachine.BareMetalMachineProperties = &compute.BareMetalMachineProperties{
+		StorageProfile: &compute.BareMetalMachineStorageProfile{
+			ImageReference: &compute.BareMetalMachineImageReference{
+				ID:   virtualMachine.VirtualMachineProperties.StorageProfile.ImageReference.ID,
+				Name: virtualMachine.VirtualMachineProperties.StorageProfile.ImageReference.Name,
+			},
+		},
+		OsProfile: &compute.BareMetalMachineOSProfile{
+			ComputerName:       virtualMachine.VirtualMachineProperties.OsProfile.ComputerName,
+			AdminUsername:      virtualMachine.VirtualMachineProperties.OsProfile.AdminUsername,
+			AdminPassword:      virtualMachine.VirtualMachineProperties.OsProfile.AdminPassword,
+			CustomData:         virtualMachine.VirtualMachineProperties.OsProfile.CustomData,
+			LinuxConfiguration: virtualMachine.VirtualMachineProperties.OsProfile.LinuxConfiguration,
+		},
+		SecurityProfile:   virtualMachine.VirtualMachineProperties.SecurityProfile,
+		ProvisioningState: virtualMachine.VirtualMachineProperties.ProvisioningState,
+		Statuses:          virtualMachine.VirtualMachineProperties.Statuses,
+	}
+
+	// Try to apply the update.
+	_, err := s.BareMetalClient.CreateOrUpdate(ctx, s.Scope.GetResourceGroup(), *bareMetalMachine.Name, bareMetalMachine)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to create baremetal machine.")
+	}
+
+	klog.V(2).Infof("Successfully created baremetal machine %s ", bareMetalMachine.Name)
+	return bareMetalMachine, nil
 }
 
 // Delete deletes the virtual machine with the provided name.
@@ -199,17 +264,26 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	if !ok {
 		return errors.New("invalid vm Specification")
 	}
-	klog.V(2).Infof("deleting vm %s ", vmSpec.Name)
-	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
+
+	var err error
+	switch vmSpec.HostType {
+	case infrav1.HostTypeBareMetal:
+		klog.V(2).Infof("deleting bare-metal machine %s ", vmSpec.Name)
+		err = s.BareMetalClient.Delete(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
+	default:
+		klog.V(2).Infof("deleting vm %s ", vmSpec.Name)
+		err = s.VMClient.Delete(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
+	}
+
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted
 		return nil
 	}
 	if err != nil {
-		return errors.Wrapf(err, "failed to delete vm %s in resource group %s", vmSpec.Name, s.Scope.GetResourceGroup())
+		return errors.Wrapf(err, "failed to delete %s %s in resource group %s", vmSpec.HostType, vmSpec.Name, s.Scope.GetResourceGroup())
 	}
 
-	klog.V(2).Infof("successfully deleted vm %s ", vmSpec.Name)
+	klog.V(2).Infof("successfully deleted %s %s ", vmSpec.HostType, vmSpec.Name)
 	return err
 }
 
