@@ -269,8 +269,7 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	switch vmSpec.HostType {
 	case infrav1.HostTypeBareMetal:
 		klog.V(2).Infof("deleting bare-metal machine %s ", vmSpec.Name)
-		err = s.clearBareMetalMachine(ctx, vmSpec)
-
+		err = s.BareMetalClient.Delete(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
 	default:
 		klog.V(2).Infof("deleting vm %s ", vmSpec.Name)
 		err = s.VMClient.Delete(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
@@ -281,20 +280,11 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 		return nil
 	}
 	if err != nil {
-		return errors.Wrapf(err, "failed to delete vm %s in resource group %s", vmSpec.Name, s.Scope.GetResourceGroup())
+		return errors.Wrapf(err, "failed to delete %s %s in resource group %s", vmSpec.HostType, vmSpec.Name, s.Scope.GetResourceGroup())
 	}
 
-	klog.V(2).Infof("successfully deleted vm %s ", vmSpec.Name)
+	klog.V(2).Infof("successfully deleted %s %s ", vmSpec.HostType, vmSpec.Name)
 	return err
-}
-
-func (s *Service) clearBareMetalMachine(ctx context.Context, vmSpec *Spec) error {
-	err := s.BareMetalClient.Delete(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
-	if err != nil {
-		return errors.Wrapf(err, "Failed to delete baremetal machine")
-	}
-
-	return nil
 }
 
 // generateStorageProfile generates a pointer to a compute.StorageProfile which can utilized for VM creation.
