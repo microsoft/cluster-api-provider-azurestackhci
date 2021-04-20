@@ -56,3 +56,6 @@ test/e2e/logs/*
 
 # generated template yamls
 templates/cluster-template*.yaml
+
+# Hack files
+/hack/config/manager_image_patch.yaml
