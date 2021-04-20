@@ -354,13 +354,27 @@ create-cluster:
 .PHONY: deployment
 deployment: dev-release create-cluster  ## Build and deploy caph in a kind management cluster.
 
-# Build CAPH K8s definitions for dev purposes.
-# Useful when a custom $REGISTRY URL has been set. (For example, when using a local docker container registry.)
-.PHONY: dev-manifests
-dev-manifests: $(RELEASE_DIR)
-	cp ./dev/manager_image_patch_template.yaml ./dev/manager_image_patch.yaml
-	sed -i'' -e 's@value: .*@value: '"${CONTROLLER_IMG}:$(TAG)"'@' ./dev/manager_image_patch.yaml
-	kustomize build dev > $(RELEASE_DIR)/infrastructure-components.yaml
+## --------------------------------------
+## Development: Local/private registry
+## --------------------------------------
+
+# Create patch files to override container image registry.
+.PHONY: local-dev-set-manifest-image
+local-dev-set-manifest-image:
+	cp ./hack/config/manager_image_patch_template.yaml ./hack/config/manager_image_patch.yaml
+	sed -i'' -e 's@value:.*@value: '"${CONTROLLER_IMG}:$(TAG)"'@' ./hack/config/manager_image_patch.yaml
+
+# Build config.
+.PHONY: local-dev-release-manifests
+local-dev-release-manifests: $(RELEASE_DIR)
+	kustomize build ./hack/config > $(RELEASE_DIR)/infrastructure-components.yaml
+
+.PHONY: local-dev-release
+local-dev-release:
+	$(MAKE) docker-build-img
+	$(MAKE) docker-push
+	$(MAKE) local-dev-set-manifest-image
+	$(MAKE) local-dev-release-manifests
 
 ## --------------------------------------
 ## Kind
