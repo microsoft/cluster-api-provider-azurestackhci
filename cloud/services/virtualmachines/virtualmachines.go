@@ -74,7 +74,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 	case infrav1.HostTypeBareMetal:
 		var baremetalmachine *[]compute.BareMetalMachine
 
-		baremetalmachine, err = s.BareMetalClient.Get(ctx, s.Scope.Location(), vmSpec.Name)
+		baremetalmachine, err = s.BareMetalClient.Get(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
 		if err != nil {
 			return nil, err
 		}
