@@ -320,6 +320,8 @@ github.com/microsoft/moc v0.10.8-alpha.12 h1:OXy3Yy7mZZ41Sbm3smU9FIbkv1E8IMUNPD+
 github.com/microsoft/moc v0.10.8-alpha.12/go.mod h1:bY29w3GntaOpAFMT7eOQb6S/X0yOMCBOkaMhwvIPoOM=
 github.com/microsoft/moc v0.10.8-alpha.16 h1:uRL8OcekJ6MUjJyOIwhskJ1H2T3WuZw1y94iEJakwxk=
 github.com/microsoft/moc v0.10.8-alpha.16/go.mod h1:bY29w3GntaOpAFMT7eOQb6S/X0yOMCBOkaMhwvIPoOM=
+github.com/microsoft/moc v0.10.9-alpha.2 h1:12oqXm3as+kSsgGz5sNckCgjApkdfVf0+I1TyrubBvE=
+github.com/microsoft/moc v0.10.9-alpha.2/go.mod h1:bY29w3GntaOpAFMT7eOQb6S/X0yOMCBOkaMhwvIPoOM=
 github.com/microsoft/moc-pkg v0.10.7 h1:fCGP6uEfyQvb0hUM/JIeyqnXv6MxiXGQJ6zBIjHWlEY=
 github.com/microsoft/moc-pkg v0.10.7/go.mod h1:4wKBUXseNOqt5xyjmy0oB3WowiNSZFFfC+IEuguv9D8=
 github.com/microsoft/moc-sdk-for-go v0.10.1-alpha.1 h1:rU0ec4KfkZ2Gmw1U4Zg7gOraeEqm9a40SFWTjVs5/es=
@@ -334,6 +336,8 @@ github.com/microsoft/moc-sdk-for-go v0.10.8-alpha.9 h1:g8k26f6ZVma5TryP4JP83yMB/
 github.com/microsoft/moc-sdk-for-go v0.10.8-alpha.9/go.mod h1:Lr1RpsAfRxPI19oYHtDMSpuT8krzPlpCzc4olfqpJbw=
 github.com/microsoft/moc-sdk-for-go v0.10.8-alpha.12 h1:Og0uTuufoAzwKOFt5w0vl5DAWfRCQuUlSJ1KLlVjtnQ=
 github.com/microsoft/moc-sdk-for-go v0.10.8-alpha.12/go.mod h1:Y6G0lF+rUkg9QwuBSdT/wzXbPdBsMhqIvdIr5SpjW8Q=
+github.com/microsoft/moc-sdk-for-go v0.10.9-alpha.2 h1:oM8WkKkynG4Ph8DWIL0W+KoquEwAULNxFSp7VnuVOS8=
+github.com/microsoft/moc-sdk-for-go v0.10.9-alpha.2/go.mod h1:12vg407VIJWYqocrN0xsU73gL/LFwhhLeijCkHfSNnc=
 github.com/microsoft/wmi v0.3.1-alpha.4/go.mod h1:dCXZgJVjwILNv4HD6VOM356/Yh5MTi393MUbYpUhrHA=
 github.com/miekg/dns v1.1.3/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3Nrg=
 github.com/mitchellh/go-homedir v1.1.0/go.mod h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrkLzIz1N1q0pr0=

@@ -80,8 +80,8 @@ func ReconcileAzureStackHCIAccess(ctx context.Context, cli client.Client, cloudF
 				return nil, err
 			}
 		}
+		go UpdateLoginConfig(ctx, cli)
 	}
-	go UpdateLoginConfig(ctx, cli)
 	authorizer, err := auth.NewAuthorizerFromEnvironment(cloudFqdn)
 	if err != nil {
 		return nil, errors.Wrap(err, "error: new authorizer failed")
