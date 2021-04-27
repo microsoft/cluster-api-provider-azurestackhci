@@ -21,13 +21,12 @@ import (
 	"context"
 	"time"
 
-	"fmt"
-
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/go-logr/logr"
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
+	"github.com/microsoft/moc/pkg/providerid"
 
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
@@ -217,7 +216,7 @@ func (r *AzureStackHCIMachineReconciler) reconcileNormal(machineScope *scope.Mac
 	}
 
 	// Make sure Spec.ProviderID is always set.
-	machineScope.SetProviderID(fmt.Sprintf("moc://%s", vm.Name))
+	machineScope.SetProviderID(providerid.FormatProviderID(providerid.HostType(vm.Spec.HostType), vm.Name))
 
 	// TODO(vincepri): Remove this annotation when clusterctl is no longer relevant.
 	machineScope.SetAnnotation("cluster-api-provider-azurestackhci", "true")
