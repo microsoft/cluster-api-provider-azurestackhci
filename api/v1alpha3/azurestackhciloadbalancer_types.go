@@ -19,6 +19,7 @@ package v1alpha3
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
 	"sigs.k8s.io/cluster-api/errors"
 )
 
@@ -35,15 +36,29 @@ type AzureStackHCILoadBalancerSpec struct {
 	HostType HostType `json:"hostType,omitempty"`
 
 	VMSize string `json:"vmSize"`
+
+	// Number of desired loadbalancer machines. Defaults to 1.
+	// This is a pointer to distinguish between explicit zero and not specified.
+	// +optional
+	// +kubebuilder:default=1
+	Replicas *int32 `json:"replicas,omitempty"`
 }
 
 type AzureStackHCILoadBalancerStatus struct {
 	// +optional
 	Ready bool `json:"ready,omitempty"`
 
-	// VMState is the provisioning state of the AzureStackHCI virtual machine.
+	// Total number of non-terminated replicas for this loadbalancer
 	// +optional
-	VMState *VMState `json:"vmState,omitempty"`
+	Replicas int32 `json:"replicas,omitempty"`
+
+	// Total number of ready (service connected) replicas for this loadbalancer
+	// +optional
+	ReadyReplicas int32 `json:"readyReplicas,omitempty"`
+
+	// Total number of failed replicas for this loadbalancer.
+	// +optional
+	FailedReplicas int32 `json:"failedReplicas,omitempty"`
 
 	// Address is the IP address of the load balancer.
 	// +optional
@@ -51,6 +66,15 @@ type AzureStackHCILoadBalancerStatus struct {
 
 	// Port is the port of the azureStackHCIloadbalancers frontend.
 	Port int32 `json:"port,omitempty"`
+
+	// Phase represents the current phase of loadbalancer actuation.
+	// E.g. Pending, Running, Terminating, Failed etc.
+	// +optional
+	Phase string `json:"phase,omitempty"`
+
+	// Conditions defines current service state of the AzureStackHCILoadBalancer.
+	// +optional
+	Conditions clusterv1.Conditions `json:"conditions,omitempty"`
 
 	// ErrorReason will be set in the event that there is a terminal problem
 	// reconciling the Machine and will contain a succinct value suitable
@@ -89,11 +113,50 @@ type AzureStackHCILoadBalancerStatus struct {
 	// controller's output.
 	// +optional
 	ErrorMessage *string `json:"errorMessage,omitempty"`
+
+	// Selector is the label selector in string format to avoid introspection
+	// by clients, and is used to provide the CRD-based integration for the
+	// scale subresource and additional integrations for things like kubectl
+	// describe.. The string will be in the same format as the query-param syntax.
+	// More info about label selectors: http://kubernetes.io/docs/user-guide/labels#label-selectors
+	// +optional
+	Selector string `json:"selector,omitempty"`
+}
+
+// SetTypedPhase sets the Phase field to the string representation of AzureStackHCILoadBalancerPhase
+func (c *AzureStackHCILoadBalancerStatus) SetTypedPhase(p AzureStackHCILoadBalancerPhase) {
+	c.Phase = string(p)
+}
+
+// GetTypedPhase attempts to parse the Phase field and return
+// the typed AzureStackHCILoadBalancerPhase representation as described in `types.go`.
+func (c *AzureStackHCILoadBalancerStatus) GetTypedPhase() AzureStackHCILoadBalancerPhase {
+	switch phase := AzureStackHCILoadBalancerPhase(c.Phase); phase {
+	case
+		AzureStackHCILoadBalancerPhasePending,
+		AzureStackHCILoadBalancerPhaseProvisioning,
+		AzureStackHCILoadBalancerPhaseProvisioned,
+		AzureStackHCILoadBalancerPhaseScaling,
+		AzureStackHCILoadBalancerPhaseUpgrading,
+		AzureStackHCILoadBalancerPhaseDeleting,
+		AzureStackHCILoadBalancerPhaseFailed:
+		return phase
+	default:
+		return AzureStackHCILoadBalancerPhaseUnknown
+	}
 }
 
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:path=azurestackhciloadbalancers,scope=Namespaced,categories=cluster-api
 // +kubebuilder:subresource:status
+// +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas,selectorpath=.status.selector
+// +kubebuilder:printcolumn:name="Phase",type="string",JSONPath=".status.phase",description="The current phase/status of the loadbalancer"
+// +kubebuilder:printcolumn:name="IP",type="string",JSONPath=".status.address",description="The frontend VIP address assigned to the loadbalancer"
+// +kubebuilder:printcolumn:name="Port",type="integer",JSONPath=".status.port",description="The frontend port assigned to the loadbalancer"
+// +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".spec.replicas",description="Total number of desired machine replicas for this loadbalancer"
+// +kubebuilder:printcolumn:name="Created",type="integer",JSONPath=".status.replicas",description="Total number of machine replicas created to service this loadbalancer"
+// +kubebuilder:printcolumn:name="Ready",type="integer",JSONPath=".status.readyReplicas",description="Total number of machine replicas that are actively connected to the loadbalancer service"
+// +kubebuilder:printcolumn:name="Unavailable",type="integer",JSONPath=".status.failedReplicas",description="Total number of machine replicas that are in a failed or unavailable state"
 
 // AzureStackHCILoadBalancer is the Schema for the azurestackhciloadbalancers API
 type AzureStackHCILoadBalancer struct {
@@ -102,6 +165,16 @@ type AzureStackHCILoadBalancer struct {
 
 	Spec   AzureStackHCILoadBalancerSpec   `json:"spec,omitempty"`
 	Status AzureStackHCILoadBalancerStatus `json:"status,omitempty"`
+}
+
+// GetConditions returns the list of conditions for AzureStackHCILoadBalancer.
+func (c *AzureStackHCILoadBalancer) GetConditions() clusterv1.Conditions {
+	return c.Status.Conditions
+}
+
+// SetConditions sets the conditions for AzureStackHCILoadBalancer.
+func (c *AzureStackHCILoadBalancer) SetConditions(conditions clusterv1.Conditions) {
+	c.Status.Conditions = conditions
 }
 
 // +kubebuilder:object:root=true

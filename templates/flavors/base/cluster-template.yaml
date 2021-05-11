@@ -282,6 +282,7 @@ spec:
   azureStackHCILoadBalancer:
     image:
       osType: "Linux"
+      version: "${AZURESTACKHCI_LOAD_BALANCER_IMAGE_VERSION}"
     sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY:=""}
     vmSize: ${AZURESTACKHCI_LOAD_BALANCER_MACHINE_TYPE}
     hostType: ${AZURESTACKHCI_LOAD_BALANCER_HOST_TYPE:-""}
