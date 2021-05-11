@@ -7,8 +7,8 @@ require (
 	github.com/Azure/go-autorest/autorest/to v0.3.0
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/go-logr/logr v0.1.0
-	github.com/microsoft/moc v0.10.8-alpha.12.0.20210428012510-664c2c722996
-	github.com/microsoft/moc-sdk-for-go v0.10.8-alpha.8.0.20210428013020-9db0241a87fc
+	github.com/microsoft/moc v0.10.10-0.20210510205040-161b5e608074
+	github.com/microsoft/moc-sdk-for-go v0.10.10-0.20210511215707-cd535d83b9f4
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/pflag v1.0.5
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
