@@ -72,8 +72,6 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 // Reconcile gets/creates/updates a virtual machine.
 func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
-	fmt.Println("-- george -- caph -- virtualmachine.go -- Reconcile() - 1")
-
 	vmSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("invalid vm specification")
@@ -83,8 +81,6 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("-- george -- caph -- virtualmachine.go -- Reconcile() - 2")
 
 	klog.V(2).Infof("getting nic %s", vmSpec.NICName)
 	nicInterface, err := networkinterfaces.NewService(s.Scope).Get(ctx, &networkinterfaces.Spec{Name: vmSpec.NICName})
@@ -98,8 +94,6 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	klog.V(2).Infof("got nic %s", vmSpec.NICName)
 
 	klog.V(2).Infof("creating vm %s : %v", vmSpec.Name, vmSpec)
-
-	fmt.Println("-- george -- caph -- virtualmachine.go -- Reconcile() - 3")
 
 	sshKeyData := vmSpec.SSHKeyData
 	if sshKeyData == "" {
@@ -119,8 +113,6 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to generate random string")
 	}
-
-	fmt.Println("-- george -- caph -- virtualmachine.go -- Reconcile() - 4")
 
 	virtualMachine := compute.VirtualMachine{
 		Name: to.StringPtr(vmSpec.Name),
@@ -162,8 +154,6 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		},
 	}
 
-	fmt.Println("-- george -- caph -- virtualmachine.go -- Reconcile() - 5")
-
 	if vmSpec.Image.OSType == infrav1.OSTypeWindows {
 		virtualMachine.OsProfile.LinuxConfiguration = nil
 		pass := ""
@@ -183,19 +173,14 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		}
 	}
 
-	fmt.Println("-- george -- caph -- virtualmachine.go -- Reconcile() - 6")
-	
 	_, err = s.Client.CreateOrUpdate(
 		ctx,
 		s.Scope.GetResourceGroup(),
 		vmSpec.Name,
 		&virtualMachine)
 	if err != nil {
-		fmt.Println("-- george -- caph -- virtualmachine.go -- Reconcile() - 7 failed - CreateOrUpdate()")
 		return errors.Wrapf(err, "cannot create vm")
 	}
-
-	fmt.Println("-- george -- caph -- virtualmachine.go -- Reconcile() - 8")
 
 	klog.V(2).Infof("successfully created vm %s ", vmSpec.Name)
 	return err
