@@ -47,7 +47,9 @@ type Spec struct {
 	Name       string
 	NICName    string
 	SSHKeyData string
-	Size       string
+	VMSize     string
+	CpuCount   int32
+	MemoryMB   int32
 	Zone       string
 	Image      infrav1.Image
 	OSDisk     infrav1.OSDisk
@@ -150,7 +152,11 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			},
 			VmType: vmSpec.VMType,
 			HardwareProfile: &compute.HardwareProfile{
-				VMSize: compute.VirtualMachineSizeTypes(vmSpec.Size),
+				VMSize: compute.VirtualMachineSizeTypes(vmSpec.VMSize),
+				CustomSize: &compute.VirtualMachineCustomSize {
+					CpuCount: &vmSpec.CpuCount,
+					MemoryMB: &vmSpec.MemoryMB,
+				},
 			},
 		},
 	}
