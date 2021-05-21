@@ -300,6 +300,8 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineNormal(machineSc
 		image.DeepCopyInto(&vm.Spec.Image)
 
 		vm.Spec.VMSize = machineScope.AzureStackHCIMachine.Spec.VMSize
+		vm.Spec.CustomSize.CpuCount = machineScope.AzureStackHCIMachine.Spec.CustomSize.CpuCount
+		vm.Spec.CustomSize.MemoryMB = machineScope.AzureStackHCIMachine.Spec.CustomSize.MemoryMB
 		machineScope.AzureStackHCIMachine.Spec.AvailabilityZone.DeepCopyInto(&vm.Spec.AvailabilityZone)
 		machineScope.AzureStackHCIMachine.Spec.OSDisk.DeepCopyInto(&vm.Spec.OSDisk)
 		vm.Spec.Location = machineScope.AzureStackHCIMachine.Spec.Location
