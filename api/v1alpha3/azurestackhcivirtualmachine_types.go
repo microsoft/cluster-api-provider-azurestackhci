@@ -31,14 +31,15 @@ const (
 
 // AzureStackHCIVirtualMachineSpec defines the desired state of AzureStackHCIVirtualMachine
 type AzureStackHCIVirtualMachineSpec struct {
-	VMSize           string           `json:"vmSize"`
-	AvailabilityZone AvailabilityZone `json:"availabilityZone,omitempty"`
-	Image            Image            `json:"image"`
-	OSDisk           OSDisk           `json:"osDisk,omitempty"`
-	BootstrapData    *string          `json:"bootstrapData,omitempty"`
-	Identity         VMIdentity       `json:"identity,omitempty"`
-	Location         string           `json:"location"` // does location belong here?
-	SSHPublicKey     string           `json:"sshPublicKey"`
+	VMSize           string                   `json:"vmSize"`
+	CustomSize       VirtualMachineCustomSize `json:"customSize,omitempty"`
+	AvailabilityZone AvailabilityZone         `json:"availabilityZone,omitempty"`
+	Image            Image                    `json:"image"`
+	OSDisk           OSDisk                   `json:"osDisk,omitempty"`
+	BootstrapData    *string                  `json:"bootstrapData,omitempty"`
+	Identity         VMIdentity               `json:"identity,omitempty"`
+	Location         string                   `json:"location"` // does location belong here?
+	SSHPublicKey     string                   `json:"sshPublicKey"`
 
 	// come from the cluster scope for machine and lb controller creation path
 	ResourceGroup    string   `json:"resourceGroup"`
