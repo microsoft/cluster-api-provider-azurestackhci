@@ -119,6 +119,15 @@ spec:
                 type: string
               vmSize:
                 type: string
+              customSize:
+                properties:
+                  cpuCount:
+                    format: int32
+                    type: integer
+                  memoryMB:
+                    format: int32
+                    type: integer
+                type: object
             required:
             - location
             - sshPublicKey
