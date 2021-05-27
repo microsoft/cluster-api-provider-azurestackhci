@@ -34,6 +34,9 @@ spec:
   providerID: moc://${CLUSTER_NAME}-control-plane-0
   sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY:=""}
   vmSize: ${AZURESTACKHCI_CONTROL_PLANE_MACHINE_TYPE}
+  customSize:
+    cpuCount: ${AZURESTACKHCI_CONTROL_PLANE_MACHINE_TYPE_CPU_COUNT}
+    memoryMB: ${AZURESTACKHCI_CONTROL_PLANE_MACHINE_TYPE_MEMORY_MB}
 ---
 apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
 kind: KubeadmConfig

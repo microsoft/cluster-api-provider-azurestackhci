@@ -255,6 +255,15 @@ spec:
                   vmSize:
                     description: Hardware profile
                     type: string
+                  customSize:
+                    properties:
+                      cpuCount:
+                        format: int32
+                        type: integer
+                      memoryMB:
+                        format: int32
+                        type: integer
+                    type: object
                   vmState:
                     description: State - The provisioning state, which only appears
                       in the response.
