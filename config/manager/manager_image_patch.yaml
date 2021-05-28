@@ -7,5 +7,5 @@ spec:
   template:
     spec:
       containers:
-      - image: mocimages.azurecr.io/caphcontroller:0.3.9
+      - image: mocimages.azurecr.io/caphcontroller:0.3.4
         name: manager
