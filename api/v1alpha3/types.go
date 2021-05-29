@@ -119,6 +119,11 @@ var (
 	VMStateUpdating = VMState("Updating")
 )
 
+type VirtualMachineCustomSize struct {
+	CpuCount int32 `json:"cpuCount,omitempty"`
+	MemoryMB int32 `json:"memoryMB,omitempty"`
+}
+
 // VM describes an Azure virtual machine.
 type VM struct {
 	ID   string `json:"id,omitempty"`
@@ -128,6 +133,7 @@ type VM struct {
 
 	// Hardware profile
 	VMSize string `json:"vmSize,omitempty"`
+	CustomSize VirtualMachineCustomSize `json:"customSize,omitempty"`
 
 	// Storage profile
 	Image  Image  `json:"image,omitempty"`
