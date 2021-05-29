@@ -23,6 +23,9 @@ spec:
         osType: "Linux"
       location: "westus"
       vmSize: ${AZURESTACKHCI_CONTROL_PLANE_MACHINE_TYPE}
+      customSize:
+        cpuCount: ${AZURESTACKHCI_CONTROL_PLANE_MACHINE_TYPE_CPU_COUNT}
+        memoryMB: ${AZURESTACKHCI_CONTROL_PLANE_MACHINE_TYPE_MEMORY_MB}
       sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY:=""}
 ---
 apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3

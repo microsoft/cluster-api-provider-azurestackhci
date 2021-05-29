@@ -62,7 +62,7 @@ STAGING_REGISTRY := mocimages.azurecr.io
 PROD_REGISTRY := mocimages.azurecr.io
 IMAGE_NAME ?= caphcontroller
 CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME)
-TAG := $(MAJOR_VER).$(MINOR_VER).$(PATCH_VER)
+TAG := $(shell git describe --tags)
 ARCH := amd64
 ALL_ARCH = amd64 arm arm64 ppc64le s390x
 
