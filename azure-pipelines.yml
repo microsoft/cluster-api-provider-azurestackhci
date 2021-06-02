@@ -15,7 +15,7 @@ steps:
 - task: DownloadBuildArtifacts@0
   inputs:
     buildType: 'specific'
-    project: '44328e58-7072-485b-b1ea-5c455e47c5cb'
+    project: '6c1b3fd3-1ce0-4cf5-b1ba-b11dfbc70d09'
     pipeline: '143287'
     buildVersionToDownload: 'latestFromBranch'
     branchName: 'refs/heads/master'
