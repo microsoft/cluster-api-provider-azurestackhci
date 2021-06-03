@@ -20,7 +20,6 @@ steps:
     buildVersionToDownload: 'latestFromBranch'
     branchName: 'refs/heads/master'
     downloadType: 'specific'
-    itemPattern: '**/cloud-operator.yaml'
     downloadPath: '$(System.DefaultWorkingDirectory)/out/'
 - task: InstallSSHKey@0
   inputs:
