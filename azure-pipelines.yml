@@ -39,6 +39,7 @@ steps:
     version: '1.14'
 
 - script: |
+    ls out
     git config --global url.ssh://git@github.com/.insteadOf https://github.com/
     chmod +x hack/ensure-kustomize.sh
     chmod +x hack/gen-flavors.sh
@@ -56,7 +57,7 @@ steps:
     make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging PATCH_VER=$TagNum generate-flavors
     make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging PATCH_VER=$TagNum release-pipelines
 
-    ls out
+
     sudo snap install yq
 
     /snap/bin/yq ea '. as $item ireduce ({}; . * $item )' out/cloud-operator.yaml > query.yaml
