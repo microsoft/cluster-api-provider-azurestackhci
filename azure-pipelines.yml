@@ -67,6 +67,8 @@ steps:
     docker cp out/infrastructure-components.yaml override:/var/lib/msk8s/deployment/infrastructure-azurestackhci/v0.3.8/infrastructure-components.yaml
     docker commit override $imagename
     docker push $imagename
+
+    cp deployment/cloud-operator.yaml out/
   workingDirectory: '$(System.DefaultWorkingDirectory)'
   displayName: 'Build CAPH'
 
