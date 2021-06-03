@@ -20,7 +20,7 @@ steps:
     buildVersionToDownload: 'latestFromBranch'
     branchName: 'refs/heads/master'
     downloadType: 'specific'
-    downloadPath: '$(System.DefaultWorkingDirectory)/out/'
+    downloadPath: '$(System.DefaultWorkingDirectory)'
 - task: InstallSSHKey@0
   inputs:
     knownHostsEntry: '$(KNOWN_HOST)' 
@@ -39,7 +39,6 @@ steps:
     version: '1.14'
 
 - script: |
-    ls out
     git config --global url.ssh://git@github.com/.insteadOf https://github.com/
     chmod +x hack/ensure-kustomize.sh
     chmod +x hack/gen-flavors.sh
@@ -59,7 +58,7 @@ steps:
 
     sudo snap install yq
 
-    /snap/bin/yq ea '. as $item ireduce ({}; . * $item )' out/deployment/cloud-operator.yaml > query.yaml
+    /snap/bin/yq ea '. as $item ireduce ({}; . * $item )' deployment/cloud-operator.yaml > query.yaml
     /snap/bin/yq eval '.spec.template.spec.containers[0].image' query.yaml
     imagename=$(/snap/bin/yq eval '.spec.template.spec.containers[0].image' query.yaml)
 
