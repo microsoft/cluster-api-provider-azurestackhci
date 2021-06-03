@@ -1,3 +1,0 @@
-# AksIoT
-
-[place holder]
