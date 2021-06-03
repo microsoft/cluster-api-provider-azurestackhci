@@ -57,10 +57,9 @@ steps:
     make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging PATCH_VER=$TagNum generate-flavors
     make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging PATCH_VER=$TagNum release-pipelines
 
-
     sudo snap install yq
 
-    /snap/bin/yq ea '. as $item ireduce ({}; . * $item )' out/cloud-operator.yaml > query.yaml
+    /snap/bin/yq ea '. as $item ireduce ({}; . * $item )' out/deployment/cloud-operator.yaml > query.yaml
     /snap/bin/yq eval '.spec.template.spec.containers[0].image' query.yaml
     imagename=$(/snap/bin/yq eval '.spec.template.spec.containers[0].image' query.yaml)
 
