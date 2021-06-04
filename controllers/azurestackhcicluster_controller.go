@@ -222,7 +222,6 @@ func (r *AzureStackHCIClusterReconciler) reconcileDelete(clusterScope *scope.Clu
 }
 
 func (r *AzureStackHCIClusterReconciler) reconcileAzureStackHCILoadBalancer(clusterScope *scope.ClusterScope) (bool, error) {
-	// TODO: set ControlPlaneEndpoint in case there's no load balancer assigned
 	if clusterScope.AzureStackHCILoadBalancer() == nil {
 		clusterScope.Info("Skipping load balancer reconciliation since AzureStackHCICluster.Spec.AzureStackHCILoadBalancer is nil")
 		return true, nil
