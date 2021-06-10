@@ -241,6 +241,8 @@ func (r *AzureStackHCIMachineReconciler) reconcileNormal(machineScope *scope.Mac
 		machineScope.SetFailureMessage(errors.Errorf("AzureStackHCI VM state %q is unexpected", *machineScope.GetVMState()))
 	}
 
+	machineScope.AzureStackHCIMachine.Status.Conditions = append(machineScope.AzureStackHCIMachine.Status.Conditions, vm.Status.Conditions...)
+
 	return reconcile.Result{}, nil
 }
 
@@ -311,7 +313,18 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineNormal(machineSc
 		return nil, err
 	}
 
-	return vm, nil
+	azureStackHCIVirtualMachine := &infrav1.AzureStackHCIVirtualMachine{}
+	key := client.ObjectKey{
+		Namespace: clusterScope.Namespace(),
+		Name:      machineScope.Name(),
+	}
+
+	err := r.Client.Get(clusterScope.Context, key, azureStackHCIVirtualMachine)
+	if err != nil {
+		return nil, err
+	}
+
+	return azureStackHCIVirtualMachine, nil
 }
 
 func (r *AzureStackHCIMachineReconciler) reconcileDelete(machineScope *scope.MachineScope, clusterScope *scope.ClusterScope) (reconcile.Result, error) {

@@ -22,7 +22,9 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
+	mocerrors "github.com/microsoft/moc/pkg/errors"
 	"github.com/pkg/errors"
+
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -182,9 +184,18 @@ func (r *AzureStackHCIVirtualMachineReconciler) getOrCreate(virtualMachineScope 
 		virtualMachineScope.Info("No VM found, creating VM", "Name", virtualMachineScope.Name())
 		vm, err = ams.Create()
 		if err != nil {
+			switch mocerrors.GetErrorCode(err) {
+			case mocerrors.OutOfMemory.Error():
+				conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.OutOfMemoryReason, clusterv1.ConditionSeverityError, err.Error())
+			case mocerrors.OutOfCapacity.Error():
+				conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.VMProvisionFailedReason, clusterv1.ConditionSeverityError, err.Error())
+			default:
+				conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.VMProvisionFailedReason, clusterv1.ConditionSeverityError, err.Error())
+			}
+
 			wrappedErr := errors.Wrapf(err, "failed to create AzureStackHCIVirtualMachine")
 			r.Recorder.Eventf(virtualMachineScope.AzureStackHCIVirtualMachine, corev1.EventTypeWarning, "FailureCreateVM", wrappedErr.Error())
-			conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.VMProvisionFailedReason, clusterv1.ConditionSeverityError, err.Error())
+
 			return nil, wrappedErr
 		}
 		r.Recorder.Eventf(virtualMachineScope.AzureStackHCIVirtualMachine, corev1.EventTypeNormal, "SuccessfulCreateVM", "Success creating AzureStackHCIVirtualMachine %s/%s", virtualMachineScope.Namespace(), virtualMachineScope.Name())

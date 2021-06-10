@@ -12,6 +12,15 @@ pool:
 
 steps:
 - checkout: self
+- task: DownloadBuildArtifacts@0
+  inputs:
+    buildType: 'specific'
+    project: '6c1b3fd3-1ce0-4cf5-b1ba-b11dfbc70d09'
+    pipeline: '143287'
+    buildVersionToDownload: 'latestFromBranch'
+    branchName: 'refs/heads/master'
+    downloadType: 'specific'
+    downloadPath: '$(System.DefaultWorkingDirectory)'
 - task: InstallSSHKey@0
   inputs:
     knownHostsEntry: '$(KNOWN_HOST)' 
@@ -46,6 +55,20 @@ steps:
     make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging PATCH_VER=$TagNum release
     make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging PATCH_VER=$TagNum generate-flavors
     make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging PATCH_VER=$TagNum release-pipelines
+
+    sudo snap install yq
+
+    /snap/bin/yq ea '. as $item ireduce ({}; . * $item )' deployment/cloud-operator.yaml > query.yaml
+    /snap/bin/yq eval '.spec.template.spec.containers[0].image' query.yaml
+    imagename=$(/snap/bin/yq eval '.spec.template.spec.containers[0].image' query.yaml)
+
+    docker pull $imagename
+    docker run -dit --name override $imagename
+    docker cp out/infrastructure-components.yaml override:/var/lib/msk8s/deployment/infrastructure-azurestackhci/v0.3.8/infrastructure-components.yaml
+    docker commit override $imagename
+    docker push $imagename
+
+    cp deployment/cloud-operator.yaml out/
   workingDirectory: '$(System.DefaultWorkingDirectory)'
   displayName: 'Build CAPH'
 

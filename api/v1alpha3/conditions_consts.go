@@ -30,6 +30,10 @@ const (
 	VMProvisionFailedReason = "VMProvisionFailed"
 	// VMNotFoundReason used when the vm couldn't be retrieved.
 	VMNotFoundReason = "VMNotFound"
+	// OutOfMemoryReason used when the AzureStackHCI resource is out of memory.
+	OutOfMemoryReason = "OutOfMemory"
+	// OutOfCapacityReason used when the AzureStackHCI resource is out of capacity.
+	OutOfCapacityReason = "OutOfCapacity"
 )
 
 // Conditions and condition Reasons for the AzureStackHCICluster object
