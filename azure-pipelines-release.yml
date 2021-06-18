@@ -21,7 +21,7 @@ steps:
     command: 'login'
 - task: GoTool@0
   inputs:
-    version: '1.14'
+    version: '1.15.x'
 
 - script: |
     git config --global url.ssh://git@github.com/.insteadOf https://github.com/
