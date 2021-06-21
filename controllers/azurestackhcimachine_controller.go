@@ -222,6 +222,8 @@ func (r *AzureStackHCIMachineReconciler) reconcileNormal(machineScope *scope.Mac
 	// TODO(vincepri): Remove this annotation when clusterctl is no longer relevant.
 	machineScope.SetAnnotation("cluster-api-provider-azurestackhci", "true")
 
+	machineScope.AzureStackHCIMachine.Status.Conditions = append(machineScope.AzureStackHCIMachine.Status.Conditions, vm.Status.Conditions...)
+
 	if vm.Status.VMState == nil {
 		machineScope.Info("Waiting for VM controller to set vm state")
 		return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
@@ -240,8 +242,6 @@ func (r *AzureStackHCIMachineReconciler) reconcileNormal(machineScope *scope.Mac
 		machineScope.SetFailureReason(capierrors.UpdateMachineError)
 		machineScope.SetFailureMessage(errors.Errorf("AzureStackHCI VM state %q is unexpected", *machineScope.GetVMState()))
 	}
-
-	machineScope.AzureStackHCIMachine.Status.Conditions = append(machineScope.AzureStackHCIMachine.Status.Conditions, vm.Status.Conditions...)
 
 	return reconcile.Result{}, nil
 }

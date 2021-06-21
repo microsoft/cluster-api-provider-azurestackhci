@@ -209,7 +209,7 @@ func (m *MachineScope) PatchObject() error {
 
 // Close the MachineScope by updating the machine spec, machine status.
 func (m *MachineScope) Close() error {
-	return m.patchHelper.Patch(context.TODO(), m.AzureStackHCIMachine)
+	return m.PatchObject()
 }
 
 // GetBootstrapData returns the bootstrap data from the secret in the Machine's bootstrap.dataSecretName.
