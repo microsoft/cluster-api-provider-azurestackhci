@@ -34,6 +34,11 @@ steps:
   inputs:
     command: login
     containerRegistry: mocimages-connection
+- task: Docker@2
+  displayName: Login to ACR
+  inputs:
+    command: login
+    containerRegistry: AKS-IOT-Preview-ACR
 - task: GoTool@0
   inputs:
     version: '1.15.x'
@@ -49,12 +54,24 @@ steps:
     GOPATH_BIN="$(go env GOPATH)/bin/"
     PATH=$GOPATH_BIN:$PATH
 
-    RANDOM=$$
-    TagNum=$(( $RANDOM % 1000 ))
-    make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging PATCH_VER=$TagNum docker-build docker-push
-    make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging PATCH_VER=$TagNum release
-    make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging PATCH_VER=$TagNum generate-flavors
-    make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging PATCH_VER=$TagNum release-pipelines
+    export AKSIOT_BUILD=$(AKSIOT_BUILD)
+
+    if [ -z "$AKSIOT_BUILD" ]
+    then
+      echo "Building for AksHci..."
+      RANDOM=$$
+      TagNum=$(( $RANDOM % 1000 ))
+      make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging PATCH_VER=$TagNum docker-build docker-push
+      make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging PATCH_VER=$TagNum release
+      make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging PATCH_VER=$TagNum generate-flavors
+      make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller-staging PATCH_VER=$TagNum release-pipelines
+    else
+      echo "Building for AksIot..."
+      make REGISTRY=aksiotpreviewacr.azurecr.io STAGING_REGISTRY=aksiotpreviewacr.azurecr.io PROD_REGISTRY=aksiotpreviewacr.azurecr.io docker-build docker-push
+      make REGISTRY=aksiotpreviewacr.azurecr.io STAGING_REGISTRY=aksiotpreviewacr.azurecr.io PROD_REGISTRY=aksiotpreviewacr.azurecr.io release
+      make REGISTRY=aksiotpreviewacr.azurecr.io STAGING_REGISTRY=aksiotpreviewacr.azurecr.io PROD_REGISTRY=aksiotpreviewacr.azurecr.io generate-flavors
+      make REGISTRY=aksiotpreviewacr.azurecr.io STAGING_REGISTRY=aksiotpreviewacr.azurecr.io PROD_REGISTRY=aksiotpreviewacr.azurecr.io release-pipelines
+    fi
 
     sudo snap install yq
 
@@ -83,4 +100,3 @@ steps:
 
 - publish: $(System.DefaultWorkingDirectory)/templates
   artifact: templates
-  
