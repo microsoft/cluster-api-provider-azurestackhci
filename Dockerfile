@@ -49,6 +49,6 @@
 #FROM alpine:3.11
 FROM gcr.io/distroless/static:latest
 WORKDIR /
-COPY bin/manager ./
+COPY bin/staging/manager ./
 USER nobody
 ENTRYPOINT ["/manager"]
