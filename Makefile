@@ -69,7 +69,6 @@ IMAGE_NAME ?= caphcontroller
 CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME)
 TAG := $(MAJOR_VER).$(MINOR_VER).$(PATCH_VER)${TAGSUFFIX_APPEND}
 ARCH ?= amd64
-ARM = arm64
 ALL_ARCH = amd64 arm arm64 ppc64le s390x
 
 # Local repository path for development
@@ -122,16 +121,11 @@ $(KUBECTL) $(KUBE_APISERVER) $(ETCD): ## install test asset kubectl, kube-apiser
 ## --------------------------------------
 
 .PHONY: binaries
-binaries: manager manager_arm64 ## Builds and installs all binaries
+binaries: manager  ## Builds and installs all binaries
 
 .PHONY: manager
 manager: ## Build manager binary.
-	CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o bin/manager cmd/manager/main.go
-
-
-.PHONY: manager_arm64
-manager_arm64: ## Build manager binary.
-	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -a -ldflags '-extldflags "-static"' -o bin/arm64/manager cmd/manager/main.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=$(ARCH) go build -a -ldflags '-extldflags "-static"' -o bin/$(ARCH)/manager cmd/manager/main.go
 
 ## --------------------------------------
 ## Tooling Binaries
@@ -224,32 +218,13 @@ docker-login: ## Login docker to a private registry
 	docker login $(STAGING_REGISTRY) -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
 
 .PHONY: docker-build-img
-docker-build-img: manager
-	mkdir ./bin/staging 
-	cp ./bin/manager ./bin/staging 
+docker-build-img: manager 
 	#docker build --pull --build-arg ARCH=$(ARCH) . -t $(CONTROLLER_IMG)-$(ARCH):$(TAG)
 	docker build --pull --build-arg ARCH=$(ARCH) . -t $(CONTROLLER_IMG):$(TAG) 
-	rm -rf ./bin/staging 
-
-.PHONY: docker-build-img_arm64
-docker-build-img_arm64: manager_arm64
-	mkdir ./bin/staging 
-	cp ./bin/arm64/manager ./bin/staging  
-	#sudo docker build --pull --build-arg ARCH=$(ARM)v8/ . -t $(CONTROLLER_IMG)-$(ARM):$(TAG)
-	sudo docker build --pull --build-arg ARCH=$(ARM)v8/ . -t $(CONTROLLER_IMG):$(TAG) 
-	rm -rf ./bin/staging 
-
 
 .PHONY: docker-build
 docker-build: docker-build-img ## Build the docker image for controller-manager
 	#MANIFEST_IMG=$(CONTROLLER_IMG)-$(ARCH) MANIFEST_TAG=$(TAG) $(MAKE) set-manifest-image
-	MANIFEST_IMG=$(CONTROLLER_IMG) MANIFEST_TAG=$(TAG) $(MAKE) set-manifest-image
-	$(MAKE) set-manifest-pull-policy
-
-
-.PHONY: docker-build_my_arm64
-docker-build_my_arm64: docker-build-img_arm64 ## Build the docker image for controller-manager
-	#MANIFEST_IMG=$(CONTROLLER_IMG)-$(ARM) MANIFEST_TAG=$(TAG) $(MAKE) set-manifest-image
 	MANIFEST_IMG=$(CONTROLLER_IMG) MANIFEST_TAG=$(TAG) $(MAKE) set-manifest-image
 	$(MAKE) set-manifest-pull-policy
 
