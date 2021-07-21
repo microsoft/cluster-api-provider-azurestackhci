@@ -40,6 +40,10 @@ spec:
             description: AzureStackHCIVirtualMachineSpec defines the desired state
               of AzureStackHCIVirtualMachine
             properties:
+              additionalSSHKeys:
+                items:
+                  type: string
+                type: array
               availabilityZone:
                 properties:
                   enabled:

@@ -39,6 +39,10 @@ spec:
           spec:
             description: AzureStackHCIMachineSpec defines the desired state of AzureStackHCIMachine
             properties:
+              additionalSSHKeys:
+                items:
+                  type: string
+                type: array
               allocatePublicIP:
                 description: AllocatePublicIP allows the ability to create dynamic
                   public ips for machines where this value is true.
