@@ -121,7 +121,7 @@ $(KUBECTL) $(KUBE_APISERVER) $(ETCD): ## install test asset kubectl, kube-apiser
 ## --------------------------------------
 
 .PHONY: binaries
-binaries: manager  ## Builds and installs all binaries
+binaries: manager ## Builds and installs all binaries
 
 .PHONY: manager
 manager: ## Build manager binary.
@@ -218,7 +218,7 @@ docker-login: ## Login docker to a private registry
 	docker login $(STAGING_REGISTRY) -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
 
 .PHONY: docker-build-img
-docker-build-img: manager 
+docker-build-img: manager
 	#docker build --pull --build-arg ARCH=$(ARCH) . -t $(CONTROLLER_IMG)-$(ARCH):$(TAG)
 	docker build --pull --build-arg ARCH=$(ARCH) . -t $(CONTROLLER_IMG):$(TAG) 
 
