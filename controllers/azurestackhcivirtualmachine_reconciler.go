@@ -215,7 +215,7 @@ func (s *azureStackHCIVirtualMachineService) createVirtualMachine(nicName string
 		vmSpec = &virtualmachines.Spec{
 			Name:       s.vmScope.Name(),
 			NICName:    nicName,
-			SSHKeyData: string(decoded),
+			SSHKeyData: decodedKeys,
 			VMSize:     s.vmScope.AzureStackHCIVirtualMachine.Spec.VMSize,
 			CpuCount:   s.vmScope.AzureStackHCIVirtualMachine.Spec.CustomSize.CpuCount,
 			MemoryMB:   s.vmScope.AzureStackHCIVirtualMachine.Spec.CustomSize.MemoryMB,

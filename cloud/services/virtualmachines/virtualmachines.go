@@ -46,7 +46,7 @@ const (
 type Spec struct {
 	Name       string
 	NICName    string
-	SSHKeyData string
+	SSHKeyData []string
 	VMSize     string
 	CpuCount   int32
 	MemoryMB   int32
