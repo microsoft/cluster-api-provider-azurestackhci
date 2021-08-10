@@ -323,6 +323,11 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileStatus(lbs *scope.LoadBal
 	}
 
 	if conditions.IsFalse(lb, infrav1.LoadBalancerReplicasReadyCondition) {
+		if *conditions.GetSeverity(lb, infrav1.LoadBalancerReplicasReadyCondition) == clusterv1.ConditionSeverityError {
+			cond := conditions.Get(lb, infrav1.LoadBalancerReplicasReadyCondition)
+			conditions.MarkFalse(lb, infrav1.LoadBalancerInfrastructureReadyCondition, cond.Reason, cond.Severity, cond.Message)
+		}
+
 		if conditions.GetReason(lb, infrav1.LoadBalancerReplicasReadyCondition) == infrav1.LoadBalancerReplicasUpgradingReason {
 			lbs.SetPhase(infrav1.AzureStackHCILoadBalancerPhaseUpgrading)
 			return
