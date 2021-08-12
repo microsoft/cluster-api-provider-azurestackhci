@@ -153,7 +153,6 @@ func (r *AzureStackHCIClusterReconciler) reconcileNormal(clusterScope *scope.Clu
 			return reconcile.Result{}, err
 		}
 		clusterScope.Info("AzureStackHCILoadBalancer is not ready yet")
-		conditions.MarkFalse(azureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, infrav1.LoadBalancerProvisioningReason, clusterv1.ConditionSeverityWarning, "")
 		return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 20}, nil
 	}
 
@@ -263,12 +262,15 @@ func (r *AzureStackHCIClusterReconciler) reconcileAzureStackHCILoadBalancer(clus
 
 	if _, err := controllerutil.CreateOrUpdate(clusterScope.Context, r.Client, azureStackHCILoadBalancer, mutateFn); err != nil {
 		if !apierrors.IsAlreadyExists(err) {
+			conditions.MarkFalse(clusterScope.AzureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, infrav1.LoadBalancerProvisioningReason, clusterv1.ConditionSeverityWarning, err.Error())
 			return false, err
 		}
 	}
 
 	// Wait for the load balancer to be fully provisioned
 	if conditions.IsFalse(azureStackHCILoadBalancer, infrav1.LoadBalancerInfrastructureReadyCondition) {
+		cond := conditions.Get(azureStackHCILoadBalancer, infrav1.LoadBalancerInfrastructureReadyCondition)
+		conditions.MarkFalse(clusterScope.AzureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, cond.Reason, cond.Severity, cond.Message)
 		return false, nil
 	}
 
