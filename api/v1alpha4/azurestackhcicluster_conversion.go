@@ -15,23 +15,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha3
+package v1alpha4
 
-import (
-	"github.com/pkg/errors"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
-)
+// Hub marks AzureStackHCICluster as a conversion hub.
+func (*AzureStackHCICluster) Hub() {}
 
-// DecodeRawExtension will decode a runtime.RawExtension into a specific runtime object based on the schema
-func DecodeRawExtension(in *runtime.RawExtension, out runtime.Object) error {
-	scheme, err := SchemeBuilder.Build()
-	if err != nil {
-		return errors.Wrap(err, "Error building schema")
-	}
-
-	codecs := serializer.NewCodecFactory(scheme)
-	deserializer := codecs.UniversalDeserializer()
-
-	return runtime.DecodeInto(deserializer, in.Raw, out)
-}
+// Hub marks AzureStackHCIClusterList as a conversion hub.
+func (*AzureStackHCIClusterList) Hub() {}

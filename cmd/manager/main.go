@@ -26,8 +26,8 @@ import (
 
 	// +kubebuilder:scaffold:imports
 
-	infrastructurev1alpha3 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
-	infrav1alpha3 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
+	infrastructurev1alpha4 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha4"
+	infrav1alpha4 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha4"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/controllers"
 	"github.com/spf13/pflag"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -35,7 +35,7 @@ import (
 	cgrecord "k8s.io/client-go/tools/record"
 	"k8s.io/klog"
 	"k8s.io/klog/klogr"
-	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha4"
 	"sigs.k8s.io/cluster-api/feature"
 	"sigs.k8s.io/cluster-api/util/record"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -52,9 +52,9 @@ func init() {
 	klog.InitFlags(nil)
 
 	_ = clientgoscheme.AddToScheme(scheme)
-	_ = infrav1alpha3.AddToScheme(scheme)
+	_ = infrav1alpha4.AddToScheme(scheme)
 	_ = clusterv1.AddToScheme(scheme)
-	_ = infrastructurev1alpha3.AddToScheme(scheme)
+	_ = infrastructurev1alpha4.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 

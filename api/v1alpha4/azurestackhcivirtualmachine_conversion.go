@@ -15,10 +15,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha3
+package v1alpha4
 
-// Hub marks AzureStackHCICluster as a conversion hub.
-func (*AzureStackHCICluster) Hub() {}
+// Hub marks AzureStackHCIVirtualMachine as a conversion hub.
+func (*AzureStackHCIVirtualMachine) Hub() {}
 
-// Hub marks AzureStackHCIClusterList as a conversion hub.
-func (*AzureStackHCIClusterList) Hub() {}
+// Hub marks AzureStackHCIVirtualMachineList as a conversion hub.
+func (*AzureStackHCIVirtualMachineList) Hub() {}

@@ -15,10 +15,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha3
+package v1alpha4
 
-// Hub marks AzureStackHCILoadBalancer as a conversion hub.
-func (*AzureStackHCILoadBalancer) Hub() {}
+// Hub marks AzureStackHCIMachine as a conversion hub.
+func (*AzureStackHCIMachine) Hub() {}
 
-// Hub marks AzureStackHCILoadBalancerList as a conversion hub.
-func (*AzureStackHCILoadBalancerList) Hub() {}
+// Hub marks AzureStackHCIMachineList as a conversion hub.
+func (*AzureStackHCIMachineList) Hub() {}

@@ -18,7 +18,7 @@ spec:
     singular: azurestackhcivirtualmachine
   scope: Namespaced
   versions:
-  - name: v1alpha3
+  - name: v1alpha4
     schema:
       openAPIV3Schema:
         description: AzureStackHCIVirtualMachine is the Schema for the azurestackhcivirtualmachines
