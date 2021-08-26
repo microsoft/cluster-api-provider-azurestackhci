@@ -62,8 +62,8 @@ func (r *AzureStackHCIClusterReconciler) SetupWithManager(mgr ctrl.Manager, opti
 // +kubebuilder:rbac:groups=cluster.x-k8s.io,resources=clusters;clusters/status,verbs=get;list;watch
 // +kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io;bootstrap.cluster.x-k8s.io;controlplane.cluster.x-k8s.io,resources=*,verbs=get;list;watch
 
-func (r *AzureStackHCIClusterReconciler) Reconcile(req ctrl.Request) (_ ctrl.Result, reterr error) {
-	ctx := context.TODO()
+func (r *AzureStackHCIClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (_ ctrl.Result, reterr error) {
+	//ctx := context.TODO()
 	log := r.Log.WithValues("azureStackHCICluster", req.Name)
 
 	// Fetch the AzureStackHCICluster instance

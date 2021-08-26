@@ -61,13 +61,11 @@ func (r *AzureStackHCIMachineReconciler) SetupWithManager(mgr ctrl.Manager, opti
 		For(&infrav1.AzureStackHCIMachine{}).
 		Watches(
 			&source.Kind{Type: &clusterv1.Machine{}},
-			&handler.EnqueueRequestsFromMapFunc{
-				ToRequests: util.MachineToInfrastructureMapFunc(infrav1.GroupVersion.WithKind("AzureStackHCIMachine")),
-			},
+			handler.EnqueueRequestsFromMapFunc(util.MachineToInfrastructureMapFunc(infrav1.GroupVersion.WithKind("AzureStackHCIMachine"))),
 		).
 		Watches(
 			&source.Kind{Type: &infrav1.AzureStackHCICluster{}},
-			&handler.EnqueueRequestsFromMapFunc{ToRequests: handler.ToRequestsFunc(r.AzureStackHCIClusterToAzureStackHCIMachines)},
+			handler.EnqueueRequestsFromMapFunc(r.AzureStackHCIClusterToAzureStackHCIMachines),
 		).
 		Watches(
 			&source.Kind{Type: &infrav1.AzureStackHCIVirtualMachine{}},
@@ -82,8 +80,8 @@ func (r *AzureStackHCIMachineReconciler) SetupWithManager(mgr ctrl.Manager, opti
 // +kubebuilder:rbac:groups="",resources=events,verbs=get;list;watch;create;update;patch
 // +kubebuilder:rbac:groups="",resources=secrets;,verbs=get;list;watch
 
-func (r *AzureStackHCIMachineReconciler) Reconcile(req ctrl.Request) (_ ctrl.Result, reterr error) {
-	ctx := context.TODO()
+func (r *AzureStackHCIMachineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (_ ctrl.Result, reterr error) {
+	//ctx := context.TODO()
 	logger := r.Log.WithValues("azureStackHCIMachine", req.Name)
 
 	// Fetch the AzureStackHCIMachine VM.
@@ -377,12 +375,12 @@ func (r *AzureStackHCIMachineReconciler) validateUpdate(spec *infrav1.AzureStack
 
 // AzureStackHCIClusterToAzureStackHCIMachines is a handler.ToRequestsFunc to be used to enqueue requests for reconciliation
 // of AzureStackHCIMachines.
-func (r *AzureStackHCIMachineReconciler) AzureStackHCIClusterToAzureStackHCIMachines(o handler.MapObject) []ctrl.Request {
+func (r *AzureStackHCIMachineReconciler) AzureStackHCIClusterToAzureStackHCIMachines(o client.Object) []ctrl.Request {
 	result := []ctrl.Request{}
 
-	c, ok := o.Object.(*infrav1.AzureStackHCICluster)
+	c, ok := o.(*infrav1.AzureStackHCICluster)
 	if !ok {
-		r.Log.Error(errors.Errorf("expected a AzureStackHCICluster but got a %T", o.Object), "failed to get AzureStackHCIMachine for AzureStackHCICluster")
+		r.Log.Error(errors.Errorf("expected a AzureStackHCICluster but got a %T", o), "failed to get AzureStackHCIMachine for AzureStackHCICluster")
 		return nil
 	}
 	log := r.Log.WithValues("AzureStackHCICluster", c.Name, "Namespace", c.Namespace)

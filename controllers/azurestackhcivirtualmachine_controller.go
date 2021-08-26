@@ -61,8 +61,8 @@ func (r *AzureStackHCIVirtualMachineReconciler) SetupWithManager(mgr ctrl.Manage
 // +kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=azurestackhcivirtualmachines/status,verbs=get;update;patch
 
 // Reconcile reacts to some event on the kubernetes object that the controller has registered to handle
-func (r *AzureStackHCIVirtualMachineReconciler) Reconcile(req ctrl.Request) (_ ctrl.Result, reterr error) {
-	ctx := context.Background()
+func (r *AzureStackHCIVirtualMachineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (_ ctrl.Result, reterr error) {
+	//ctx := context.Background()
 	logger := r.Log.WithValues("namespace", req.Namespace, "azureStackHCIVirtualMachine", req.Name)
 
 	logger.Info("attempt reconcile resource", "name", req.NamespacedName)
