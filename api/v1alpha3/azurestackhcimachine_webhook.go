@@ -20,12 +20,8 @@ package v1alpha3
 import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 )
-
-// log is for logging in this package.
-var machinelog = logf.Log.WithName("azurestackhcimachine-resource")
 
 // SetupWebhookWithManager will setup and register the webhook with the controller mnager
 func (m *AzureStackHCIMachine) SetupWebhookWithManager(mgr ctrl.Manager) error {
@@ -40,21 +36,18 @@ var _ webhook.Validator = &AzureStackHCIMachine{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (m *AzureStackHCIMachine) ValidateCreate() error {
-	machinelog.Info("validate create", "name", m.Name)
 
 	return nil
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
 func (m *AzureStackHCIMachine) ValidateUpdate(old runtime.Object) error {
-	machinelog.Info("validate update", "name", m.Name)
 
 	return nil
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
 func (m *AzureStackHCIMachine) ValidateDelete() error {
-	machinelog.Info("validate delete", "name", m.Name)
 
 	return nil
 }

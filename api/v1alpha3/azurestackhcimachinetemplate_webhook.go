@@ -19,11 +19,7 @@ package v1alpha3
 
 import (
 	ctrl "sigs.k8s.io/controller-runtime"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
-
-// log is for logging in this package.
-var _ = logf.Log.WithName("azurestackhcimachinetemplate-resource")
 
 func (r *AzureStackHCIMachineTemplate) SetupWebhookWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewWebhookManagedBy(mgr).

@@ -17,8 +17,20 @@ limitations under the License.
 
 package v1alpha3
 
-// Hub marks AzureStackHCIMachine as a conversion hub.
-func (*AzureStackHCIMachine) Hub() {}
+import "sigs.k8s.io/controller-runtime/pkg/conversion"
 
-// Hub marks AzureStackHCIMachineList as a conversion hub.
-func (*AzureStackHCIMachineList) Hub() {}
+func (src *AzureStackHCIMachine) ConvertTo(dstRaw conversion.Hub) error {
+	return nil
+}
+
+func (src *AzureStackHCIMachine) ConvertFrom(dstRaw conversion.Hub) error {
+	return nil
+}
+
+func (src *AzureStackHCIMachineList) ConvertTo(dstRaw conversion.Hub) error {
+	return nil
+}
+
+func (src *AzureStackHCIMachineList) ConvertFrom(dstRaw conversion.Hub) error {
+	return nil
+}

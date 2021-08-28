@@ -17,8 +17,21 @@ limitations under the License.
 
 package v1alpha3
 
-// Hub marks AzureStackHCICluster as a conversion hub.
-func (*AzureStackHCICluster) Hub() {}
+import "sigs.k8s.io/controller-runtime/pkg/conversion"
 
-// Hub marks AzureStackHCIClusterList as a conversion hub.
-func (*AzureStackHCIClusterList) Hub() {}
+func (src *AzureStackHCICluster) ConvertTo(dstRaw conversion.Hub) error {
+
+	return nil
+}
+
+func (dst *AzureStackHCICluster) ConvertFrom(srcRaw conversion.Hub) error {
+	return nil
+}
+
+func (src *AzureStackHCIClusterList) ConvertTo(dstRaw conversion.Hub) error {
+	return nil
+}
+
+func (dst *AzureStackHCIClusterList) ConvertFrom(srcRaw conversion.Hub) error {
+	return nil
+}

@@ -17,8 +17,21 @@ limitations under the License.
 
 package v1alpha3
 
-// Hub marks AzureStackHCILoadBalancer as a conversion hub.
-func (*AzureStackHCILoadBalancer) Hub() {}
+import "sigs.k8s.io/controller-runtime/pkg/conversion"
 
-// Hub marks AzureStackHCILoadBalancerList as a conversion hub.
-func (*AzureStackHCILoadBalancerList) Hub() {}
+func (src *AzureStackHCILoadBalancer) ConvertTo(dstRaw conversion.Hub) error {
+
+	return nil
+}
+
+func (dst *AzureStackHCILoadBalancer) ConvertFrom(srcRaw conversion.Hub) error {
+	return nil
+}
+
+func (src *AzureStackHCILoadBalancerList) ConvertTo(dstRaw conversion.Hub) error {
+	return nil
+}
+
+func (dst *AzureStackHCILoadBalancerList) ConvertFrom(srcRaw conversion.Hub) error {
+	return nil
+}
