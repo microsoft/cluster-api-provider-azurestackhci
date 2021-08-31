@@ -18,6 +18,7 @@ spec:
       containers:
         - args:
             - "--v=6"
+            - "--metrics-bind-addr=127.0.0.1:8080"
           image: controller:latest
           imagePullPolicy: Always
           name: manager

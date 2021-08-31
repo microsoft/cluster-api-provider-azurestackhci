@@ -78,7 +78,7 @@ var (
 func InitFlags(fs *pflag.FlagSet) {
 	flag.StringVar(
 		&metricsAddr,
-		"metrics-addr",
+		"metrics-bind-addr",
 		":8080",
 		"The address the metric endpoint binds to.",
 	)

@@ -17,21 +17,27 @@ limitations under the License.
 
 package v1alpha3
 
-import "sigs.k8s.io/controller-runtime/pkg/conversion"
+import (
+	infrav1alpha4 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha4"
+	"sigs.k8s.io/controller-runtime/pkg/conversion"
+)
 
 func (src *AzureStackHCICluster) ConvertTo(dstRaw conversion.Hub) error {
-
-	return nil
+	dst := dstRaw.(*infrav1alpha4.AzureStackHCICluster)
+	return Convert_v1alpha3_AzureStackHCICluster_To_v1alpha4_AzureStackHCICluster(src, dst, nil)
 }
 
 func (dst *AzureStackHCICluster) ConvertFrom(srcRaw conversion.Hub) error {
-	return nil
+	src := srcRaw.(*infrav1alpha4.AzureStackHCICluster)
+	return Convert_v1alpha4_AzureStackHCICluster_To_v1alpha3_AzureStackHCICluster(src, dst, nil)
 }
 
 func (src *AzureStackHCIClusterList) ConvertTo(dstRaw conversion.Hub) error {
-	return nil
+	dst := dstRaw.(*infrav1alpha4.AzureStackHCIClusterList)
+	return Convert_v1alpha3_AzureStackHCIClusterList_To_v1alpha4_AzureStackHCIClusterList(src, dst, nil)
 }
 
 func (dst *AzureStackHCIClusterList) ConvertFrom(srcRaw conversion.Hub) error {
-	return nil
+	src := srcRaw.(*infrav1alpha4.AzureStackHCIClusterList)
+	return Convert_v1alpha4_AzureStackHCIClusterList_To_v1alpha3_AzureStackHCIClusterList(src, dst, nil)
 }

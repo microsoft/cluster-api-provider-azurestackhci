@@ -24,7 +24,9 @@ import (
 	"os"
 	"time"
 
-	infrastructurev1alpha4 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha4"
+	infrav1alpha3 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
+	infrav1alpha4 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha4"
+
 	// +kubebuilder:scaffold:imports
 
 	"github.com/spf13/pflag"
@@ -40,8 +42,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 
-	infrastructurev1alpha3 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha4"
-	infrav1alpha3 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha4"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/controllers"
 )
 
@@ -54,10 +54,9 @@ func init() {
 	klog.InitFlags(nil)
 
 	_ = clientgoscheme.AddToScheme(scheme)
-	_ = infrav1alpha3.AddToScheme(scheme)
 	_ = clusterv1.AddToScheme(scheme)
-	_ = infrastructurev1alpha3.AddToScheme(scheme)
-	_ = infrastructurev1alpha4.AddToScheme(scheme)
+	_ = infrav1alpha3.AddToScheme(scheme)
+	_ = infrav1alpha4.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -78,7 +77,7 @@ var (
 func InitFlags(fs *pflag.FlagSet) {
 	flag.StringVar(
 		&metricsAddr,
-		"metrics-addr",
+		"metrics-bind-addr",
 		":8080",
 		"The address the metric endpoint binds to.",
 	)
@@ -142,7 +141,7 @@ func InitFlags(fs *pflag.FlagSet) {
 
 	fs.IntVar(&webhookPort,
 		"webhook-port",
-		0,
+		9443,
 		"Webhook Server port, disabled by default. When enabled, the manager will only work as webhook server, no reconcilers are installed.",
 	)
 
@@ -227,6 +226,26 @@ func main() {
 	}
 
 	// +kubebuilder:scaffold:builder
+
+	if err := (&infrav1alpha4.AzureStackHCICluster{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "AzureStackHCICluster")
+		os.Exit(1)
+	}
+
+	if err := (&infrav1alpha4.AzureStackHCIMachine{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "AzureStackHCIMachine")
+		os.Exit(1)
+	}
+
+	if err := (&infrav1alpha4.AzureStackHCIMachineTemplate{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "AzureStackHCIMachineTemplate")
+		os.Exit(1)
+	}
+
+	if err := (&infrav1alpha4.AzureStackHCILoadBalancer{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "AzureStackHCILoadBalancer")
+		os.Exit(1)
+	}
 
 	if err := mgr.AddReadyzCheck("ping", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to create ready check")
