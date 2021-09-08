@@ -192,6 +192,15 @@ func (r *AzureStackHCIClusterReconciler) reconcileDelete(clusterScope *scope.Clu
 	}
 
 	if len(azhciMachines) > 0 {
+
+		err := r.deleteOrphanedMachines(clusterScope, azhciMachines)
+		if err != nil {
+			wrappedErr := errors.Wrapf(err, "failed to delete orphaned AzureStackHCIMachines part of AzureStackHCIClusters %s/%s", clusterScope.AzureStackHCICluster.Namespace, clusterScope.AzureStackHCICluster.Name)
+			r.Recorder.Eventf(azureStackHCICluster, corev1.EventTypeWarning, "FailureListMachinesInCluster", wrappedErr.Error())
+			conditions.MarkFalse(azureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, clusterv1.DeletionFailedReason, clusterv1.ConditionSeverityWarning, err.Error())
+			return reconcile.Result{}, wrappedErr
+		}
+
 		clusterScope.Info("Waiting for AzureStackHCIMachines to be deleted", "count", len(azhciMachines))
 		conditions.MarkFalse(azureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, infrav1.AzureStackHCIMachinesDeletingReason, clusterv1.ConditionSeverityWarning, "")
 		return reconcile.Result{RequeueAfter: 20 * time.Second}, nil
@@ -228,6 +237,26 @@ func (r *AzureStackHCIClusterReconciler) reconcileDelete(clusterScope *scope.Clu
 	controllerutil.RemoveFinalizer(clusterScope.AzureStackHCICluster, infrav1.ClusterFinalizer)
 
 	return reconcile.Result{}, nil
+}
+
+func (r *AzureStackHCIClusterReconciler) deleteOrphanedMachines(clusterScope *scope.ClusterScope, azhciMachines []*infrav1.AzureStackHCIMachine) error {
+
+	for _, azhciMachine := range azhciMachines {
+		machine, err := util.GetOwnerMachine(clusterScope.Context, clusterScope.Client, azhciMachine.ObjectMeta)
+		if err != nil {
+			return err
+		}
+		if machine == nil {
+			clusterScope.Info("Deleting Orphaned Machine", "Name", azhciMachine.Name, "AzureStackHCICluster", clusterScope.AzureStackHCICluster.Name)
+			if err := r.Client.Delete(clusterScope.Context, azhciMachine); err != nil {
+				if !apierrors.IsNotFound(err) {
+					return errors.Wrapf(err, "Failed to delete AzureStackHCIMachine %s", azhciMachine)
+				}
+			}
+		}
+	}
+
+	return nil
 }
 
 func (r *AzureStackHCIClusterReconciler) reconcileAzureStackHCILoadBalancer(clusterScope *scope.ClusterScope) (bool, error) {
