@@ -58,11 +58,11 @@ PATCH_VER ?= 10-alpha
 
 # Define Docker related variables. Releases should modify and double check these vars.
 REGISTRY ?= mocimages.azurecr.io
-STAGING_REGISTRY := mocimages.azurecr.io
-PROD_REGISTRY := mocimages.azurecr.io
+STAGING_REGISTRY ?= mocimages.azurecr.io
+PROD_REGISTRY ?= mocimages.azurecr.io
 IMAGE_NAME ?= caphcontroller
 CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME)
-TAG := $(MAJOR_VER).$(MINOR_VER).$(PATCH_VER)
+TAG := $(shell git describe --tags --abbrev=7)
 ARCH := amd64
 ALL_ARCH = amd64 arm arm64 ppc64le s390x
 
