@@ -166,9 +166,19 @@ func (s *azureStackHCIVirtualMachineService) reconcileNetworkInterface(nicName s
 
 func (s *azureStackHCIVirtualMachineService) createVirtualMachine(nicName string) (*infrav1.VM, error) {
 	var vm *infrav1.VM
+	decodedKeys := []string{}
 	decoded, err := base64.StdEncoding.DecodeString(s.vmScope.AzureStackHCIVirtualMachine.Spec.SSHPublicKey)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to decode ssh public key")
+	}
+	decodedKeys = append(decodedKeys, string(decoded))
+
+	for _, key := range s.vmScope.AzureStackHCIVirtualMachine.Spec.AdditionalSSHKeys {
+		decoded, err = base64.StdEncoding.DecodeString(key)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to decode an additional ssh public key")
+		}
+		decodedKeys = append(decodedKeys, string(decoded))
 	}
 
 	vmSpec := &virtualmachines.Spec{
@@ -208,7 +218,7 @@ func (s *azureStackHCIVirtualMachineService) createVirtualMachine(nicName string
 		vmSpec = &virtualmachines.Spec{
 			Name:       s.vmScope.Name(),
 			NICName:    nicName,
-			SSHKeyData: string(decoded),
+			SSHKeyData: decodedKeys,
 			Size:       s.vmScope.AzureStackHCIVirtualMachine.Spec.VMSize,
 			OSDisk:     s.vmScope.AzureStackHCIVirtualMachine.Spec.OSDisk,
 			Image:      s.vmScope.AzureStackHCIVirtualMachine.Spec.Image,

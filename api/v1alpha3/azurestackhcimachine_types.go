@@ -20,6 +20,7 @@ package v1alpha3
 import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
 	"sigs.k8s.io/cluster-api/errors"
 )
 
@@ -53,6 +54,8 @@ type AzureStackHCIMachineSpec struct {
 	// AllocatePublicIP allows the ability to create dynamic public ips for machines where this value is true.
 	// +optional
 	AllocatePublicIP bool `json:"allocatePublicIP,omitempty"`
+
+	AdditionalSSHKeys []string `json:"additionalSSHKeys,omitempty"`
 }
 
 // AzureStackHCIMachineStatus defines the observed state of AzureStackHCIMachine
@@ -67,6 +70,10 @@ type AzureStackHCIMachineStatus struct {
 	// VMState is the provisioning state of the Azure virtual machine.
 	// +optional
 	VMState *VMState `json:"vmState,omitempty"`
+
+	// Conditions defines current service state of the AzureStackHCIMachine.
+	// +optional
+	Conditions clusterv1.Conditions `json:"conditions,omitempty"`
 
 	// FailureReason will be set in the event that there is a terminal problem
 	// reconciling the Machine and will contain a succinct value suitable
@@ -118,6 +125,14 @@ type AzureStackHCIMachine struct {
 
 	Spec   AzureStackHCIMachineSpec   `json:"spec,omitempty"`
 	Status AzureStackHCIMachineStatus `json:"status,omitempty"`
+}
+
+func (c *AzureStackHCIMachine) GetConditions() clusterv1.Conditions {
+	return c.Status.Conditions
+}
+
+func (c *AzureStackHCIMachine) SetConditions(conditions clusterv1.Conditions) {
+	c.Status.Conditions = conditions
 }
 
 // +kubebuilder:object:root=true

@@ -26,6 +26,7 @@ import (
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
 	infrav1util "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/util"
+	mocerrors "github.com/microsoft/moc/pkg/errors"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -132,9 +133,18 @@ func (r *AzureStackHCIClusterReconciler) reconcileNormal(clusterScope *scope.Clu
 
 	err := newAzureStackHCIClusterReconciler(clusterScope).Reconcile()
 	if err != nil {
+		switch mocerrors.GetErrorCode(err) {
+		case mocerrors.OutOfMemory.Error():
+			conditions.MarkFalse(azureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, infrav1.OutOfMemoryReason, clusterv1.ConditionSeverityError, err.Error())
+		case mocerrors.OutOfCapacity.Error():
+			conditions.MarkFalse(azureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, infrav1.OutOfCapacityReason, clusterv1.ConditionSeverityError, err.Error())
+		default:
+			conditions.MarkFalse(azureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, infrav1.ClusterReconciliationFailedReason, clusterv1.ConditionSeverityError, err.Error())
+		}
+
 		wrappedErr := errors.Wrap(err, "failed to reconcile cluster services")
 		r.Recorder.Eventf(azureStackHCICluster, corev1.EventTypeWarning, "ClusterReconcileFailed", wrappedErr.Error())
-		conditions.MarkFalse(azureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, infrav1.ClusterReconciliationFailedReason, clusterv1.ConditionSeverityWarning, err.Error())
+
 		return reconcile.Result{}, wrappedErr
 	}
 

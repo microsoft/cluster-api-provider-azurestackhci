@@ -1,14 +1,14 @@
 module github.com/microsoft/cluster-api-provider-azurestackhci
 
-go 1.14
+go 1.15
 
 require (
 	github.com/Azure/go-autorest/autorest v0.10.0 // indirect
 	github.com/Azure/go-autorest/autorest/to v0.3.0
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/go-logr/logr v0.1.0
-	github.com/microsoft/moc v0.10.10-0.20210827233235-c63bdf89bc34
-	github.com/microsoft/moc-sdk-for-go v0.10.10-0.20210907191148-9195df1cc02a
+	github.com/microsoft/moc v0.10.12-alpha.6
+	github.com/microsoft/moc-sdk-for-go v0.10.9-alpha.4
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/pflag v1.0.5
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
@@ -23,3 +23,7 @@ require (
 )
 
 replace github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.4.0+incompatible
+
+replace github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.2
+
+replace github.com/miekg/dns => github.com/miekg/dns v1.1.25
