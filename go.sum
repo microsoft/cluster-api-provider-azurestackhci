@@ -294,10 +294,10 @@ github.com/mattn/go-runewidth v0.0.2/go.mod h1:LwmH8dsx7+W8Uxz3IHJYH5QSwggIsqBzp
 github.com/matttproud/golang_protobuf_extensions v1.0.1 h1:4hp9jkHxhMHkqkrB3Ix0jegS5sx/RkqARlsWZ6pIwiU=
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
 github.com/mholt/certmagic v0.6.2-0.20190624175158-6a42ef9fe8c2/go.mod h1:g4cOPxcjV0oFq3qwpjSA30LReKD8AoIfwAY9VvG35NY=
-github.com/microsoft/moc v0.10.10-0.20210827233235-c63bdf89bc34 h1:NHoN9Vbuzv+Q3L13M04JSd4FFPZhDBBqpIE9hHqQcIA=
-github.com/microsoft/moc v0.10.10-0.20210827233235-c63bdf89bc34/go.mod h1:85uh28c+MxW6gfG8HUhOpN41LvkIkOMigteiPGI6yM4=
-github.com/microsoft/moc-sdk-for-go v0.10.10-0.20210907191148-9195df1cc02a h1:F7PZ56R0GwpMPC/SdDNht6MaHj5AHeDNzVs7RpG0DJ8=
-github.com/microsoft/moc-sdk-for-go v0.10.10-0.20210907191148-9195df1cc02a/go.mod h1:adI3jWlsw9wB9PpVAfJII/gCpCzg9Y8DPl3X5iQTeBE=
+github.com/microsoft/moc v0.10.10-0.20210916195254-975e8263a41f h1:fU2F3BC/FxUq+XUl7NFIiHl7vJ65byPJxlLlaxnroyI=
+github.com/microsoft/moc v0.10.10-0.20210916195254-975e8263a41f/go.mod h1:85uh28c+MxW6gfG8HUhOpN41LvkIkOMigteiPGI6yM4=
+github.com/microsoft/moc-sdk-for-go v0.10.10-0.20210916212151-5980f51486f2 h1:9ZlaQ/FThVKtuD3PmxMRJFJ2+CZ+HriujFR1qZKafRw=
+github.com/microsoft/moc-sdk-for-go v0.10.10-0.20210916212151-5980f51486f2/go.mod h1:6p3agBnPJ46w2fVNrEfwdtVytu6pVAxejpDaCjB+WnE=
 github.com/miekg/dns v1.1.3/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3Nrg=
 github.com/mitchellh/go-homedir v1.1.0/go.mod h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrkLzIz1N1q0pr0=
 github.com/mitchellh/mapstructure v1.1.2/go.mod h1:FVVH3fgwuzCH5S8UJGiWEs2h04kUh9fWfEaFds41c1Y=
