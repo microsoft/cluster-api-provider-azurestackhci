@@ -50,6 +50,8 @@ type AzureStackHCIVirtualMachineSpec struct {
 	ClusterName      string   `json:"clusterName"`
 	SubnetName       string   `json:"subnetName"`
 	BackendPoolNames []string `json:"backendPoolNames,omitempty"`
+
+	AdditionalSSHKeys []string `json:"additionalSSHKeys,omitempty"`
 }
 
 // AzureStackHCIVirtualMachineStatus defines the observed state of AzureStackHCIVirtualMachine

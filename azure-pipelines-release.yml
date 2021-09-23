@@ -1,0 +1,49 @@
+trigger: none
+pr: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- checkout: self
+- task: InstallSSHKey@0
+  inputs:
+    knownHostsEntry: '$(KNOWN_HOST)' 
+    sshPublicKey: '$(SSH_PUBLIC_KEY)'
+    sshKeySecureFile: 'azure-pipelines-ssh-key'
+- task: DockerInstaller@0
+  inputs:
+    dockerVersion: '17.09.0-ce'
+- task: Docker@2
+  displayName: Login to ACR
+  inputs:
+    containerRegistry: 'ecpacr'
+    command: 'login'
+- task: GoTool@0
+  inputs:
+    version: '1.15.x'
+
+- script: |
+    git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+    chmod +x hack/ensure-kustomize.sh
+    chmod +x hack/gen-flavors.sh
+    chmod +x hack/for-pipeline.sh
+    hack/ensure-kustomize.sh
+    hack/for-pipeline.sh
+    GOPATH_BIN="$(go env GOPATH)/bin/"
+    PATH=$GOPATH_BIN:$PATH
+
+    if [[ -z "${RELEASE_TAG}" ]]; then
+      echo "ERROR: variable RELEASE_TAG is required. This is the RELEASE pipeline, not the ci pipeline. if you are triggering this for CI you are in the wrong place."
+      exit 1
+    fi
+
+    make REGISTRY=ecpacr.azurecr.io IMAGE_NAME=caphcontroller PATCH_VER=$(RELEASE_TAG) docker-build docker-push
+    make REGISTRY=ecpacr.azurecr.io IMAGE_NAME=caphcontroller PATCH_VER=$(RELEASE_TAG) release
+    make REGISTRY=ecpacr.azurecr.io IMAGE_NAME=caphcontroller PATCH_VER=$(RELEASE_TAG) generate-flavors
+    make REGISTRY=ecpacr.azurecr.io IMAGE_NAME=caphcontroller PATCH_VER=$(RELEASE_TAG) release-pipelines
+  workingDirectory: '$(System.DefaultWorkingDirectory)'
+  displayName: 'Build CAPH'
+
+- publish: $(System.DefaultWorkingDirectory)/out
+  artifact: releases

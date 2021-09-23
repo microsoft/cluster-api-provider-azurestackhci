@@ -32,6 +32,7 @@ import (
 	"sigs.k8s.io/cluster-api/controllers/noderefutil"
 	capierrors "sigs.k8s.io/cluster-api/errors"
 	"sigs.k8s.io/cluster-api/util"
+	"sigs.k8s.io/cluster-api/util/conditions"
 	"sigs.k8s.io/cluster-api/util/patch"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -188,12 +189,27 @@ func (m *MachineScope) SetAnnotation(key, value string) {
 
 // PatchObject persists the machine spec and status.
 func (m *MachineScope) PatchObject() error {
-	return m.patchHelper.Patch(context.TODO(), m.AzureStackHCIMachine)
+	conditions.SetSummary(m.AzureStackHCIMachine,
+		conditions.WithConditions(
+			infrav1.VMRunningCondition,
+		),
+		conditions.WithStepCounterIfOnly(
+			infrav1.VMRunningCondition,
+		),
+	)
+
+	return m.patchHelper.Patch(
+		context.TODO(),
+		m.AzureStackHCIMachine,
+		patch.WithOwnedConditions{Conditions: []clusterv1.ConditionType{
+			clusterv1.ReadyCondition,
+			infrav1.VMRunningCondition,
+		}})
 }
 
 // Close the MachineScope by updating the machine spec, machine status.
 func (m *MachineScope) Close() error {
-	return m.patchHelper.Patch(context.TODO(), m.AzureStackHCIMachine)
+	return m.PatchObject()
 }
 
 // GetBootstrapData returns the bootstrap data from the secret in the Machine's bootstrap.dataSecretName.

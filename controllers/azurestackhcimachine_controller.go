@@ -221,6 +221,8 @@ func (r *AzureStackHCIMachineReconciler) reconcileNormal(machineScope *scope.Mac
 	// TODO(vincepri): Remove this annotation when clusterctl is no longer relevant.
 	machineScope.SetAnnotation("cluster-api-provider-azurestackhci", "true")
 
+	machineScope.AzureStackHCIMachine.Status.Conditions = append(machineScope.AzureStackHCIMachine.Status.Conditions, vm.Status.Conditions...)
+
 	if vm.Status.VMState == nil {
 		machineScope.Info("Waiting for VM controller to set vm state")
 		return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
@@ -303,6 +305,7 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineNormal(machineSc
 		vm.Spec.Location = machineScope.AzureStackHCIMachine.Spec.Location
 		vm.Spec.SSHPublicKey = machineScope.AzureStackHCIMachine.Spec.SSHPublicKey
 		vm.Spec.BootstrapData = &bootstrapData
+		vm.Spec.AdditionalSSHKeys = machineScope.AzureStackHCIMachine.Spec.AdditionalSSHKeys
 
 		return nil
 	}
@@ -311,7 +314,18 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineNormal(machineSc
 		return nil, err
 	}
 
-	return vm, nil
+	azureStackHCIVirtualMachine := &infrav1.AzureStackHCIVirtualMachine{}
+	key := client.ObjectKey{
+		Namespace: clusterScope.Namespace(),
+		Name:      machineScope.Name(),
+	}
+
+	err := r.Client.Get(clusterScope.Context, key, azureStackHCIVirtualMachine)
+	if err != nil {
+		return nil, err
+	}
+
+	return azureStackHCIVirtualMachine, nil
 }
 
 func (r *AzureStackHCIMachineReconciler) reconcileDelete(machineScope *scope.MachineScope, clusterScope *scope.ClusterScope) (reconcile.Result, error) {

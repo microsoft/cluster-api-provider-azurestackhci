@@ -46,7 +46,7 @@ const (
 type Spec struct {
 	Name       string
 	NICName    string
-	SSHKeyData string
+	SSHKeyData []string
 	Size       string
 	Zone       string
 	Image      infrav1.Image
@@ -118,7 +118,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	klog.V(2).Infof("creating vm %s : %v", vmSpec.Name, vmSpec)
 
 	sshKeyData := vmSpec.SSHKeyData
-	if sshKeyData == "" {
+	if len(sshKeyData) == 0 {
 		privateKey, perr := rsa.GenerateKey(rand.Reader, 2048)
 		if perr != nil {
 			return errors.Wrap(perr, "Failed to generate private key")
@@ -128,7 +128,16 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		if perr != nil {
 			return errors.Wrap(perr, "Failed to generate public key")
 		}
-		sshKeyData = string(ssh.MarshalAuthorizedKey(publicRsaKey))
+		sshKeyData = []string{string(ssh.MarshalAuthorizedKey(publicRsaKey))}
+	}
+
+	sshPublicKeys := []compute.SSHPublicKey{}
+	sshKeyPath := fmt.Sprintf("/home/%s/.ssh/authorized_keys", azurestackhci.DefaultUserName)
+	for i := 0; i < len(sshKeyData); i++ {
+		sshPublicKeys = append(sshPublicKeys, compute.SSHPublicKey{
+			Path:    &sshKeyPath,
+			KeyData: &sshKeyData[i],
+		})
 	}
 
 	randomPassword, err := GenerateRandomString(32)
@@ -150,12 +159,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 				OsType:        compute.OperatingSystemTypes(vmSpec.OSDisk.OSType),
 				LinuxConfiguration: &compute.LinuxConfiguration{
 					SSH: &compute.SSHConfiguration{
-						PublicKeys: &[]compute.SSHPublicKey{
-							{
-								Path:    to.StringPtr(fmt.Sprintf("/home/%s/.ssh/authorized_keys", azurestackhci.DefaultUserName)),
-								KeyData: to.StringPtr(sshKeyData),
-							},
-						},
+						PublicKeys: &sshPublicKeys,
 					},
 					DisablePasswordAuthentication: to.BoolPtr(false),
 				},
@@ -183,12 +187,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
 		virtualMachine.OsProfile.WindowsConfiguration = &compute.WindowsConfiguration{
 			SSH: &compute.SSHConfiguration{
-				PublicKeys: &[]compute.SSHPublicKey{
-					{
-						Path:    to.StringPtr(fmt.Sprintf("/users/%s/.ssh/authorized_keys", azurestackhci.DefaultUserName)),
-						KeyData: to.StringPtr(sshKeyData),
-					},
-				},
+				PublicKeys: &sshPublicKeys,
 			},
 		}
 	}
