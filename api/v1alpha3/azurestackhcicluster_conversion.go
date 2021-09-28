@@ -17,8 +17,27 @@ limitations under the License.
 
 package v1alpha3
 
-// Hub marks AzureStackHCICluster as a conversion hub.
-func (*AzureStackHCICluster) Hub() {}
+import (
+	infrav1alpha4 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha4"
+	"sigs.k8s.io/controller-runtime/pkg/conversion"
+)
 
-// Hub marks AzureStackHCIClusterList as a conversion hub.
-func (*AzureStackHCIClusterList) Hub() {}
+func (src *AzureStackHCICluster) ConvertTo(dstRaw conversion.Hub) error {
+	dst := dstRaw.(*infrav1alpha4.AzureStackHCICluster)
+	return Convert_v1alpha3_AzureStackHCICluster_To_v1alpha4_AzureStackHCICluster(src, dst, nil)
+}
+
+func (dst *AzureStackHCICluster) ConvertFrom(srcRaw conversion.Hub) error {
+	src := srcRaw.(*infrav1alpha4.AzureStackHCICluster)
+	return Convert_v1alpha4_AzureStackHCICluster_To_v1alpha3_AzureStackHCICluster(src, dst, nil)
+}
+
+func (src *AzureStackHCIClusterList) ConvertTo(dstRaw conversion.Hub) error {
+	dst := dstRaw.(*infrav1alpha4.AzureStackHCIClusterList)
+	return Convert_v1alpha3_AzureStackHCIClusterList_To_v1alpha4_AzureStackHCIClusterList(src, dst, nil)
+}
+
+func (dst *AzureStackHCIClusterList) ConvertFrom(srcRaw conversion.Hub) error {
+	src := srcRaw.(*infrav1alpha4.AzureStackHCIClusterList)
+	return Convert_v1alpha4_AzureStackHCIClusterList_To_v1alpha3_AzureStackHCIClusterList(src, dst, nil)
+}

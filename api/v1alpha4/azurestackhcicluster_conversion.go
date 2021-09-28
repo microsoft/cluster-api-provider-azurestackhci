@@ -15,18 +15,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha3
+package v1alpha4
 
-import (
-	ctrl "sigs.k8s.io/controller-runtime"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
-)
+// Hub marks AzureStackHCICluster as a conversion hub.
+func (*AzureStackHCICluster) Hub() {}
 
-// log is for logging in this package.
-var _ = logf.Log.WithName("azurestackhcicluster-resource")
-
-func (r *AzureStackHCICluster) SetupWebhookWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewWebhookManagedBy(mgr).
-		For(r).
-		Complete()
-}
+// Hub marks AzureStackHCIClusterList as a conversion hub.
+func (*AzureStackHCIClusterList) Hub() {}

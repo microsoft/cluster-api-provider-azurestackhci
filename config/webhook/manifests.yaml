@@ -25,3 +25,4 @@ webhooks:
     - UPDATE
     resources:
     - azurestackhcimachine
+  sideEffects: None

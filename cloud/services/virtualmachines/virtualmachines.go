@@ -25,7 +25,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/go-autorest/autorest/to"
-	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
+	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha4"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/converters"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/networkinterfaces"
