@@ -29,7 +29,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
-	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha4"
 	capierrors "sigs.k8s.io/cluster-api/errors"
 	"sigs.k8s.io/cluster-api/util/conditions"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -38,7 +38,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
+	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha4"
 )
 
 // AzureStackHCIVirtualMachineReconciler reconciles a AzureStackHCIVirtualMachine object
@@ -61,8 +61,7 @@ func (r *AzureStackHCIVirtualMachineReconciler) SetupWithManager(mgr ctrl.Manage
 // +kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=azurestackhcivirtualmachines/status,verbs=get;update;patch
 
 // Reconcile reacts to some event on the kubernetes object that the controller has registered to handle
-func (r *AzureStackHCIVirtualMachineReconciler) Reconcile(req ctrl.Request) (_ ctrl.Result, reterr error) {
-	ctx := context.Background()
+func (r *AzureStackHCIVirtualMachineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (_ ctrl.Result, reterr error) {
 	logger := r.Log.WithValues("namespace", req.Namespace, "azureStackHCIVirtualMachine", req.Name)
 
 	logger.Info("attempt reconcile resource", "name", req.NamespacedName)

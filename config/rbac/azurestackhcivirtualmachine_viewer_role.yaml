@@ -1,0 +1,20 @@
+# permissions for end users to view azurestackhcivirtualmachines.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: azurestackhcivirtualmachine-viewer-role
+rules:
+- apiGroups:
+  - infrastructure.cluster.x-k8s.io
+  resources:
+  - azurestackhcivirtualmachines
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - infrastructure.cluster.x-k8s.io
+  resources:
+  - azurestackhcivirtualmachines/status
+  verbs:
+  - get
