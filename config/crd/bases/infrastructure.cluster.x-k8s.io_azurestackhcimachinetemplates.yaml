@@ -178,6 +178,10 @@ spec:
                     description: Spec is the specification of the desired behavior
                       of the machine.
                     properties:
+                      additionalSSHKeys:
+                        items:
+                          type: string
+                        type: array
                       allocatePublicIP:
                         description: AllocatePublicIP allows the ability to create
                           dynamic public ips for machines where this value is true.
