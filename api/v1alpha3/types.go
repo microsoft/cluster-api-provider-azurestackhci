@@ -234,3 +234,27 @@ const (
 	// HostTypeBareMetal specifies that the node should be deployed on a bare metal machine.
 	HostTypeBareMetal = HostType("baremetal")
 )
+
+// Defines how the taint's value is handled by a toleration.
+type TolerationOperator string
+
+const (
+	// Toleration will match any value.
+	TolerationOperatorExists = TolerationOperator("exits")
+	// Toleration will only match if the value field equals the value of the taint.
+	TolerationOperatorEqual = TolerationOperator("equal")
+)
+
+// Used to permit a workload to use a resource reserved by a taint.
+type Toleration struct {
+	// How the taint's value is handled.
+	Operator TolerationOperator `json:"operator,omitempty"`
+	// The key of the taint to tolerate.
+	Key string `json:"key,omitempty"`
+	// The value to match against the taint's value.
+	// This field is ignored if 'operator' is set to 'Exists'.
+	Value string `json:"value,omitempty"`
+	// If true, toleration must match a taint. If false, taint may be present
+	// but is not required.
+	Required bool `json:"required,omitempty"`
+}
