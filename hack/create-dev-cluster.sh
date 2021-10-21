@@ -23,14 +23,14 @@ set -o pipefail
 : "${AZURESTACKHCI_BINARY_LOCATION:?Environment variable empty or not defined.}"
 
 # CAPI settings.
-export CAPI_PROVIDER_BOOTSTRAP="${CAPI_PROVIDER_BOOTSTRAP:-kubeadm:v0.3.5}"
-export CAPI_PROVIDER_CONTROLPLANE="${CAPI_PROVIDER_CONTROLPLANE:-kubeadm:v0.3.5}"
-export CAPI_PROVIDER_CORE="${CAPI_PROVIDER_CORE:-cluster-api:v0.3.5}"
+export CAPI_PROVIDER_BOOTSTRAP="${CAPI_PROVIDER_BOOTSTRAP:-kubeadm:v0.4.2}"
+export CAPI_PROVIDER_CONTROLPLANE="${CAPI_PROVIDER_CONTROLPLANE:-kubeadm:v0.4.2}"
+export CAPI_PROVIDER_CORE="${CAPI_PROVIDER_CORE:-cluster-api:v0.4.2}"
 
 # Cluster settings.
 export AZURESTACKHCI_CLUSTER_RESOURCE_GROUP="${AZURESTACKHCI_CLUSTER_RESOURCE_GROUP:-nickgroup}"
 export CLUSTER_NAME="${CLUSTER_NAME:-${AZURESTACKHCI_CLUSTER_RESOURCE_GROUP}-caph-test}"
-export KUBERNETES_VERSION=${KUBERNETES_VERSION:-v1.16.2}
+export KUBERNETES_VERSION=${KUBERNETES_VERSION:-v1.21.2}
 
 # AzureStackHCI settings.
 export AZURESTACKHCI_CLOUDAGENT_FQDN_B64="$(echo -n "$AZURESTACKHCI_CLOUDAGENT_FQDN" | base64 | tr -d '\n')"
@@ -88,13 +88,9 @@ print_banner "Wait For CAPI Pods To Be Ready"
 kubectl wait --for=condition=Ready --timeout=5m -n capi-system pod -l cluster.x-k8s.io/provider=cluster-api
 kubectl wait --for=condition=Ready --timeout=5m -n capi-kubeadm-bootstrap-system pod -l cluster.x-k8s.io/provider=bootstrap-kubeadm
 kubectl wait --for=condition=Ready --timeout=5m -n capi-kubeadm-control-plane-system pod -l cluster.x-k8s.io/provider=control-plane-kubeadm
-kubectl wait --for=condition=Ready --timeout=5m -n capi-webhook-system pod -l cluster.x-k8s.io/provider=cluster-api
-kubectl wait --for=condition=Ready --timeout=5m -n capi-webhook-system pod -l cluster.x-k8s.io/provider=bootstrap-kubeadm
-kubectl wait --for=condition=Ready --timeout=5m -n capi-webhook-system pod -l cluster.x-k8s.io/provider=control-plane-kubeadm
 
 print_banner "Wait For CAPH Pods To Be Ready"
 kubectl wait --for=condition=Ready --timeout=5m -n caph-system pod -l cluster.x-k8s.io/provider=infrastructure-azurestackhci
-kubectl wait --for=condition=Ready --timeout=5m -n capi-webhook-system pod -l cluster.x-k8s.io/provider=infrastructure-azurestackhci
 
 print_banner "ClusterCTL Config Cluster"
 clusterctl config cluster ${CLUSTER_NAME} --kubernetes-version ${KUBERNETES_VERSION} --control-plane-machine-count=${CONTROL_PLANE_MACHINE_COUNT} --worker-machine-count=${WORKER_MACHINE_COUNT} | kubectl apply -f -
