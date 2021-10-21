@@ -38,10 +38,10 @@ steps:
       exit 1
     fi
 
-    make REGISTRY=ecpacr.azurecr.io IMAGE_NAME=caphcontroller PATCH_VER=$(RELEASE_TAG) docker-build docker-push
-    make REGISTRY=ecpacr.azurecr.io IMAGE_NAME=caphcontroller PATCH_VER=$(RELEASE_TAG) release
-    make REGISTRY=ecpacr.azurecr.io IMAGE_NAME=caphcontroller PATCH_VER=$(RELEASE_TAG) generate-flavors
-    make REGISTRY=ecpacr.azurecr.io IMAGE_NAME=caphcontroller PATCH_VER=$(RELEASE_TAG) release-pipelines
+    make PROD_REGISTRY=ecpacr.azurecr.io IMAGE_NAME=caphcontroller TAG=$(RELEASE_TAG) docker-build docker-push
+    make PROD_REGISTRY=ecpacr.azurecr.io IMAGE_NAME=caphcontroller TAG=$(RELEASE_TAG) release
+    make PROD_REGISTRY=ecpacr.azurecr.io IMAGE_NAME=caphcontroller TAG=$(RELEASE_TAG) generate-flavors
+    make PROD_REGISTRY=ecpacr.azurecr.io IMAGE_NAME=caphcontroller TAG=$(RELEASE_TAG) release-pipelines
   workingDirectory: '$(System.DefaultWorkingDirectory)'
   displayName: 'Build CAPH'
 

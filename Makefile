@@ -59,7 +59,7 @@ endif
 # Version
 MAJOR_VER ?= 0
 MINOR_VER ?= 3
-PATCH_VER ?= 9-alpha
+PATCH_VER ?= 10-alpha
 
 # Define Docker related variables. Releases should modify and double check these vars.
 REGISTRY ?= mocimages.azurecr.io
@@ -273,7 +273,7 @@ set-manifest-pull-policy:
 ## --------------------------------------
 
 #RELEASE_TAG := $(shell git describe --abbrev=0 2>/dev/null)
-RELEASE_TAG := $(TAG)
+RELEASE_TAG ?= $(TAG)
 RELEASE_DIR := out
 
 $(RELEASE_DIR):
