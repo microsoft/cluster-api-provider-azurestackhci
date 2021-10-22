@@ -19,6 +19,11 @@ steps:
   inputs:
     containerRegistry: 'ecpacr'
     command: 'login'
+- task: Docker@2
+  displayName: Login to ACR
+  inputs:
+    command: login
+    containerRegistry: mocimages-connection
 - task: GoTool@0
   inputs:
     version: '1.15.x'
@@ -38,7 +43,8 @@ steps:
       exit 1
     fi
 
-    make PROD_REGISTRY=ecpacr.azurecr.io IMAGE_NAME=caphcontroller TAG=$(RELEASE_TAG) docker-build docker-push
+    make REGISTRY=ecpacr.azurecr.io IMAGE_NAME=caphcontroller TAG=$(RELEASE_TAG) docker-build docker-push
+    make REGISTRY=mocimages.azurecr.io IMAGE_NAME=caphcontroller TAG=$(RELEASE_TAG) docker-build docker-push
     make PROD_REGISTRY=ecpacr.azurecr.io IMAGE_NAME=caphcontroller TAG=$(RELEASE_TAG) release
     make PROD_REGISTRY=ecpacr.azurecr.io IMAGE_NAME=caphcontroller TAG=$(RELEASE_TAG) generate-flavors
     make PROD_REGISTRY=ecpacr.azurecr.io IMAGE_NAME=caphcontroller TAG=$(RELEASE_TAG) release-pipelines
