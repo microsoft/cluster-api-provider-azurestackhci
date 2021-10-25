@@ -216,16 +216,17 @@ func (s *azureStackHCIVirtualMachineService) createVirtualMachine(nicName string
 		s.vmScope.Info("VM type is:", "vmType", vmType)
 
 		vmSpec = &virtualmachines.Spec{
-			Name:       s.vmScope.Name(),
-			NICName:    nicName,
-			SSHKeyData: decodedKeys,
-			Size:       s.vmScope.AzureStackHCIVirtualMachine.Spec.VMSize,
-			OSDisk:     s.vmScope.AzureStackHCIVirtualMachine.Spec.OSDisk,
-			Image:      s.vmScope.AzureStackHCIVirtualMachine.Spec.Image,
-			CustomData: *s.vmScope.AzureStackHCIVirtualMachine.Spec.BootstrapData,
-			Zone:       vmZone,
-			VMType:     vmType,
-			HostType:   s.vmScope.AzureStackHCIVirtualMachine.Spec.HostType,
+			Name:            s.vmScope.Name(),
+			NICName:         nicName,
+			SSHKeyData:      decodedKeys,
+			Size:            s.vmScope.AzureStackHCIVirtualMachine.Spec.VMSize,
+			OSDisk:          s.vmScope.AzureStackHCIVirtualMachine.Spec.OSDisk,
+			Image:           s.vmScope.AzureStackHCIVirtualMachine.Spec.Image,
+			CustomData:      *s.vmScope.AzureStackHCIVirtualMachine.Spec.BootstrapData,
+			Zone:            vmZone,
+			VMType:          vmType,
+			HostType:        s.vmScope.AzureStackHCIVirtualMachine.Spec.HostType,
+			HostTolerations: s.vmScope.AzureStackHCIVirtualMachine.Spec.HostTolerations,
 		}
 
 		err = s.virtualMachinesSvc.Reconcile(s.vmScope.Context, vmSpec)

@@ -56,6 +56,9 @@ type AzureStackHCIMachineSpec struct {
 	AllocatePublicIP bool `json:"allocatePublicIP,omitempty"`
 
 	AdditionalSSHKeys []string `json:"additionalSSHKeys,omitempty"`
+
+	// Tolerations for taints applied to VM hosts and bare-metal hosts within MOC.
+	HostTolerations []Toleration `json:"hostTolerations,omitempty"`
 }
 
 // AzureStackHCIMachineStatus defines the observed state of AzureStackHCIMachine

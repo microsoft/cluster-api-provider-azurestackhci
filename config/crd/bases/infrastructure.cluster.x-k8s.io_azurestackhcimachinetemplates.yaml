@@ -63,6 +63,30 @@ spec:
                           id:
                             type: string
                         type: object
+                      hostTolerations:
+                        description: Tolerations for taints applied to VM hosts and
+                          bare-metal hosts within MOC.
+                        items:
+                          description: Used to permit a workload to use a resource
+                            reserved by a taint.
+                          properties:
+                            key:
+                              description: The key of the taint to tolerate.
+                              type: string
+                            operator:
+                              description: How the taint's value is handled.
+                              type: string
+                            required:
+                              description: If true, toleration must match a taint.
+                                If false, taint may be present but is not required.
+                              type: boolean
+                            value:
+                              description: The value to match against the taint's
+                                value. This field is ignored if 'operator' is set
+                                to 'Exists'.
+                              type: string
+                          type: object
+                        type: array
                       hostType:
                         description: HostType specifies what type of machine a node
                           should be deployed on.

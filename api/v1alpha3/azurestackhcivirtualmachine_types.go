@@ -52,6 +52,9 @@ type AzureStackHCIVirtualMachineSpec struct {
 	BackendPoolNames []string `json:"backendPoolNames,omitempty"`
 
 	AdditionalSSHKeys []string `json:"additionalSSHKeys,omitempty"`
+
+	// Tolerations for taints applied to VM hosts and bare-metal hosts within MOC.
+	HostTolerations []Toleration `json:"hostTolerations,omitempty"`
 }
 
 // AzureStackHCIVirtualMachineStatus defines the observed state of AzureStackHCIVirtualMachine
