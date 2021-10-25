@@ -42,6 +42,9 @@ type AzureStackHCILoadBalancerSpec struct {
 	// +optional
 	// +kubebuilder:default=1
 	Replicas *int32 `json:"replicas,omitempty"`
+
+	// Tolerations for taints applied to VM hosts and bare-metal hosts within MOC.
+	HostTolerations []Toleration `json:"hostTolerations,omitempty"`
 }
 
 type AzureStackHCILoadBalancerStatus struct {

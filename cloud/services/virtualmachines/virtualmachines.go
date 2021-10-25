@@ -30,6 +30,7 @@ import (
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/converters"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/networkinterfaces"
 	infrav1util "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/util"
+	moccommon "github.com/microsoft/moc-sdk-for-go/services/common"
 	"github.com/microsoft/moc-sdk-for-go/services/compute"
 	"github.com/microsoft/moc-sdk-for-go/services/network"
 	"github.com/pkg/errors"
@@ -44,16 +45,17 @@ const (
 
 // Spec input specification for Get/CreateOrUpdate/Delete calls
 type Spec struct {
-	Name       string
-	NICName    string
-	SSHKeyData []string
-	Size       string
-	Zone       string
-	Image      infrav1.Image
-	OSDisk     infrav1.OSDisk
-	CustomData string
-	VMType     compute.VMType
-	HostType   infrav1.HostType
+	Name            string
+	NICName         string
+	SSHKeyData      []string
+	Size            string
+	Zone            string
+	Image           infrav1.Image
+	OSDisk          infrav1.OSDisk
+	CustomData      string
+	VMType          compute.VMType
+	HostType        infrav1.HostType
+	HostTolerations []infrav1.Toleration
 }
 
 // Get provides information about a virtual machine.
@@ -175,6 +177,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			HardwareProfile: &compute.HardwareProfile{
 				VMSize: compute.VirtualMachineSizeTypes(vmSpec.Size),
 			},
+			NodeTolerations: tolerationsToMOC(vmSpec.HostTolerations),
 		},
 	}
 
@@ -238,6 +241,7 @@ func (s *Service) createOrUpdateBareMetal(ctx context.Context, virtualMachine *c
 		SecurityProfile:   virtualMachine.VirtualMachineProperties.SecurityProfile,
 		ProvisioningState: virtualMachine.VirtualMachineProperties.ProvisioningState,
 		Statuses:          virtualMachine.VirtualMachineProperties.Statuses,
+		HostTolerations:   virtualMachine.VirtualMachineProperties.NodeTolerations,
 	}
 
 	// Try to apply the update.
@@ -403,4 +407,19 @@ func generateComputerName(os infrav1.OSType) string {
 	}
 
 	return computerName
+}
+
+func tolerationsToMOC(tolerations []infrav1.Toleration) *[]moccommon.Toleration {
+	result := []moccommon.Toleration{}
+
+	for _, toleration := range tolerations {
+		result = append(result, moccommon.Toleration{
+			Operator: moccommon.TolerationOperator(toleration.Operator),
+			Key:      toleration.Key,
+			Value:    toleration.Value,
+			Required: toleration.Required,
+		})
+	}
+
+	return &result
 }

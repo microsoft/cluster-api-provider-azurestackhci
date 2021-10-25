@@ -299,6 +299,7 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineNormal(machineSc
 		image.DeepCopyInto(&vm.Spec.Image)
 
 		vm.Spec.HostType = machineScope.AzureStackHCIMachine.Spec.HostType
+		vm.Spec.HostTolerations = deepCopyHostTolerations(machineScope.AzureStackHCIMachine.Spec.HostTolerations)
 		vm.Spec.VMSize = machineScope.AzureStackHCIMachine.Spec.VMSize
 		machineScope.AzureStackHCIMachine.Spec.AvailabilityZone.DeepCopyInto(&vm.Spec.AvailabilityZone)
 		machineScope.AzureStackHCIMachine.Spec.OSDisk.DeepCopyInto(&vm.Spec.OSDisk)
@@ -422,4 +423,12 @@ func (r *AzureStackHCIMachineReconciler) getVMImage(scope *scope.MachineScope) (
 	}
 
 	return azurestackhci.GetDefaultImage(scope.AzureStackHCIMachine.Spec.Image.OSType, to.String(scope.Machine.Spec.Version))
+}
+
+func deepCopyHostTolerations(tolerations []infrav1.Toleration) []infrav1.Toleration {
+	result := make([]infrav1.Toleration, len(tolerations))
+	for i, toleration := range tolerations {
+		toleration.DeepCopyInto(&result[i])
+	}
+	return result
 }
