@@ -44,6 +44,16 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileVirtualMachines(lbs *scop
 		return reconcile.Result{}, errors.Wrapf(err, "failed to get loadbalancer virtual machine list")
 	}
 
+	for _, vm := range loadBalancerVMs {
+		if conditions.IsFalse(vm, infrav1.VMRunningCondition) {
+			cond := conditions.Get(vm, infrav1.VMRunningCondition)
+			if cond.Severity == clusterv1.ConditionSeverityError {
+				conditions.MarkFalse(lbs.AzureStackHCILoadBalancer, infrav1.LoadBalancerReplicasReadyCondition, cond.Reason, cond.Severity, cond.Message)
+				return reconcile.Result{}, nil
+			}
+		}
+	}
+
 	r.updateReplicaStatus(lbs, clusterScope, loadBalancerVMs)
 
 	// before we handle any scaling or upgrade operations, we make sure that all existing replicas we have created are ready
