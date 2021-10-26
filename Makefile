@@ -68,7 +68,7 @@ PROD_REGISTRY := mocimages.azurecr.io
 IMAGE_NAME ?= caphcontroller
 CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME)
 TAG := $(MAJOR_VER).$(MINOR_VER).$(PATCH_VER)${TAGSUFFIX_APPEND}
-ARCH := amd64
+ARCH ?= amd64
 ALL_ARCH = amd64 arm arm64 ppc64le s390x
 
 # Local repository path for development
@@ -125,7 +125,7 @@ binaries: manager ## Builds and installs all binaries
 
 .PHONY: manager
 manager: ## Build manager binary.
-	CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o bin/manager cmd/manager/main.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=$(ARCH) go build -a -ldflags '-extldflags "-static"' -o bin/$(ARCH)/manager cmd/manager/main.go
 
 ## --------------------------------------
 ## Tooling Binaries
@@ -220,7 +220,7 @@ docker-login: ## Login docker to a private registry
 .PHONY: docker-build-img
 docker-build-img: manager
 	#docker build --pull --build-arg ARCH=$(ARCH) . -t $(CONTROLLER_IMG)-$(ARCH):$(TAG)
-	docker build --pull --build-arg ARCH=$(ARCH) . -t $(CONTROLLER_IMG):$(TAG)
+	docker build --pull --build-arg ARCH=$(ARCH) . -t $(CONTROLLER_IMG):$(TAG) 
 
 .PHONY: docker-build
 docker-build: docker-build-img ## Build the docker image for controller-manager
