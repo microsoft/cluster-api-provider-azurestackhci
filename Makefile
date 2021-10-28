@@ -94,12 +94,12 @@ MINOR_VER ?= 4
 PATCH_VER ?= 0-alpha
 
 # Define Docker related variables. Releases should modify and double check these vars.
-REGISTRY ?= mocimages.azurecr.io
-STAGING_REGISTRY := mocimages.azurecr.io
-PROD_REGISTRY := mocimages.azurecr.io
-IMAGE_NAME ?= caphcontroller
-CONTROLLER_IMG ?= docker.io/magund/caphcontroller-ws2022
-TAG := 0.1
+REGISTRY ?= docker.io
+STAGING_REGISTRY := docker.io
+PROD_REGISTRY := docker.io
+IMAGE_NAME ?= magund/caphcontroller-ws2022
+CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME)
+TAG := 0.2
 ARCH := amd64
 ALL_ARCH = amd64 arm arm64 ppc64le s390x
 
