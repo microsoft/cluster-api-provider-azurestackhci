@@ -159,7 +159,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		},
 	}
 
-	if vmSpec.Image.OSType == infrav1.OSTypeWindows {
+	if vmSpec.Image.OSType == infrav1.OSTypeWindows || vmSpec.Image.OSType == infrav1.OSTypeWindows2022 {
 		virtualMachine.OsProfile.LinuxConfiguration = nil
 		pass := ""
 		virtualMachine.OsProfile.AdminPassword = &pass
@@ -318,6 +318,8 @@ func generateComputerName(os infrav1.OSType) string {
 	switch os {
 	case infrav1.OSTypeWindows:
 		computerName += "w"
+	case infrav1.OSTypeWindows2022:
+		computerName += "w2"
 	case infrav1.OSTypeLinux:
 		computerName += "l"
 	default: // Unknown OS
