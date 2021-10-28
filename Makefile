@@ -98,8 +98,8 @@ REGISTRY ?= mocimages.azurecr.io
 STAGING_REGISTRY := mocimages.azurecr.io
 PROD_REGISTRY := mocimages.azurecr.io
 IMAGE_NAME ?= caphcontroller
-CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME)
-TAG := magund-ws2022
+CONTROLLER_IMG ?= docker.io/magund/caphcontroller-ws2022
+TAG := 0.1
 ARCH := amd64
 ALL_ARCH = amd64 arm arm64 ppc64le s390x
 
