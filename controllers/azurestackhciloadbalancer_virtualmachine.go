@@ -23,14 +23,14 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/to"
-	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
+	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha4"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha4"
 	"sigs.k8s.io/cluster-api/util"
 	"sigs.k8s.io/cluster-api/util/conditions"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -42,6 +42,16 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileVirtualMachines(lbs *scop
 	loadBalancerVMs, err := r.getVirtualMachinesForLoadBalancer(lbs, clusterScope)
 	if err != nil {
 		return reconcile.Result{}, errors.Wrapf(err, "failed to get loadbalancer virtual machine list")
+	}
+
+	for _, vm := range loadBalancerVMs {
+		if conditions.IsFalse(vm, infrav1.VMRunningCondition) {
+			cond := conditions.Get(vm, infrav1.VMRunningCondition)
+			if cond.Severity == clusterv1.ConditionSeverityError {
+				conditions.MarkFalse(lbs.AzureStackHCILoadBalancer, infrav1.LoadBalancerReplicasReadyCondition, cond.Reason, cond.Severity, cond.Message)
+				return reconcile.Result{}, nil
+			}
+		}
 	}
 
 	r.updateReplicaStatus(lbs, clusterScope, loadBalancerVMs)

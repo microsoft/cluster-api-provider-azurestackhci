@@ -22,7 +22,7 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
-	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
+	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha4"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
 	infrav1util "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/util"
@@ -33,7 +33,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	apitypes "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
-	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha4"
 	"sigs.k8s.io/cluster-api/util"
 	"sigs.k8s.io/cluster-api/util/conditions"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -62,8 +62,7 @@ func (r *AzureStackHCIClusterReconciler) SetupWithManager(mgr ctrl.Manager, opti
 // +kubebuilder:rbac:groups=cluster.x-k8s.io,resources=clusters;clusters/status,verbs=get;list;watch
 // +kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io;bootstrap.cluster.x-k8s.io;controlplane.cluster.x-k8s.io,resources=*,verbs=get;list;watch
 
-func (r *AzureStackHCIClusterReconciler) Reconcile(req ctrl.Request) (_ ctrl.Result, reterr error) {
-	ctx := context.TODO()
+func (r *AzureStackHCIClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (_ ctrl.Result, reterr error) {
 	log := r.Log.WithValues("azureStackHCICluster", req.Name)
 
 	// Fetch the AzureStackHCICluster instance
@@ -153,7 +152,6 @@ func (r *AzureStackHCIClusterReconciler) reconcileNormal(clusterScope *scope.Clu
 			return reconcile.Result{}, err
 		}
 		clusterScope.Info("AzureStackHCILoadBalancer is not ready yet")
-		conditions.MarkFalse(azureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, infrav1.LoadBalancerProvisioningReason, clusterv1.ConditionSeverityWarning, "")
 		return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 20}, nil
 	}
 
@@ -193,6 +191,15 @@ func (r *AzureStackHCIClusterReconciler) reconcileDelete(clusterScope *scope.Clu
 	}
 
 	if len(azhciMachines) > 0 {
+
+		err := r.deleteOrphanedMachines(clusterScope, azhciMachines)
+		if err != nil {
+			wrappedErr := errors.Wrapf(err, "failed to delete orphaned AzureStackHCIMachines part of AzureStackHCIClusters %s/%s", clusterScope.AzureStackHCICluster.Namespace, clusterScope.AzureStackHCICluster.Name)
+			r.Recorder.Eventf(azureStackHCICluster, corev1.EventTypeWarning, "FailureListMachinesInCluster", wrappedErr.Error())
+			conditions.MarkFalse(azureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, clusterv1.DeletionFailedReason, clusterv1.ConditionSeverityWarning, err.Error())
+			return reconcile.Result{}, wrappedErr
+		}
+
 		clusterScope.Info("Waiting for AzureStackHCIMachines to be deleted", "count", len(azhciMachines))
 		conditions.MarkFalse(azureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, infrav1.AzureStackHCIMachinesDeletingReason, clusterv1.ConditionSeverityWarning, "")
 		return reconcile.Result{RequeueAfter: 20 * time.Second}, nil
@@ -231,6 +238,26 @@ func (r *AzureStackHCIClusterReconciler) reconcileDelete(clusterScope *scope.Clu
 	return reconcile.Result{}, nil
 }
 
+func (r *AzureStackHCIClusterReconciler) deleteOrphanedMachines(clusterScope *scope.ClusterScope, azhciMachines []*infrav1.AzureStackHCIMachine) error {
+
+	for _, azhciMachine := range azhciMachines {
+		machine, err := util.GetOwnerMachine(clusterScope.Context, clusterScope.Client, azhciMachine.ObjectMeta)
+		if err != nil {
+			return err
+		}
+		if machine == nil {
+			clusterScope.Info("Deleting Orphaned Machine", "Name", azhciMachine.Name, "AzureStackHCICluster", clusterScope.AzureStackHCICluster.Name)
+			if err := r.Client.Delete(clusterScope.Context, azhciMachine); err != nil {
+				if !apierrors.IsNotFound(err) {
+					return errors.Wrapf(err, "Failed to delete AzureStackHCIMachine %s", azhciMachine)
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
 func (r *AzureStackHCIClusterReconciler) reconcileAzureStackHCILoadBalancer(clusterScope *scope.ClusterScope) (bool, error) {
 	if clusterScope.AzureStackHCILoadBalancer() == nil {
 		clusterScope.Info("Skipping load balancer reconciliation since AzureStackHCICluster.Spec.AzureStackHCILoadBalancer is nil")
@@ -263,12 +290,15 @@ func (r *AzureStackHCIClusterReconciler) reconcileAzureStackHCILoadBalancer(clus
 
 	if _, err := controllerutil.CreateOrUpdate(clusterScope.Context, r.Client, azureStackHCILoadBalancer, mutateFn); err != nil {
 		if !apierrors.IsAlreadyExists(err) {
+			conditions.MarkFalse(clusterScope.AzureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, infrav1.LoadBalancerProvisioningReason, clusterv1.ConditionSeverityWarning, err.Error())
 			return false, err
 		}
 	}
 
 	// Wait for the load balancer to be fully provisioned
 	if conditions.IsFalse(azureStackHCILoadBalancer, infrav1.LoadBalancerInfrastructureReadyCondition) {
+		cond := conditions.Get(azureStackHCILoadBalancer, infrav1.LoadBalancerInfrastructureReadyCondition)
+		conditions.MarkFalse(clusterScope.AzureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, cond.Reason, cond.Severity, cond.Message)
 		return false, nil
 	}
 

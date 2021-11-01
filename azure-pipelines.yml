@@ -65,7 +65,7 @@ steps:
     # pull pipeline image and copy the ci caph yaml into it.
     docker pull $imagename
     docker run -dit --name override $imagename
-    docker cp out/infrastructure-components.yaml override:/var/lib/msk8s/deployment/infrastructure-azurestackhci/v0.3.8/infrastructure-components.yaml
+    docker cp out/infrastructure-components.yaml override:/var/lib/msk8s/deployment/infrastructure-azurestackhci/v0.4.0/infrastructure-components.yaml
     docker commit override $imagename
 
     # tag the new ci image for caph.

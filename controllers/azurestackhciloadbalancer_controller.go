@@ -23,16 +23,17 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
-	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
+	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha4"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/loadbalancers"
 	"github.com/microsoft/moc-sdk-for-go/services/network"
+	mocerrors "github.com/microsoft/moc/pkg/errors"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/tools/record"
-	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha4"
 	"sigs.k8s.io/cluster-api/util"
 	"sigs.k8s.io/cluster-api/util/conditions"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -67,8 +68,7 @@ func (r *AzureStackHCILoadBalancerReconciler) SetupWithManager(mgr ctrl.Manager,
 // +kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=azurestackhciloadbalancers/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups="",resources=events,verbs=get;list;watch;create;update;patch
 
-func (r *AzureStackHCILoadBalancerReconciler) Reconcile(req ctrl.Request) (_ ctrl.Result, reterr error) {
-	ctx := context.Background()
+func (r *AzureStackHCILoadBalancerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (_ ctrl.Result, reterr error) {
 	logger := r.Log.WithValues("azureStackHCILoadBalancer", req.Name)
 
 	// Fetch the AzureStackHCILoadBalancer resource.
@@ -174,8 +174,16 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileNormal(lbs *scope.LoadBal
 	// reconcile the loadbalancer service and the lb frontend ip address
 	err = r.reconcileLoadBalancerService(lbs, clusterScope)
 	if err != nil {
+		switch mocerrors.GetErrorCode(err) {
+		case mocerrors.OutOfMemory.Error():
+			conditions.MarkFalse(lbs.AzureStackHCILoadBalancer, infrav1.LoadBalancerInfrastructureReadyCondition, infrav1.OutOfMemoryReason, clusterv1.ConditionSeverityError, err.Error())
+		case mocerrors.OutOfCapacity.Error():
+			conditions.MarkFalse(lbs.AzureStackHCILoadBalancer, infrav1.LoadBalancerInfrastructureReadyCondition, infrav1.OutOfCapacityReason, clusterv1.ConditionSeverityError, err.Error())
+		default:
+			conditions.MarkFalse(lbs.AzureStackHCILoadBalancer, infrav1.LoadBalancerInfrastructureReadyCondition, infrav1.LoadBalancerServiceReconciliationFailedReason, clusterv1.ConditionSeverityError, err.Error())
+		}
+
 		r.Recorder.Eventf(lbs.AzureStackHCILoadBalancer, corev1.EventTypeWarning, "FailureReconcileLB", errors.Wrapf(err, "Failed to reconcile LoadBalancer service").Error())
-		conditions.MarkFalse(lbs.AzureStackHCILoadBalancer, infrav1.LoadBalancerInfrastructureReadyCondition, infrav1.LoadBalancerServiceReconciliationFailedReason, clusterv1.ConditionSeverityWarning, err.Error())
 		return reconcile.Result{}, err
 	}
 
@@ -314,6 +322,11 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileStatus(lbs *scope.LoadBal
 	}
 
 	if conditions.IsFalse(lb, infrav1.LoadBalancerReplicasReadyCondition) {
+		if *conditions.GetSeverity(lb, infrav1.LoadBalancerReplicasReadyCondition) == clusterv1.ConditionSeverityError {
+			cond := conditions.Get(lb, infrav1.LoadBalancerReplicasReadyCondition)
+			conditions.MarkFalse(lb, infrav1.LoadBalancerInfrastructureReadyCondition, cond.Reason, cond.Severity, cond.Message)
+		}
+
 		if conditions.GetReason(lb, infrav1.LoadBalancerReplicasReadyCondition) == infrav1.LoadBalancerReplicasUpgradingReason {
 			lbs.SetPhase(infrav1.AzureStackHCILoadBalancerPhaseUpgrading)
 			return

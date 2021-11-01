@@ -5,8 +5,8 @@ import (
 	"math/rand"
 	"time"
 
-	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
-	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
+	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha4"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha4"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
