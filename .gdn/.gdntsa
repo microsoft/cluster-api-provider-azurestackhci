@@ -5,7 +5,8 @@
     ],
     "codebaseAdmins": [
         "REDMOND\\madhanm",
-        "REDMOND\\dingov"
+        "REDMOND\\dingov",
+	"REDMOND\\nwood"
     ],
     "instanceUrl": "https://microsoft.visualstudio.com/",
     "projectName": "OS",
