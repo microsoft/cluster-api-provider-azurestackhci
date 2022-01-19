@@ -30,7 +30,7 @@ import (
 )
 
 const (
-	KubeConfigSecretName    = "kubeconf"
+	KubeConfigSecretName    = "kubeconf" // lgtm - Semmle Suppression [SM03415] Not a secret
 	KubeConfigDataFieldName = "value"
 )
 
