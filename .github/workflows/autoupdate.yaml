@@ -1,12 +1,9 @@
 name: autoupdate
 on:
   # This will trigger on all pushes to all branches.
-  push: {}
-  # Alternatively, you can only trigger if commits are pushed to certain branches, e.g.:
-  # push:
-  #   branches:
-  #     - master
-  #     - unstable
+  push:
+    branches:
+      - master
 jobs:
   autoupdate:
     name: autoupdate
