@@ -40,6 +40,7 @@ jobs:
       version: '1.15.x'
 
   - script: |
+      mkdir manifest
       git config --global url.ssh://git@github.com/.insteadOf https://github.com/
       chmod +x hack/ensure-kustomize.sh
       chmod +x hack/gen-flavors.sh
@@ -79,8 +80,16 @@ jobs:
     workingDirectory: '$(System.DefaultWorkingDirectory)'
     displayName: 'Build CAPH'
 
+  - task: AzureArtifacts.manifest-generator-task.manifest-generator-task.ManifestGeneratorTask@0
+    displayName: 'SBOM Generation'
+    inputs:
+      BuildDropPath: $(System.DefaultWorkingDirectory)/manifest
+
   - publish: $(System.DefaultWorkingDirectory)/out
     artifact: releases
 
   - publish: $(System.DefaultWorkingDirectory)/templates
     artifact: templates
+
+  - publish: $(System.DefaultWorkingDirectory)/manifest
+    artifact: manifest
