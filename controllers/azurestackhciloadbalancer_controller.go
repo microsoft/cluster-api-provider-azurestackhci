@@ -70,6 +70,7 @@ func (r *AzureStackHCILoadBalancerReconciler) SetupWithManager(mgr ctrl.Manager,
 
 func (r *AzureStackHCILoadBalancerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (_ ctrl.Result, reterr error) {
 	logger := r.Log.WithValues("azureStackHCILoadBalancer", req.Name)
+	logger.Info("azureStackHCILoadBalancer req", req.Name)
 
 	// Fetch the AzureStackHCILoadBalancer resource.
 	azureStackHCILoadBalancer := &infrav1.AzureStackHCILoadBalancer{}
@@ -81,8 +82,11 @@ func (r *AzureStackHCILoadBalancerReconciler) Reconcile(ctx context.Context, req
 		return reconcile.Result{}, err
 	}
 
+	logger.Info("CYN: CAPH reconcile: ", "namespace name=", req.NamespacedName.Name)
+	logger.Info("CYN: CAPH reconcile: ", "namespaced namespace =", req.NamespacedName.Namespace)
 	// Fetch the CAPI Cluster.
 	cluster, err := util.GetOwnerCluster(ctx, r.Client, azureStackHCILoadBalancer.ObjectMeta)
+	logger.Info("CYN: CAPH reconcile: owner ", "cluster=", cluster.ClusterName)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
@@ -94,14 +98,19 @@ func (r *AzureStackHCILoadBalancerReconciler) Reconcile(ctx context.Context, req
 	logger = logger.WithValues("cluster", cluster.Name)
 
 	azureStackHCICluster := &infrav1.AzureStackHCICluster{}
+	logger.Info("CYN: CAPH reconcile: ", "Namespace:", azureStackHCILoadBalancer.Namespace, "name:", cluster.Spec.InfrastructureRef.Name, "====")
 	azureStackHCIClusterName := client.ObjectKey{
 		Namespace: azureStackHCILoadBalancer.Namespace,
 		Name:      cluster.Spec.InfrastructureRef.Name,
 	}
+	logger.Info("CYN: CAPH reconcile: azureStackHCIClusterName", "namespace:", azureStackHCIClusterName.Namespace)
+	logger.Info("CYN: CAPH reconcile: azureStackHCIClusterName", "name:", azureStackHCIClusterName.Name)
 	if err := r.Client.Get(ctx, azureStackHCIClusterName, azureStackHCICluster); err != nil {
 		logger.Info("AzureStackHCICluster is not available yet")
 		return reconcile.Result{}, nil
 	}
+	logger.Info("CYN: CAPH reconcile:After get azureStackHCIClusterName", " namespace: ", azureStackHCICluster.Name)
+	logger.Info("CYN: CAPH reconcile:After get azureStackHCIClusterName", " name: ", azureStackHCICluster.Namespace)
 
 	logger = logger.WithValues("azureStackHCICluster", azureStackHCICluster.Name)
 
@@ -201,6 +210,8 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileNormal(lbs *scope.LoadBal
 		}
 	}
 
+	lbs.Info("CYN:", " Desired replicas=", lbs.GetDesiredReplicas(), ", current replica count=", lbs.GetReplicas())
+	lbs.Info("CYN:", " Failed replicas=", lbs.GetFailedReplicas(), ", max replica cnt=", lbs.GetMaxReplicas())
 	if lbs.GetReadyReplicas() < 1 {
 		if lbs.GetReady() {
 			// we achieved ready state at any earlier point, but have now lost all ready replicas
@@ -241,6 +252,7 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileLoadBalancerServiceStatus
 	}
 
 	loadBalancerScope.SetReadyReplicas(int32(lb.ReplicationCount))
+	loadBalancerScope.Info("CYN:", " setReadyReplicas replicas=", lb.ReplicationCount, ", current replica count=", loadBalancerScope.GetReplicas())
 	return nil
 }
 
