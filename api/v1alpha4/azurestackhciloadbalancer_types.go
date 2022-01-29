@@ -38,6 +38,9 @@ type AzureStackHCILoadBalancerSpec struct {
 	// +optional
 	// +kubebuilder:default=1
 	Replicas *int32 `json:"replicas,omitempty"`
+
+	// +optional
+	HostType HostType `json:"hostType,omitempty"`
 }
 
 type AzureStackHCILoadBalancerStatus struct {

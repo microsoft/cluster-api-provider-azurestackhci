@@ -88,6 +88,11 @@ KUBECTL_VER := v1.21.4
 KUBECTL_BIN := kubectl
 KUBECTL := $(TOOLS_BIN_DIR)/$(KUBECTL_BIN)-$(KUBECTL_VER)
 
+TAGSUFFIX_APPEND :=
+ifdef TAGSUFFIX
+    TAGSUFFIX_APPEND := -${TAGSUFFIX}
+endif
+
 # Version
 MAJOR_VER ?= 0
 MINOR_VER ?= 4
@@ -99,7 +104,7 @@ STAGING_REGISTRY := mocimages.azurecr.io
 PROD_REGISTRY := mocimages.azurecr.io
 IMAGE_NAME ?= caphcontroller
 CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME)
-TAG := $(MAJOR_VER).$(MINOR_VER).$(PATCH_VER)
+TAG := $(MAJOR_VER).$(MINOR_VER).$(PATCH_VER)${TAGSUFFIX_APPEND}
 ARCH := amd64
 ALL_ARCH = amd64 arm arm64 ppc64le s390x
 

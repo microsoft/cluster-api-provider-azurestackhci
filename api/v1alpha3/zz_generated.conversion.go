@@ -544,6 +544,7 @@ func autoConvert_v1alpha3_AzureStackHCILoadBalancerSpec_To_v1alpha4_AzureStackHC
 	if err := Convert_v1alpha3_Image_To_v1alpha4_Image(&in.Image, &out.Image, s); err != nil {
 		return err
 	}
+	out.HostType = v1alpha4.HostType(in.HostType)
 	out.VMSize = in.VMSize
 	out.Replicas = (*int32)(unsafe.Pointer(in.Replicas))
 	return nil
@@ -561,6 +562,7 @@ func autoConvert_v1alpha4_AzureStackHCILoadBalancerSpec_To_v1alpha3_AzureStackHC
 	}
 	out.VMSize = in.VMSize
 	out.Replicas = (*int32)(unsafe.Pointer(in.Replicas))
+	out.HostType = HostType(in.HostType)
 	return nil
 }
 
@@ -695,6 +697,7 @@ func Convert_v1alpha4_AzureStackHCIMachineProviderCondition_To_v1alpha3_AzureSta
 
 func autoConvert_v1alpha3_AzureStackHCIMachineSpec_To_v1alpha4_AzureStackHCIMachineSpec(in *AzureStackHCIMachineSpec, out *v1alpha4.AzureStackHCIMachineSpec, s conversion.Scope) error {
 	out.ProviderID = (*string)(unsafe.Pointer(in.ProviderID))
+	out.HostType = v1alpha4.HostType(in.HostType)
 	out.VMSize = in.VMSize
 	if err := Convert_v1alpha3_AvailabilityZone_To_v1alpha4_AvailabilityZone(&in.AvailabilityZone, &out.AvailabilityZone, s); err != nil {
 		return err
@@ -719,6 +722,7 @@ func Convert_v1alpha3_AzureStackHCIMachineSpec_To_v1alpha4_AzureStackHCIMachineS
 
 func autoConvert_v1alpha4_AzureStackHCIMachineSpec_To_v1alpha3_AzureStackHCIMachineSpec(in *v1alpha4.AzureStackHCIMachineSpec, out *AzureStackHCIMachineSpec, s conversion.Scope) error {
 	out.ProviderID = (*string)(unsafe.Pointer(in.ProviderID))
+	out.HostType = HostType(in.HostType)
 	out.VMSize = in.VMSize
 	if err := Convert_v1alpha4_AvailabilityZone_To_v1alpha3_AvailabilityZone(&in.AvailabilityZone, &out.AvailabilityZone, s); err != nil {
 		return err
@@ -942,6 +946,7 @@ func Convert_v1alpha4_AzureStackHCIVirtualMachineList_To_v1alpha3_AzureStackHCIV
 }
 
 func autoConvert_v1alpha3_AzureStackHCIVirtualMachineSpec_To_v1alpha4_AzureStackHCIVirtualMachineSpec(in *AzureStackHCIVirtualMachineSpec, out *v1alpha4.AzureStackHCIVirtualMachineSpec, s conversion.Scope) error {
+	out.HostType = v1alpha4.HostType(in.HostType)
 	out.VMSize = in.VMSize
 	if err := Convert_v1alpha3_AvailabilityZone_To_v1alpha4_AvailabilityZone(&in.AvailabilityZone, &out.AvailabilityZone, s); err != nil {
 		return err
@@ -971,6 +976,7 @@ func Convert_v1alpha3_AzureStackHCIVirtualMachineSpec_To_v1alpha4_AzureStackHCIV
 }
 
 func autoConvert_v1alpha4_AzureStackHCIVirtualMachineSpec_To_v1alpha3_AzureStackHCIVirtualMachineSpec(in *v1alpha4.AzureStackHCIVirtualMachineSpec, out *AzureStackHCIVirtualMachineSpec, s conversion.Scope) error {
+	out.HostType = HostType(in.HostType)
 	out.VMSize = in.VMSize
 	if err := Convert_v1alpha4_AvailabilityZone_To_v1alpha3_AvailabilityZone(&in.AvailabilityZone, &out.AvailabilityZone, s); err != nil {
 		return err

@@ -6,12 +6,15 @@ require (
 	github.com/Azure/go-autorest/autorest v0.11.18 // indirect
 	github.com/Azure/go-autorest/autorest/to v0.4.0
 	github.com/blang/semver v3.5.1+incompatible
+	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-logr/logr v0.4.0
-	github.com/microsoft/moc v0.10.9
-	github.com/microsoft/moc-sdk-for-go v0.10.9-alpha.4
+	github.com/microsoft/moc v0.10.14
+	github.com/microsoft/moc-sdk-for-go v0.10.14
+	github.com/onsi/gomega v1.14.0 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/pflag v1.0.5
 	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
+	golang.org/x/oauth2 v0.0.0-20210628180205-a41e5a781914 // indirect
 	google.golang.org/grpc v1.39.0
 	k8s.io/api v0.21.3
 	k8s.io/apimachinery v0.21.3

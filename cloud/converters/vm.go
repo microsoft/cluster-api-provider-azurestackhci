@@ -23,8 +23,18 @@ import (
 	"github.com/microsoft/moc-sdk-for-go/services/compute"
 )
 
-// SDKToVM converts an SDK VirtualMachine to the provider VM type.
-func SDKToVM(v compute.VirtualMachine) (*infrav1.VM, error) {
+// VMConvertToCAPH converts an SDK VirtualMachine to the provider VM type.
+func VMConvertToCAPH(v compute.VirtualMachine) (*infrav1.VM, error) {
+	vm := &infrav1.VM{
+		ID:    to.String(v.ID),
+		Name:  to.String(v.Name),
+		State: infrav1.VMStateSucceeded, // Hard-coded for now until we expose provisioning state
+	}
+	return vm, nil
+}
+
+// BareMetalMachineConvertToCAPH converts an SDK BareMetalMachine to the provider VM type.
+func BareMetalMachineConvertToCAPH(v compute.BareMetalMachine) (*infrav1.VM, error) {
 	vm := &infrav1.VM{
 		ID:    to.String(v.ID),
 		Name:  to.String(v.Name),
