@@ -285,8 +285,6 @@ func (r *AzureStackHCIClusterReconciler) reconcileAzureStackHCILoadBalancer(clus
 		clusterScope.AzureStackHCILoadBalancer().Image.DeepCopyInto(&azureStackHCILoadBalancer.Spec.Image)
 		azureStackHCILoadBalancer.Spec.SSHPublicKey = clusterScope.AzureStackHCILoadBalancer().SSHPublicKey
 		azureStackHCILoadBalancer.Spec.VMSize = clusterScope.AzureStackHCILoadBalancer().VMSize
-	//	fmt.Println("CYN: caph lb replicas:", clusterScope.AzureStackHCILoadBalancer().Replicas)
-		clusterScope.Info("CYN: caph lb replicas:", "lb replicas", clusterScope.AzureStackHCILoadBalancer().Replicas)
 		azureStackHCILoadBalancer.Spec.Replicas = clusterScope.AzureStackHCILoadBalancer().Replicas
 		return nil
 	}

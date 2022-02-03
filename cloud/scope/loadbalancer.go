@@ -177,7 +177,6 @@ func (l *LoadBalancerScope) GetFailedReplicas() int32 {
 
 // GetDesiredReplicas returns the AzureStackHCILoadBalancer spec.Replicas
 func (l *LoadBalancerScope) GetDesiredReplicas() int32 {
-	//fmt.Println("CYN: caph GetDesiredReplicas() replicas = " , *l.AzureStackHCILoadBalancer.Spec.Replicas)
 	if l.AzureStackHCILoadBalancer.Spec.Replicas == nil {
 		return 0
 	}

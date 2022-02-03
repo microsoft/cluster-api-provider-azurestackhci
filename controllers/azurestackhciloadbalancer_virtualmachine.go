@@ -292,7 +292,6 @@ func (r *AzureStackHCILoadBalancerReconciler) getVirtualMachinesForLoadBalancer(
 // updateReplicaStatus updates the loadbalancer status using the specified replica information
 func (r *AzureStackHCILoadBalancerReconciler) updateReplicaStatus(lbs *scope.LoadBalancerScope, clusterScope *scope.ClusterScope, vmList []*infrav1.AzureStackHCIVirtualMachine) {
 	replicas, failedReplicas := r.getMachineReplicaCounts(vmList)
-	lbs.Info("CYN: updateReplicaStatus :", " replicas=%d", replicas, ", failedreplicas=%d", failedReplicas)
 
 	// best effort attempt to update ready replica count
 	r.reconcileLoadBalancerServiceStatus(lbs, clusterScope)
@@ -325,31 +324,26 @@ func (r *AzureStackHCILoadBalancerReconciler) replicasAreUpgrading(lbs *scope.Lo
 
 // replicasAreScalingUp checks if the replicas are in the process of scaling up
 func (r *AzureStackHCILoadBalancerReconciler) replicasAreScalingUp(lbs *scope.LoadBalancerScope) bool {
-	lbs.Info("CYN: LB replicas are scaling up")
 	return conditions.GetReason(lbs.AzureStackHCILoadBalancer, infrav1.LoadBalancerReplicasReadyCondition) == infrav1.LoadBalancerReplicasScalingUpReason
 }
 
 // replicasAreScalingDown checks if the replicas are in the process of scaling down
 func (r *AzureStackHCILoadBalancerReconciler) replicasAreScalingDown(lbs *scope.LoadBalancerScope) bool {
-	lbs.Info("CYN: LB replicas are scaling down")
 	return conditions.GetReason(lbs.AzureStackHCILoadBalancer, infrav1.LoadBalancerReplicasReadyCondition) == infrav1.LoadBalancerReplicasScalingDownReason
 }
 
 // replicasAreScaling checks if the replicas are in the process of a scale operation
 func (r *AzureStackHCILoadBalancerReconciler) replicasAreScaling(lbs *scope.LoadBalancerScope) bool {
-	lbs.Info("CYN: LB replicas are scaling")
 	return r.replicasAreScalingUp(lbs) || r.replicasAreScalingDown(lbs)
 }
 
 // isScaleUpRequired determines if the loadbalancer replicas need to be scaled up to meet desired state
 func (r *AzureStackHCILoadBalancerReconciler) isScaleUpRequired(loadBalancerScope *scope.LoadBalancerScope) bool {
-	loadBalancerScope.Info("CYN: LB replicas", " isScaleUpreqd=%d", loadBalancerScope.GetReplicas() < loadBalancerScope.GetDesiredReplicas())
 	return loadBalancerScope.GetReplicas() < loadBalancerScope.GetDesiredReplicas()
 }
 
 // isScaleDownRequired determines if the loadbalancer replicas need to be scaled down to meet desired state
 func (r *AzureStackHCILoadBalancerReconciler) isScaleDownRequired(loadBalancerScope *scope.LoadBalancerScope) bool {
-	loadBalancerScope.Info("CYN: LB replicas", " isScaleDownreqd=%d", loadBalancerScope.GetReplicas() > loadBalancerScope.GetDesiredReplicas())
 	return loadBalancerScope.GetReplicas() > loadBalancerScope.GetDesiredReplicas()
 }
 
