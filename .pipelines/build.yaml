@@ -37,7 +37,7 @@ jobs:
       containerRegistry: mocimages-connection
   - task: GoTool@0
     inputs:
-      version: '1.15.x'
+      version: '1.17.x'
 
   - script: |
       mkdir manifest
