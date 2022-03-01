@@ -282,6 +282,7 @@ spec:
       version: "${AZURESTACKHCI_LOAD_BALANCER_IMAGE_VERSION}"
     sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY:=""}
     vmSize: "${AZURESTACKHCI_LOAD_BALANCER_MACHINE_TYPE}"
+    replicas: ${AZURESTACKHCI_LOAD_BALANCER_COUNT}
   version: "${KUBERNETES_VERSION}"
 ---
 kind: KubeadmControlPlane

@@ -12,6 +12,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/pflag v1.0.5
 	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
+	golang.org/x/tools v0.1.5 // indirect
 	google.golang.org/grpc v1.39.0
 	k8s.io/api v0.21.3
 	k8s.io/apimachinery v0.21.3
@@ -20,7 +21,6 @@ require (
 	k8s.io/utils v0.0.0-20210722164352-7f3ee0f31471
 	sigs.k8s.io/cluster-api v0.4.2
 	sigs.k8s.io/controller-runtime v0.9.6
-	sigs.k8s.io/controller-tools v0.6.2 // indirect
 )
 
 replace github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.2
