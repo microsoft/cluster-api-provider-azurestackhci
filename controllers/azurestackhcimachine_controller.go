@@ -413,7 +413,7 @@ func (r *AzureStackHCIMachineReconciler) AzureStackHCIClusterToAzureStackHCIMach
 // Pick image from the machine configuration, or use a default one.
 func (r *AzureStackHCIMachineReconciler) getVMImage(scope *scope.MachineScope) (*infrav1.Image, error) {
 	// Use custom image if provided
-	if scope.AzureStackHCIMachine.Spec.Image.Name != nil {
+	if scope.AzureStackHCIMachine.Spec.Image.Name != nil && *scope.AzureStackHCIMachine.Spec.Image.Name != "" {
 		scope.Info("Using custom image name for machine", "machine", scope.AzureStackHCIMachine.GetName(), "imageName", scope.AzureStackHCIMachine.Spec.Image.Name)
 		return &scope.AzureStackHCIMachine.Spec.Image, nil
 	}
