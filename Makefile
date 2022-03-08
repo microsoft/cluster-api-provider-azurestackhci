@@ -99,7 +99,7 @@ STAGING_REGISTRY := docker.io
 PROD_REGISTRY := docker.io
 IMAGE_NAME ?= magund/caphcontroller-ws2022
 CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME)
-TAG := 0.2
+TAG := 0.3
 ARCH := amd64
 ALL_ARCH = amd64 arm arm64 ppc64le s390x
 
