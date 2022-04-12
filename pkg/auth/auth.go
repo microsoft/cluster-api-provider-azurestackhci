@@ -29,6 +29,7 @@ import (
 	"github.com/microsoft/moc-sdk-for-go/services/security/authentication/casigned"
 	"github.com/microsoft/moc/pkg/auth"
 	"github.com/microsoft/moc/pkg/config"
+	mocerrors "github.com/microsoft/moc/pkg/errors"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -84,7 +85,16 @@ func ReconcileAzureStackHCIAccess(ctx context.Context, cli client.Client, cloudF
 	}
 	authorizer, err := auth.NewAuthorizerFromEnvironment(cloudFqdn)
 	if err != nil {
-		return nil, errors.Wrap(err, "error: new authorizer failed")
+		// Return for any errors other than cert expiry
+		if !mocerrors.IsExpired(err) {
+			return nil, errors.Wrap(err, "error: new authorizer failed")
+		}
+		// Login if certificate expired
+		if err := login(ctx, cli, cloudFqdn); err != nil {
+			return nil, err
+		}
+		// create new authorization
+		return auth.NewAuthorizerFromEnvironment(cloudFqdn)
 	}
 	return authorizer, nil
 }
