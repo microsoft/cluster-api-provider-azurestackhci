@@ -77,9 +77,7 @@ func ReconcileAzureStackHCIAccess(ctx context.Context, cli client.Client, cloudF
 	if strings.ToLower(os.Getenv("WSSD_DEBUG_MODE")) != "on" {
 		_, err := os.Stat(wssdconfigpath)
 		if err != nil {
-			if err := login(ctx, cli, cloudFqdn); err != nil {
-				return nil, err
-			}
+			return login(ctx, cli, cloudFqdn)
 		}
 		go UpdateLoginConfig(ctx, cli)
 	}
@@ -90,11 +88,7 @@ func ReconcileAzureStackHCIAccess(ctx context.Context, cli client.Client, cloudF
 			return nil, errors.Wrap(err, "error: new authorizer failed")
 		}
 		// Login if certificate expired
-		if err := login(ctx, cli, cloudFqdn); err != nil {
-			return nil, err
-		}
-		// create new authorization
-		return auth.NewAuthorizerFromEnvironment(cloudFqdn)
+		return login(ctx, cli, cloudFqdn)
 	}
 	return authorizer, nil
 }
@@ -124,48 +118,50 @@ func UpdateLoginConfig(ctx context.Context, cli client.Client) {
 
 }
 
-func login(ctx context.Context, cli client.Client, cloudFqdn string) error {
+func login(ctx context.Context, cli client.Client, cloudFqdn string) (auth.Authorizer, error) {
 	wssdconfigpath := os.Getenv("WSSD_CONFIG_PATH")
 	if wssdconfigpath == "" {
-		return errors.New("ReconcileAzureStackHCIAccess: Environment variable WSSD_CONFIG_PATH is not set")
+		return nil, errors.New("ReconcileAzureStackHCIAccess: Environment variable WSSD_CONFIG_PATH is not set")
 	}
 
 	mut.Lock()
 	defer mut.Unlock()
 	if _, err := os.Stat(wssdconfigpath); err == nil {
-		return nil
+		if authorizer, err := auth.NewAuthorizerFromEnvironment(cloudFqdn); err == nil {
+			return authorizer, nil
+		}
 	}
 	klog.Infof("AzureStackHCI: Login attempt")
 	secret, err := GetSecret(ctx, cli, AzHCIAccessCreds)
 	if err != nil {
-		return errors.Wrap(err, "failed to create wssd session, missing login credentials secret")
+		return nil, errors.Wrap(err, "failed to create wssd session, missing login credentials secret")
 	}
 
 	data, ok := secret.Data[AzHCIAccessTokenFieldName]
 	if !ok {
-		return errors.New("error: could not parse kubernetes secret")
+		return nil, errors.New("error: could not parse kubernetes secret")
 	}
 
 	loginconfig := auth.LoginConfig{}
 	err = config.LoadYAMLConfig(string(data), &loginconfig)
 	if err != nil {
-		return errors.Wrap(err, "failed to create wssd session: parse yaml login config failed")
+		return nil, errors.Wrap(err, "failed to create wssd session: parse yaml login config failed")
 	}
 
 	authenticationClient, err := authentication.NewAuthenticationClientAuthMode(cloudFqdn, loginconfig)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	_, err = authenticationClient.LoginWithConfig(ctx, "", loginconfig, true)
 	if err != nil && !azurestackhci.ResourceAlreadyExists(err) {
-		return errors.Wrap(err, "failed to create wssd session: login failed")
+		return nil, errors.Wrap(err, "failed to create wssd session: login failed")
 	}
 	if _, err := os.Stat(wssdconfigpath); err != nil {
-		return errors.Wrapf(err, "Missing wssdconfig %s after login", wssdconfigpath)
+		return nil, errors.Wrapf(err, "Missing wssdconfig %s after login", wssdconfigpath)
 	}
 	klog.Infof("AzureStackHCI: Login successful")
-	return nil
+	return auth.NewAuthorizerFromEnvironment(cloudFqdn)
 }
 
 func GetSecret(ctx context.Context, cli client.Client, name string) (*corev1.Secret, error) {
