@@ -31,4 +31,19 @@ resources:
 - group: infrastructure
   kind: AzureStackHCILoadBalancer
   version: v1alpha4
+- group: infrastructure
+  kind: AzureStackHCICluster
+  version: v1beta1
+- group: infrastructure
+  kind: AzureStackHCIMachine
+  version: v1beta1
+- group: infrastructure
+  kind: AzureStackHCIMachineTemplate
+  version: v1beta1
+- group: infrastructure
+  kind: AzureStackHCIVirtualMachine
+  version: v1beta1
+- group: infrastructure
+  kind: AzureStackHCILoadBalancer
+  version: v1beta1
 version: "2"

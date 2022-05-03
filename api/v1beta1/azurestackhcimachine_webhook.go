@@ -15,20 +15,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package converters
+package v1beta1
 
 import (
-	"github.com/Azure/go-autorest/autorest/to"
-	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1"
-	"github.com/microsoft/moc-sdk-for-go/services/compute"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-// SDKToVM converts an SDK VirtualMachine to the provider VM type.
-func SDKToVM(v compute.VirtualMachine) (*infrav1.VM, error) {
-	vm := &infrav1.VM{
-		ID:    to.String(v.ID),
-		Name:  to.String(v.Name),
-		State: infrav1.VMStateSucceeded, // Hard-coded for now until we expose provisioning state
-	}
-	return vm, nil
+// SetupWebhookWithManager will setup and register the webhook with the controller mnager
+func (m *AzureStackHCIMachine) SetupWebhookWithManager(mgr ctrl.Manager) error {
+	return ctrl.NewWebhookManagedBy(mgr).
+		For(m).
+		Complete()
 }

@@ -11,6 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha3
+package v1alpha4
 
 // +k8s:conversion-gen=github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1

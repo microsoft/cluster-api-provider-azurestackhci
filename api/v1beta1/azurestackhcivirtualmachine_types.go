@@ -15,12 +15,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha4
+package v1beta1
 
 import (
 	v1core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha4"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/cluster-api/errors"
 )
 
@@ -78,6 +78,7 @@ type AzureStackHCIVirtualMachineStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:path=azurestackhcivirtualmachines,scope=Namespaced,categories=cluster-api
 // +kubebuilder:subresource:status
+// +kubebuilder:storageversion
 
 // AzureStackHCIVirtualMachine is the Schema for the azurestackhcivirtualmachines API
 type AzureStackHCIVirtualMachine struct {

@@ -8,7 +8,7 @@ metadata:
 webhooks:
 - admissionReviewVersions:
   - v1
-  - v1beta1 
+  - v1beta1
   clientConfig:
     caBundle: Cg==
     service:
@@ -23,6 +23,7 @@ webhooks:
     - infrastructure.cluster.x-k8s.io
     apiVersions:
     - v1alpha3
+    - v1alpha4
     operations:
     - CREATE
     - UPDATE

@@ -15,11 +15,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha4
+package v1beta1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha4"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/cluster-api/errors"
 )
 
@@ -145,6 +145,7 @@ func (c *AzureStackHCILoadBalancerStatus) GetTypedPhase() AzureStackHCILoadBalan
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:path=azurestackhciloadbalancers,scope=Namespaced,categories=cluster-api
 // +kubebuilder:subresource:status
+// +kubebuilder:storageversion
 // +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas,selectorpath=.status.selector
 // +kubebuilder:printcolumn:name="Phase",type="string",JSONPath=".status.phase",description="The current phase/status of the loadbalancer"
 // +kubebuilder:printcolumn:name="IP",type="string",JSONPath=".status.address",description="The frontend VIP address assigned to the loadbalancer"
