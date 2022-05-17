@@ -91,7 +91,7 @@ func (r *AzureStackHCIClusterReconciler) Reconcile(ctx context.Context, req ctrl
 	// Create the scope.
 	clusterScope, err := scope.NewClusterScope(scope.ClusterScopeParams{
 		Client:               r.Client,
-		Logger:               log,
+		Logger:               &log,
 		Cluster:              cluster,
 		AzureStackHCICluster: azureStackHCICluster,
 	})

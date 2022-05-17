@@ -78,7 +78,7 @@ func (r *AzureStackHCIVirtualMachineReconciler) Reconcile(ctx context.Context, r
 
 	// Create the machine scope
 	virtualMachineScope, err := scope.NewVirtualMachineScope(scope.VirtualMachineScopeParams{
-		Logger:                      logger,
+		Logger:                      &logger,
 		Client:                      r.Client,
 		AzureStackHCIVirtualMachine: azureStackHCIVirtualMachine,
 	})

@@ -29,7 +29,7 @@ import (
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/virtualmachines"
 	sdk_compute "github.com/microsoft/moc-sdk-for-go/services/compute"
 	"github.com/pkg/errors"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 // azureStackHCIVirtualMachineService are list of services required by cluster actuator, easy to create a fake

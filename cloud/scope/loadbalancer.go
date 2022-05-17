@@ -23,7 +23,7 @@ import (
 	"github.com/go-logr/logr"
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha4"
 	"github.com/pkg/errors"
-	"k8s.io/klog/klogr"
+	"k8s.io/klog/v2/klogr"
 	"k8s.io/utils/pointer"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha4"
 	capierrors "sigs.k8s.io/cluster-api/errors"
@@ -34,7 +34,7 @@ import (
 // LoadBalancerScopeParams defines the input parameters used to create a new LoadBalancerScope.
 type LoadBalancerScopeParams struct {
 	Client                    client.Client
-	Logger                    logr.Logger
+	Logger                    *logr.Logger
 	AzureStackHCILoadBalancer *infrav1.AzureStackHCILoadBalancer
 	Cluster                   *clusterv1.Cluster
 	AzureStackHCICluster      *infrav1.AzureStackHCICluster
@@ -52,7 +52,8 @@ func NewLoadBalancerScope(params LoadBalancerScopeParams) (*LoadBalancerScope, e
 	}
 
 	if params.Logger == nil {
-		params.Logger = klogr.New()
+		log := klogr.New()
+		params.Logger = &log
 	}
 
 	helper, err := patch.NewHelper(params.AzureStackHCILoadBalancer, params.Client)
@@ -64,7 +65,7 @@ func NewLoadBalancerScope(params LoadBalancerScopeParams) (*LoadBalancerScope, e
 		AzureStackHCILoadBalancer: params.AzureStackHCILoadBalancer,
 		Cluster:                   params.Cluster,
 		AzureStackHCICluster:      params.AzureStackHCICluster,
-		Logger:                    params.Logger,
+		Logger:                    *params.Logger,
 		patchHelper:               helper,
 		Context:                   context.Background(),
 	}, nil

@@ -130,7 +130,7 @@ func (r *AzureStackHCIMachineReconciler) Reconcile(ctx context.Context, req ctrl
 	// Create the cluster scope
 	clusterScope, err := scope.NewClusterScope(scope.ClusterScopeParams{
 		Client:               r.Client,
-		Logger:               logger,
+		Logger:               &logger,
 		Cluster:              cluster,
 		AzureStackHCICluster: azureStackHCICluster,
 	})
@@ -141,7 +141,7 @@ func (r *AzureStackHCIMachineReconciler) Reconcile(ctx context.Context, req ctrl
 
 	// Create the machine scope
 	machineScope, err := scope.NewMachineScope(scope.MachineScopeParams{
-		Logger:               logger,
+		Logger:               &logger,
 		Client:               r.Client,
 		Cluster:              cluster,
 		Machine:              machine,

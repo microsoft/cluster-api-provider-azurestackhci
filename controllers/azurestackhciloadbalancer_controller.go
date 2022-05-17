@@ -108,7 +108,7 @@ func (r *AzureStackHCILoadBalancerReconciler) Reconcile(ctx context.Context, req
 	// create a cluster scope for the request.
 	clusterScope, err := scope.NewClusterScope(scope.ClusterScopeParams{
 		Client:               r.Client,
-		Logger:               logger,
+		Logger:               &logger,
 		Cluster:              cluster,
 		AzureStackHCICluster: azureStackHCICluster,
 	})
@@ -119,7 +119,7 @@ func (r *AzureStackHCILoadBalancerReconciler) Reconcile(ctx context.Context, req
 
 	// create a lb scope for this request.
 	loadBalancerScope, err := scope.NewLoadBalancerScope(scope.LoadBalancerScopeParams{
-		Logger:                    logger,
+		Logger:                    &logger,
 		Client:                    r.Client,
 		AzureStackHCILoadBalancer: azureStackHCILoadBalancer,
 		AzureStackHCICluster:      azureStackHCICluster,

@@ -26,7 +26,7 @@ import (
 	azhciauth "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/auth"
 	"github.com/microsoft/moc/pkg/auth"
 	"github.com/pkg/errors"
-	"k8s.io/klog/klogr"
+	"k8s.io/klog/v2/klogr"
 	"k8s.io/utils/pointer"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha4"
 	capierrors "sigs.k8s.io/cluster-api/errors"
@@ -39,7 +39,7 @@ import (
 type VirtualMachineScopeParams struct {
 	AzureStackHCIClients
 	Client                      client.Client
-	Logger                      logr.Logger
+	Logger                      *logr.Logger
 	AzureStackHCIVirtualMachine *infrav1.AzureStackHCIVirtualMachine
 }
 
@@ -55,7 +55,8 @@ func NewVirtualMachineScope(params VirtualMachineScopeParams) (*VirtualMachineSc
 	}
 
 	if params.Logger == nil {
-		params.Logger = klogr.New()
+		log := klogr.New()
+		params.Logger = &log
 	}
 
 	agentFqdn := os.Getenv("AZURESTACKHCI_CLOUDAGENT_FQDN")
@@ -78,7 +79,7 @@ func NewVirtualMachineScope(params VirtualMachineScopeParams) (*VirtualMachineSc
 		client:                      params.Client,
 		AzureStackHCIVirtualMachine: params.AzureStackHCIVirtualMachine,
 		AzureStackHCIClients:        params.AzureStackHCIClients,
-		Logger:                      params.Logger,
+		Logger:                      *params.Logger,
 		patchHelper:                 helper,
 		Context:                     context.Background(),
 	}, nil
