@@ -418,5 +418,9 @@ func (r *AzureStackHCIMachineReconciler) getVMImage(scope *scope.MachineScope) (
 		return &scope.AzureStackHCIMachine.Spec.Image, nil
 	}
 
-	return azurestackhci.GetDefaultImage(scope.AzureStackHCIMachine.Spec.Image.OSType, to.String(scope.Machine.Spec.Version))
+	imageName, err := azurestackhci.GetDefaultImage(scope.AzureStackHCIMachine.Spec.Image.OSType, to.String(scope.Machine.Spec.Version))
+	logger := r.Log.WithValues("azureStackHCIMachine", string(scope.AzureStackHCIMachine.Spec.Image.OSType))
+	logger.Info("ostype")
+	logger.Info(string(imageName.OSType))
+	return imageName, err
 }
