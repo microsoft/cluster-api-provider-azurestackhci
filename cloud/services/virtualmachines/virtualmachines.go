@@ -174,7 +174,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		vmSpec.Name,
 		&virtualMachine)
 	if err != nil {
-		return errors.Wrapf(err, "cannot create vm")
+		return errors.Wrapf(err, "cannot create vm. magund ostype: %s, ostypevalue %s", vmSpec.Image.OSType, infrav1.OSTypeWindows2022)
 	}
 
 	klog.V(2).Infof("successfully created vm %s ", vmSpec.Name)
