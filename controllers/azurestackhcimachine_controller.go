@@ -152,7 +152,7 @@ func (r *AzureStackHCIMachineReconciler) Reconcile(ctx context.Context, req ctrl
 		r.Recorder.Eventf(azureStackHCIMachine, corev1.EventTypeWarning, "FailureCreateMachineScope", errors.Wrapf(err, "failed to create machine scope").Error())
 		return reconcile.Result{}, errors.Errorf("failed to create scope: %+v", err)
 	}
-
+	
 	// Always close the scope when exiting this function so we can persist any AzureStackHCIMachine changes.
 	defer func() {
 		if err := machineScope.Close(); err != nil && reterr == nil {
@@ -418,9 +418,5 @@ func (r *AzureStackHCIMachineReconciler) getVMImage(scope *scope.MachineScope) (
 		return &scope.AzureStackHCIMachine.Spec.Image, nil
 	}
 
-	imageName, err := azurestackhci.GetDefaultImage(scope.AzureStackHCIMachine.Spec.Image.OSType, to.String(scope.Machine.Spec.Version))
-	logger := r.Log.WithValues("azureStackHCIMachine", string(scope.AzureStackHCIMachine.Spec.Image.OSType))
-	logger.Info("ostype")
-	logger.Info(string(imageName.OSType))
-	return imageName, err
+	return azurestackhci.GetDefaultImage(scope.AzureStackHCIMachine.Spec.Image.OSType, to.String(scope.Machine.Spec.Version))
 }
