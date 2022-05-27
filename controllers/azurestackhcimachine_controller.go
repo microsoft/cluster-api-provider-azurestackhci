@@ -85,6 +85,8 @@ func (r *AzureStackHCIMachineReconciler) Reconcile(ctx context.Context, req ctrl
 
 	// Fetch the AzureStackHCIMachine VM.
 	azureStackHCIMachine := &infrav1.AzureStackHCIMachine{}
+	logger.Info("MANASI CODE HIT 7 azureStackHCIMachine.Spec.Image.OSType")
+	logger.Info(string(azureStackHCIMachine.Spec.Image.OSType))
 	err := r.Get(ctx, req.NamespacedName, azureStackHCIMachine)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
@@ -152,6 +154,7 @@ func (r *AzureStackHCIMachineReconciler) Reconcile(ctx context.Context, req ctrl
 		r.Recorder.Eventf(azureStackHCIMachine, corev1.EventTypeWarning, "FailureCreateMachineScope", errors.Wrapf(err, "failed to create machine scope").Error())
 		return reconcile.Result{}, errors.Errorf("failed to create scope: %+v", err)
 	}
+	machineScope.Info("MAGUND CODE HIT", "ScopeOSTYPE", string(machinescope.AzureStackHCIMachine.Spec.Image.OSType))
 
 	// Always close the scope when exiting this function so we can persist any AzureStackHCIMachine changes.
 	defer func() {
@@ -171,6 +174,7 @@ func (r *AzureStackHCIMachineReconciler) Reconcile(ctx context.Context, req ctrl
 
 func (r *AzureStackHCIMachineReconciler) reconcileNormal(machineScope *scope.MachineScope, clusterScope *scope.ClusterScope) (reconcile.Result, error) {
 	machineScope.Info("Reconciling AzureStackHCIMachine")
+	machineScope.Info("MAGUND CODE HIT", "ScopeOSTYPE", string(machinescope.AzureStackHCIMachine.Spec.Image.OSType))
 	// If the AzureStackHCIMachine is in an error state, return early.
 	if machineScope.AzureStackHCIMachine.Status.FailureReason != nil || machineScope.AzureStackHCIMachine.Status.FailureMessage != nil {
 		machineScope.Info("Error state detected, skipping reconciliation")
