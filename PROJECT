@@ -46,4 +46,4 @@ resources:
 - group: infrastructure
   kind: AzureStackHCILoadBalancer
   version: v1beta1
-version: "2"
+version: "3"

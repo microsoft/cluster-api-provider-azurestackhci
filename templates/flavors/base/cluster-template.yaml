@@ -1,5 +1,5 @@
 ---
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
 kind: AzureStackHCIMachineTemplate
 metadata:
   name: "${CLUSTER_NAME}-md-0"
@@ -13,7 +13,7 @@ spec:
       sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY:=""}
 ---
 kind: AzureStackHCIMachineTemplate
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
 metadata:
   name: "${CLUSTER_NAME}-control-plane"
 spec:
@@ -25,7 +25,7 @@ spec:
       vmSize: ${AZURESTACKHCI_CONTROL_PLANE_MACHINE_TYPE}
       sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY:=""}
 ---
-apiVersion: bootstrap.cluster.x-k8s.io/v1alpha4
+apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
 kind: KubeadmConfigTemplate
 metadata:
   name: "${CLUSTER_NAME}-md-0"
@@ -39,7 +39,7 @@ spec:
           kubeletExtraArgs:
             cloud-provider: external
 ---
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
 kind: AzureStackHCIMachineTemplate
 metadata:
   name: "${CLUSTER_NAME}-md-1"
@@ -57,7 +57,7 @@ spec:
       vmSize: ${AZURESTACKHCI_WINDOWS_WORKER_MACHINE_TYPE}
       sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY:=""}
 ---
-apiVersion: bootstrap.cluster.x-k8s.io/v1alpha4
+apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
 kind: KubeadmConfigTemplate
 metadata:
   name: "${CLUSTER_NAME}-md-1"
@@ -249,7 +249,7 @@ spec:
         - powershell -C "powershell C:\ECP-Cache\RetryJoinIfNecessary.ps1 > C:\tmp\retry.log 2>&1; type C:\tmp\retry.log; del C:\tmp\retry.log"
         - powershell C:\ECP-Cache\StartFlannel.ps1
 ---
-apiVersion: cluster.x-k8s.io/v1alpha4
+apiVersion: cluster.x-k8s.io/v1beta1
 kind: Cluster
 metadata:
   name: ${CLUSTER_NAME}
@@ -262,11 +262,11 @@ spec:
       cidrBlocks: 
       - ${AZURESTACKHCI_SERVICE_CIDR:=""}
   infrastructureRef:
-    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+    apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
     kind: AzureStackHCICluster
     name: ${CLUSTER_NAME}
 ---
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
 kind: AzureStackHCICluster
 metadata:
   name: ${CLUSTER_NAME}
@@ -286,7 +286,7 @@ spec:
   version: "${KUBERNETES_VERSION}"
 ---
 kind: KubeadmControlPlane
-apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+apiVersion: controlplane.cluster.x-k8s.io/v1beta1
 metadata:
   name: "${CLUSTER_NAME}-control-plane"
 spec:
@@ -294,7 +294,7 @@ spec:
   machineTemplate:
     infrastructureRef:
       kind: AzureStackHCIMachineTemplate
-      apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+      apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
       name: "${CLUSTER_NAME}-control-plane"
   kubeadmConfigSpec:
     useExperimentalRetryJoin: true
@@ -329,7 +329,7 @@ spec:
       imageRepository: "ecpacr.azurecr.io"
   version: "${KUBERNETES_VERSION}"
 ---
-apiVersion: cluster.x-k8s.io/v1alpha4
+apiVersion: cluster.x-k8s.io/v1beta1
 kind: MachineDeployment
 metadata:
   name: "${CLUSTER_NAME}-md-0"
@@ -345,14 +345,14 @@ spec:
       bootstrap:
         configRef:
           name: "${CLUSTER_NAME}-md-0"
-          apiVersion: bootstrap.cluster.x-k8s.io/v1alpha4
+          apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
           kind: KubeadmConfigTemplate
       infrastructureRef:
         name: "${CLUSTER_NAME}-md-0"
-        apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+        apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
         kind: AzureStackHCIMachineTemplate
 ---
-apiVersion: cluster.x-k8s.io/v1alpha4
+apiVersion: cluster.x-k8s.io/v1beta1
 kind: MachineDeployment
 metadata:
   name: "${CLUSTER_NAME}-md-1"
@@ -368,9 +368,9 @@ spec:
       bootstrap:
         configRef:
           name: "${CLUSTER_NAME}-md-1"
-          apiVersion: bootstrap.cluster.x-k8s.io/v1alpha4
+          apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
           kind: KubeadmConfigTemplate
       infrastructureRef:
         name: "${CLUSTER_NAME}-md-1"
-        apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+        apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
         kind: AzureStackHCIMachineTemplate

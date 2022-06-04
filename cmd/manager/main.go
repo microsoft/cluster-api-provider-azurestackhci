@@ -36,7 +36,7 @@ import (
 	cgrecord "k8s.io/client-go/tools/record"
 	"k8s.io/klog/v2"
 	"k8s.io/klog/v2/klogr"
-	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha4"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/cluster-api/feature"
 	"sigs.k8s.io/cluster-api/util/record"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -241,6 +241,11 @@ func main() {
 
 	if err := (&infrav1beta1.AzureStackHCIMachineTemplate{}).SetupWebhookWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create webhook", "webhook", "AzureStackHCIMachineTemplate")
+		os.Exit(1)
+	}
+
+	if err := (&infrav1beta1.AzureStackHCIVirtualMachine{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "AzureStackHCIVirtualMachine")
 		os.Exit(1)
 	}
 
