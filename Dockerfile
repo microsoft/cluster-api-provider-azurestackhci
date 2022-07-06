@@ -47,7 +47,8 @@
 
 # Copy the controller-manager into a thin image
 #FROM alpine:3.11
-FROM gcr.io/distroless/static:latest
+# Refer to https://eng.ms/docs/products/mariner-linux/gettingstarted/containers/distroless for more details
+FROM mcr.microsoft.com/cbl-mariner/distroless/debug:2.0
 WORKDIR /
 COPY bin/manager ./
 USER nobody
