@@ -19,6 +19,7 @@ package disks
 
 import (
 	"context"
+	"os"
 
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/moc-sdk-for-go/services/storage"
@@ -39,11 +40,19 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 		return storage.VirtualHardDisk{}, errors.New("Invalid Disk Specification")
 	}
 	disk, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), "", diskSpec.Name)
-	if err != nil && azurestackhci.ResourceNotFound(err) {
-		return nil, errors.Wrapf(err, "disk %s not found", diskSpec.Name)
-	} else if err != nil {
+	if err != nil {
+		if azurestackhci.TransportUnavailable(err) {
+			klog.Error("Communication with cloud agent failed. Exiting Process.")
+			os.Exit(1)
+		}
+
+		if azurestackhci.ResourceNotFound(err) {
+			return nil, errors.Wrapf(err, "disk %s not found", diskSpec.Name)
+		}
+
 		return nil, err
 	}
+
 	return (*disk)[0], nil
 }
 
@@ -66,6 +75,11 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			VirtualHardDiskProperties: &storage.VirtualHardDiskProperties{},
 		})
 	if err != nil {
+		if azurestackhci.TransportUnavailable(err) {
+			klog.Error("Communication with cloud agent failed. Exiting Process.")
+			os.Exit(1)
+		}
+
 		return err
 	}
 
@@ -81,14 +95,20 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	}
 	klog.V(2).Infof("deleting disk %s", diskSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), "", diskSpec.Name)
-	if err != nil && azurestackhci.ResourceNotFound(err) {
-		// already deleted
-		return nil
-	}
 	if err != nil {
+		if azurestackhci.TransportUnavailable(err) {
+			klog.Error("Communication with cloud agent failed. Exiting Process.")
+			os.Exit(1)
+		}
+
+		if azurestackhci.ResourceNotFound(err) {
+			// already deleted
+			return nil
+		}
+
 		return errors.Wrapf(err, "failed to delete disk %s in resource group %s", diskSpec.Name, s.Scope.GetResourceGroup())
 	}
 
 	klog.V(2).Infof("successfully deleted disk %s", diskSpec.Name)
-	return err
+	return nil
 }

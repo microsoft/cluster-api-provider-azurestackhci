@@ -19,6 +19,7 @@ package secrets
 
 import (
 	"context"
+	"os"
 
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/moc-sdk-for-go/services/security/keyvault"
@@ -41,11 +42,19 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 		return keyvault.Secret{}, errors.New("Invalid secret specification")
 	}
 	secret, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), secretSpec.Name, secretSpec.VaultName)
-	if err != nil && azurestackhci.ResourceNotFound(err) {
-		return nil, errors.Wrapf(err, "secret %s not found", secretSpec.Name)
-	} else if err != nil {
+	if err != nil {
+		if azurestackhci.TransportUnavailable(err) {
+			klog.Error("Communication with cloud agent failed. Exiting Process.")
+			os.Exit(1)
+		}
+
+		if azurestackhci.ResourceNotFound(err) {
+			return nil, errors.Wrapf(err, "secret %s not found", secretSpec.Name)
+		}
+
 		return nil, err
 	}
+
 	if secret == nil || len(*secret) == 0 {
 		return nil, errors.New("Not Found")
 	}
@@ -75,6 +84,11 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			},
 		})
 	if err != nil {
+		if azurestackhci.TransportUnavailable(err) {
+			klog.Error("Communication with cloud agent failed. Exiting Process.")
+			os.Exit(1)
+		}
+
 		return err
 	}
 
@@ -90,11 +104,17 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	}
 	klog.V(2).Infof("deleting secret %s", secretSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), secretSpec.Name, secretSpec.VaultName)
-	if err != nil && azurestackhci.ResourceNotFound(err) {
-		// already deleted
-		return nil
-	}
 	if err != nil {
+		if azurestackhci.TransportUnavailable(err) {
+			klog.Error("Communication with cloud agent failed. Exiting Process.")
+			os.Exit(1)
+		}
+
+		if azurestackhci.ResourceNotFound(err) {
+			// already deleted
+			return nil
+		}
+
 		return errors.Wrapf(err, "failed to delete secret %s in resource group %s", secretSpec.Name, s.Scope.GetResourceGroup())
 	}
 

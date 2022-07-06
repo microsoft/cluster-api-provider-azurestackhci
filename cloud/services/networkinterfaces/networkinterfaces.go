@@ -19,6 +19,7 @@ package networkinterfaces
 
 import (
 	"context"
+	"os"
 
 	"github.com/Azure/go-autorest/autorest/to"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
@@ -44,11 +45,19 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 		return network.Interface{}, errors.New("invalid network interface specification")
 	}
 	nic, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), nicSpec.Name)
-	if err != nil && azurestackhci.ResourceNotFound(err) {
-		return nil, errors.Wrapf(err, "network interface %s not found", nicSpec.Name)
-	} else if err != nil {
+	if err != nil {
+		if azurestackhci.TransportUnavailable(err) {
+			klog.Error("Communication with cloud agent failed. Exiting Process.")
+			os.Exit(1)
+		}
+
+		if azurestackhci.ResourceNotFound(err) {
+			return nil, errors.Wrapf(err, "network interface %s not found", nicSpec.Name)
+		}
+
 		return nil, err
 	}
+
 	return (*nic)[0], nil
 }
 
@@ -96,8 +105,12 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 				},
 			},
 		})
-
 	if err != nil {
+		if azurestackhci.TransportUnavailable(err) {
+			klog.Error("Communication with cloud agent failed. Exiting Process.")
+			os.Exit(1)
+		}
+
 		return errors.Wrapf(err, "failed to create network interface %s in resource group %s", nicSpec.Name, s.Scope.GetResourceGroup())
 	}
 
@@ -113,14 +126,20 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	}
 	klog.V(2).Infof("deleting nic %s", nicSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), nicSpec.Name)
-	if err != nil && azurestackhci.ResourceNotFound(err) {
-		// already deleted
-		return nil
-	}
 	if err != nil {
+		if azurestackhci.TransportUnavailable(err) {
+			klog.Error("Communication with cloud agent failed. Exiting Process.")
+			os.Exit(1)
+		}
+
+		if azurestackhci.ResourceNotFound(err) {
+			// already deleted
+			return nil
+		}
+
 		return errors.Wrapf(err, "failed to delete network interface %s in resource group %s", nicSpec.Name, s.Scope.GetResourceGroup())
 	}
 
 	klog.V(2).Infof("successfully deleted nic %s", nicSpec.Name)
-	return err
+	return nil
 }

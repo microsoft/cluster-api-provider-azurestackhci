@@ -23,6 +23,7 @@ import (
 	"crypto/rsa"
 	"encoding/base64"
 	"fmt"
+	"os"
 
 	"github.com/Azure/go-autorest/autorest/to"
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha4"
@@ -64,8 +65,13 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 
 	vm, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
 	if err != nil {
+		if azurestackhci.TransportUnavailable(err) {
+			klog.Error("Communication with cloud agent failed. Exiting Process.")
+			os.Exit(1)
+		}
 		return nil, err
 	}
+
 	if vm == nil || len(*vm) == 0 {
 		return nil, errors.Wrapf(err, "vm %s not found", vmSpec.Name)
 	}
@@ -179,6 +185,10 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		vmSpec.Name,
 		&virtualMachine)
 	if err != nil {
+		if azurestackhci.TransportUnavailable(err) {
+			klog.Error("Communication with cloud agent failed. Exiting Process.")
+			os.Exit(1)
+		}
 		return errors.Wrapf(err, "cannot create vm")
 	}
 
@@ -194,11 +204,17 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	}
 	klog.V(2).Infof("deleting vm %s ", vmSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
-	if err != nil && azurestackhci.ResourceNotFound(err) {
-		// already deleted
-		return nil
-	}
 	if err != nil {
+		if azurestackhci.TransportUnavailable(err) {
+			klog.Error("Communication with cloud agent failed. Exiting Process.")
+			os.Exit(1)
+		}
+
+		if azurestackhci.ResourceNotFound(err) {
+			// already deleted
+			return nil
+		}
+
 		return errors.Wrapf(err, "failed to delete vm %s in resource group %s", vmSpec.Name, s.Scope.GetResourceGroup())
 	}
 

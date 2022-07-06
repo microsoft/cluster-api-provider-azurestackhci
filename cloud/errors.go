@@ -37,3 +37,11 @@ func ResourceAlreadyExists(err error) bool {
 	}
 	return false
 }
+
+func TransportUnavailable(err error) bool {
+	if e, ok := status.FromError(err); ok && e.Code() == codes.Unavailable {
+		return true
+	}
+
+	return false
+}

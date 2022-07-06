@@ -19,6 +19,7 @@ package keyvaults
 
 import (
 	"context"
+	"os"
 
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/moc-sdk-for-go/services/security"
@@ -38,11 +39,19 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 		return security.KeyVault{}, errors.New("Invalid keyvault specification")
 	}
 	vault, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), vaultSpec.Name)
-	if err != nil && azurestackhci.ResourceNotFound(err) {
-		return nil, errors.Wrapf(err, "keyvault %s not found", vaultSpec.Name)
-	} else if err != nil {
+	if err != nil {
+		if azurestackhci.TransportUnavailable(err) {
+			klog.Error("Communication with cloud agent failed. Exiting Process.")
+			os.Exit(1)
+		}
+
+		if azurestackhci.ResourceNotFound(err) {
+			return nil, errors.Wrapf(err, "keyvault %s not found", vaultSpec.Name)
+		}
+
 		return nil, err
 	}
+
 	return (*vault)[0], nil
 }
 
@@ -65,6 +74,11 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			KeyVaultProperties: &security.KeyVaultProperties{},
 		})
 	if err != nil {
+		if azurestackhci.TransportUnavailable(err) {
+			klog.Error("Communication with cloud agent failed. Exiting Process.")
+			os.Exit(1)
+		}
+
 		return err
 	}
 
@@ -80,11 +94,17 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	}
 	klog.V(2).Infof("deleting keyvault %s", vaultSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), vaultSpec.Name)
-	if err != nil && azurestackhci.ResourceNotFound(err) {
-		// already deleted
-		return nil
-	}
 	if err != nil {
+		if azurestackhci.TransportUnavailable(err) {
+			klog.Error("Communication with cloud agent failed. Exiting Process.")
+			os.Exit(1)
+		}
+
+		if azurestackhci.ResourceNotFound(err) {
+			// already deleted
+			return nil
+		}
+
 		return errors.Wrapf(err, "failed to delete keyvault %s in resource group %s", vaultSpec.Name, s.Scope.GetResourceGroup())
 	}
 

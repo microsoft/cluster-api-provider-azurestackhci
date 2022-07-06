@@ -20,8 +20,9 @@ package vippools
 import (
 	"context"
 	"fmt"
+	"os"
 
-	azhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
+	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/moc-sdk-for-go/services/network"
 	"github.com/pkg/errors"
 	"k8s.io/klog"
@@ -41,11 +42,19 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 	}
 
 	vp, err := s.Client.Get(ctx, vpSpec.Location, vpSpec.Name)
-	if err != nil && azhci.ResourceNotFound(err) {
-		return nil, errors.Wrapf(err, "vippool %s not found", vpSpec.Name)
-	} else if err != nil {
+	if err != nil {
+		if azurestackhci.TransportUnavailable(err) {
+			klog.Error("Communication with cloud agent failed. Exiting Process.")
+			os.Exit(1)
+		}
+
+		if azurestackhci.ResourceNotFound(err) {
+			return nil, errors.Wrapf(err, "vippool %s not found", vpSpec.Name)
+		}
+
 		return nil, err
 	}
+
 	//If the user wants to get all the vippools, but none exist, cloudagent will return
 	//a 0 length array.
 	if vp == nil || len(*vp) == 0 {

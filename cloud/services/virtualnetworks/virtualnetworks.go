@@ -19,6 +19,7 @@ package virtualnetworks
 
 import (
 	"context"
+	"os"
 
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/moc-sdk-for-go/services/network"
@@ -45,11 +46,19 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 		return network.VirtualNetwork{}, errors.New("Invalid VNET Specification")
 	}
 	vnet, err := s.Client.Get(ctx, vnetSpec.Group, vnetSpec.Name)
-	if err != nil && azurestackhci.ResourceNotFound(err) {
-		return nil, errors.Wrapf(err, "vnet %s not found", vnetSpec.Name)
-	} else if err != nil {
+	if err != nil {
+		if azurestackhci.TransportUnavailable(err) {
+			klog.Error("Communication with cloud agent failed. Exiting Process.")
+			os.Exit(1)
+		}
+
+		if azurestackhci.ResourceNotFound(err) {
+			return nil, errors.Wrapf(err, "vnet %s not found", vnetSpec.Name)
+		}
+
 		return vnet, err
 	}
+
 	return vnet, nil
 }
 
@@ -91,6 +100,11 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			Tags: map[string]*string{OWNER: &caph},
 		})
 	if err != nil {
+		if azurestackhci.TransportUnavailable(err) {
+			klog.Error("Communication with cloud agent failed. Exiting Process.")
+			os.Exit(1)
+		}
+
 		return err
 	}
 
@@ -119,14 +133,20 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 
 	klog.V(2).Infof("deleting vnet %s in resource group %s", vnetSpec.Name, vnetSpec.Group)
 	err = s.Client.Delete(ctx, vnetSpec.Group, vnetSpec.Name)
-	if err != nil && azurestackhci.ResourceNotFound(err) {
-		// already deleted
-		return nil
-	}
 	if err != nil {
+		if azurestackhci.TransportUnavailable(err) {
+			klog.Error("Communication with cloud agent failed. Exiting Process.")
+			os.Exit(1)
+		}
+
+		if azurestackhci.ResourceNotFound(err) {
+			// already deleted
+			return nil
+		}
+
 		return errors.Wrapf(err, "failed to delete vnet %s in resource group %s", vnetSpec.Name, vnetSpec.Group)
 	}
 
 	klog.V(2).Infof("successfully deleted vnet %s in resource group %s", vnetSpec.Name, vnetSpec.Group)
-	return err
+	return nil
 }

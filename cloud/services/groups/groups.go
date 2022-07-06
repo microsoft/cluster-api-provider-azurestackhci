@@ -19,6 +19,7 @@ package groups
 
 import (
 	"context"
+	"os"
 
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/moc-sdk-for-go/services/cloud"
@@ -39,11 +40,19 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 		return cloud.Group{}, errors.New("Invalid group specification")
 	}
 	group, err := s.Client.Get(ctx, groupSpec.Location, groupSpec.Name)
-	if err != nil && azurestackhci.ResourceNotFound(err) {
-		return nil, errors.Wrapf(err, "group %s not found in location %s", groupSpec.Name, groupSpec.Location)
-	} else if err != nil {
+	if err != nil {
+		if azurestackhci.TransportUnavailable(err) {
+			klog.Error("Communication with cloud agent failed. Exiting Process.")
+			os.Exit(1)
+		}
+
+		if azurestackhci.ResourceNotFound(err) {
+			return nil, errors.Wrapf(err, "group %s not found in location %s", groupSpec.Name, groupSpec.Location)
+		}
+
 		return nil, err
 	}
+
 	return (*group)[0], nil
 }
 
@@ -66,6 +75,11 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			Location: &groupSpec.Location,
 		})
 	if err != nil {
+		if azurestackhci.TransportUnavailable(err) {
+			klog.Error("Communication with cloud agent failed. Exiting Process.")
+			os.Exit(1)
+		}
+
 		return err
 	}
 
@@ -81,14 +95,20 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	}
 	klog.V(2).Infof("deleting group %s in location %s", groupSpec.Name, groupSpec.Location)
 	err := s.Client.Delete(ctx, groupSpec.Location, groupSpec.Name)
-	if err != nil && azurestackhci.ResourceNotFound(err) {
-		// already deleted
-		return nil
-	}
 	if err != nil {
+		if azurestackhci.TransportUnavailable(err) {
+			klog.Error("Communication with cloud agent failed. Exiting Process.")
+			os.Exit(1)
+		}
+
+		if azurestackhci.ResourceNotFound(err) {
+			// already deleted
+			return nil
+		}
+
 		return errors.Wrapf(err, "failed to delete group %s", groupSpec.Name)
 	}
 
 	klog.V(2).Infof("successfully deleted group %s", groupSpec.Name)
-	return err
+	return nil
 }

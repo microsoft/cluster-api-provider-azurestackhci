@@ -19,6 +19,7 @@ package loadbalancers
 
 import (
 	"context"
+	"os"
 
 	"github.com/Azure/go-autorest/autorest/to"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
@@ -44,11 +45,19 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 	}
 
 	lb, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), lbSpec.Name)
-	if err != nil && azurestackhci.ResourceNotFound(err) {
-		return nil, errors.Wrapf(err, "loadbalancer %s not found", lbSpec.Name)
-	} else if err != nil {
+	if err != nil {
+		if azurestackhci.TransportUnavailable(err) {
+			klog.Error("Communication with cloud agent failed. Exiting Process.")
+			os.Exit(1)
+		}
+
+		if azurestackhci.ResourceNotFound(err) {
+			return nil, errors.Wrapf(err, "loadbalancer %s not found", lbSpec.Name)
+		}
+
 		return nil, err
 	}
+
 	return (*lb)[0], nil
 }
 
@@ -97,6 +106,11 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	klog.V(2).Infof("creating loadbalancer %s ", lbSpec.Name)
 	_, err := s.Client.CreateOrUpdate(ctx, s.Scope.GetResourceGroup(), lbSpec.Name, &networkLB)
 	if err != nil {
+		if azurestackhci.TransportUnavailable(err) {
+			klog.Error("Communication with cloud agent failed. Exiting Process.")
+			os.Exit(1)
+		}
+
 		return err
 	}
 
@@ -112,11 +126,17 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	}
 	klog.V(2).Infof("deleting loadbalancer %s ", lbSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), lbSpec.Name)
-	if err != nil && azurestackhci.ResourceNotFound(err) {
-		// already deleted
-		return nil
-	}
 	if err != nil {
+		if azurestackhci.TransportUnavailable(err) {
+			klog.Error("Communication with cloud agent failed. Exiting Process.")
+			os.Exit(1)
+		}
+
+		if azurestackhci.ResourceNotFound(err) {
+			// already deleted
+			return nil
+		}
+
 		return errors.Wrapf(err, "failed to delete loadbalancer %s in resource group %s", lbSpec.Name, s.Scope.GetResourceGroup())
 	}
 
