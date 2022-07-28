@@ -121,11 +121,6 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		})
 	}
 
-	randomPassword, err := GenerateRandomString(32)
-	if err != nil {
-		return errors.Wrapf(err, "failed to generate random string")
-	}
-
 	computerName := generateComputerName(vmSpec.Image.OSType)
 
 	virtualMachine := compute.VirtualMachine{
@@ -135,14 +130,14 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			OsProfile: &compute.OSProfile{
 				ComputerName:  to.StringPtr(computerName),
 				AdminUsername: to.StringPtr(azurestackhci.DefaultUserName),
-				AdminPassword: to.StringPtr(randomPassword),
+				AdminPassword: nil,
 				CustomData:    to.StringPtr(vmSpec.CustomData),
 				OsType:        compute.OperatingSystemTypes(vmSpec.OSDisk.OSType),
 				LinuxConfiguration: &compute.LinuxConfiguration{
 					SSH: &compute.SSHConfiguration{
 						PublicKeys: &sshPublicKeys,
 					},
-					DisablePasswordAuthentication: to.BoolPtr(false),
+					DisablePasswordAuthentication: to.BoolPtr(true),
 				},
 			},
 			NetworkProfile: &compute.NetworkProfile{
