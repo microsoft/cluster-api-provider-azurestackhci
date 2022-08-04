@@ -113,7 +113,6 @@ type AzureStackHCIMachineStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:path=azurestackhcimachines,scope=Namespaced,categories=cluster-api
-// +kubebuilder:storageversion
 // +kubebuilder:subresource:status
 
 // AzureStackHCIMachine is the Schema for the azurestackhcimachines API

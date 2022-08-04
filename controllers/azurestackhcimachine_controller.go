@@ -25,7 +25,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/go-logr/logr"
-	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha4"
+	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
 
@@ -36,7 +36,7 @@ import (
 	apitypes "k8s.io/apimachinery/pkg/types"
 	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/client-go/tools/record"
-	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha4"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	capierrors "sigs.k8s.io/cluster-api/errors"
 	"sigs.k8s.io/cluster-api/util"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -130,7 +130,7 @@ func (r *AzureStackHCIMachineReconciler) Reconcile(ctx context.Context, req ctrl
 	// Create the cluster scope
 	clusterScope, err := scope.NewClusterScope(scope.ClusterScopeParams{
 		Client:               r.Client,
-		Logger:               logger,
+		Logger:               &logger,
 		Cluster:              cluster,
 		AzureStackHCICluster: azureStackHCICluster,
 	})
@@ -141,7 +141,7 @@ func (r *AzureStackHCIMachineReconciler) Reconcile(ctx context.Context, req ctrl
 
 	// Create the machine scope
 	machineScope, err := scope.NewMachineScope(scope.MachineScopeParams{
-		Logger:               logger,
+		Logger:               &logger,
 		Client:               r.Client,
 		Cluster:              cluster,
 		Machine:              machine,

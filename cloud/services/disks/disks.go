@@ -23,7 +23,7 @@ import (
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/moc-sdk-for-go/services/storage"
 	"github.com/pkg/errors"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 // Spec specification for disk

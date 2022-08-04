@@ -15,15 +15,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha4
+package v1beta1
 
-import (
-	ctrl "sigs.k8s.io/controller-runtime"
-)
+// Hub marks AzureStackHCICluster as a conversion hub.
+func (*AzureStackHCICluster) Hub() {}
 
-// SetupWebhookWithManager will setup and register the webhook with the controller mnager
-func (m *AzureStackHCIMachine) SetupWebhookWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewWebhookManagedBy(mgr).
-		For(m).
-		Complete()
-}
+// Hub marks AzureStackHCIClusterList as a conversion hub.
+func (*AzureStackHCIClusterList) Hub() {}

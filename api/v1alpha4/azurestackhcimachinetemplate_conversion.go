@@ -17,8 +17,27 @@ limitations under the License.
 
 package v1alpha4
 
-// Hub marks AzureStackHCIMachineTemplate as a conversion hub.
-func (*AzureStackHCIMachineTemplate) Hub() {}
+import (
+	infrav1beta1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1"
+	"sigs.k8s.io/controller-runtime/pkg/conversion"
+)
 
-// Hub marks AzureStackHCIMachineTemplateList as a conversion hub.
-func (*AzureStackHCIMachineTemplateList) Hub() {}
+func (src *AzureStackHCIMachineTemplate) ConvertTo(dstRaw conversion.Hub) error {
+	dst := dstRaw.(*infrav1beta1.AzureStackHCIMachineTemplate)
+	return Convert_v1alpha4_AzureStackHCIMachineTemplate_To_v1beta1_AzureStackHCIMachineTemplate(src, dst, nil)
+}
+
+func (dst *AzureStackHCIMachineTemplate) ConvertFrom(srcRaw conversion.Hub) error {
+	src := srcRaw.(*infrav1beta1.AzureStackHCIMachineTemplate)
+	return Convert_v1beta1_AzureStackHCIMachineTemplate_To_v1alpha4_AzureStackHCIMachineTemplate(src, dst, nil)
+}
+
+func (src *AzureStackHCIMachineTemplateList) ConvertTo(dstRaw conversion.Hub) error {
+	dst := dstRaw.(*infrav1beta1.AzureStackHCIMachineTemplateList)
+	return Convert_v1alpha4_AzureStackHCIMachineTemplateList_To_v1beta1_AzureStackHCIMachineTemplateList(src, dst, nil)
+}
+
+func (dst *AzureStackHCIMachineTemplateList) ConvertFrom(srcRaw conversion.Hub) error {
+	src := srcRaw.(*infrav1beta1.AzureStackHCIMachineTemplateList)
+	return Convert_v1beta1_AzureStackHCIMachineTemplateList_To_v1alpha4_AzureStackHCIMachineTemplateList(src, dst, nil)
+}

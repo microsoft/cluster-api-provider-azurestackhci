@@ -21,6 +21,14 @@ SHELL:=/usr/bin/env bash
 
 .DEFAULT_GOAL:=help
 
+## Go environment
+
+# Go version
+GO_VERSION := $(shell go env GOVERSION | sed "s/[^[:digit:].-]//g")
+ifeq ($(GO_VERSION),)
+GO_VERSION := 1.17.9
+endif
+
 # Use GOPROXY environment variable if set
 GOPROXY := $(shell go env GOPROXY)
 ifeq ($(GOPROXY),)
@@ -34,6 +42,17 @@ export GO111MODULE=on
 # Private repo workaround
 export GOPRIVATE = github.com/microsoft
 
+# Go OS and ARCH values
+GOOS := $(shell go env GOOS)
+ifeq ($(GOOS),)
+GOOS := linux
+endif
+
+GOARCH := $(shell go env GOARCH)
+ifeq ($(GOARCH),)
+GOARCH := amd64
+endif
+
 # Directories.
 ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 TOOLS_DIR := hack/tools
@@ -43,28 +62,36 @@ BIN_DIR := bin
 # set --output-base used for conversion-gen which needs to be different for in GOPATH and outside GOPATH dev
 OUTPUT_BASE := --output-base=$(ROOT_DIR)
 
+# the current cluster API version
+CAPI_VERSION := v1.1.3
 
 # Binaries.
-CLUSTERCTL := $(BIN_DIR)/clusterctl
 KUBE_APISERVER=$(TOOLS_BIN_DIR)/kube-apiserver
 ETCD=$(TOOLS_BIN_DIR)/etcd
 GO_INSTALL = ./scripts/go_install.sh
 
 # Binaries.
-CONTROLLER_GEN_VER := v0.6.1
+CLUSTERCTL_VER := $(CAPI_VERSION)
+CLUSTERCTL_BIN := clusterctl
+CLUSTERCTL := $(TOOLS_BIN_DIR)/$(CLUSTERCTL_BIN)-$(CLUSTERCTL_VER)
+
+CONTROLLER_GEN_VER := v0.8.0
 CONTROLLER_GEN_BIN := controller-gen
 CONTROLLER_GEN := $(TOOLS_BIN_DIR)/$(CONTROLLER_GEN_BIN)-$(CONTROLLER_GEN_VER)
 
-CONVERSION_GEN_VER := v0.20.2
+CONVERSION_GEN_VER := v0.23.6
 CONVERSION_GEN_BIN := conversion-gen
 CONVERSION_GEN := $(TOOLS_BIN_DIR)/$(CONVERSION_GEN_BIN)-$(CONVERSION_GEN_VER)
 
+ENVSUBST_VER := v2.0.0-20210730161058-179042472c46
+ENVSUBST_BIN := envsubst
+ENVSUBST := $(TOOLS_BIN_DIR)/$(ENVSUBST_BIN)-$(ENVSUBST_VER)
 
-GOLANGCI_LINT_VER := v1.41.1
+GOLANGCI_LINT_VER := v1.43.0
 GOLANGCI_LINT_BIN := golangci-lint
 GOLANGCI_LINT := $(TOOLS_BIN_DIR)/$(GOLANGCI_LINT_BIN)-$(GOLANGCI_LINT_VER)
 
-KUSTOMIZE_VER := v4.1.3
+KUSTOMIZE_VER := v4.5.2
 KUSTOMIZE_BIN := kustomize
 KUSTOMIZE := $(TOOLS_BIN_DIR)/$(KUSTOMIZE_BIN)-$(KUSTOMIZE_VER)
 
@@ -72,7 +99,7 @@ MOCKGEN_VER := v1.6.0
 MOCKGEN_BIN := mockgen
 MOCKGEN := $(TOOLS_BIN_DIR)/$(MOCKGEN_BIN)-$(MOCKGEN_VER)
 
-RELEASE_NOTES_VER := v0.9.0
+RELEASE_NOTES_VER := v0.12.0
 RELEASE_NOTES_BIN := release-notes
 RELEASE_NOTES := $(TOOLS_BIN_DIR)/$(RELEASE_NOTES_BIN)-$(RELEASE_NOTES_VER)
 
@@ -80,18 +107,18 @@ GO_APIDIFF_VER := v0.1.0
 GO_APIDIFF_BIN := go-apidiff
 GO_APIDIFF := $(TOOLS_BIN_DIR)/$(GO_APIDIFF_BIN)
 
-GINKGO_VER := v1.16.4
+GINKGO_VER := v1.16.5
 GINKGO_BIN := ginkgo
 GINKGO := $(TOOLS_BIN_DIR)/$(GINKGO_BIN)-$(GINKGO_VER)
 
-KUBECTL_VER := v1.21.4
+KUBECTL_VER := v1.24.0
 KUBECTL_BIN := kubectl
 KUBECTL := $(TOOLS_BIN_DIR)/$(KUBECTL_BIN)-$(KUBECTL_VER)
 
 # Version
-MAJOR_VER ?= 0
-MINOR_VER ?= 4
-PATCH_VER ?= 0-alpha
+MAJOR_VER ?= 1
+MINOR_VER ?= 1
+PATCH_VER ?= 3
 
 # Define Docker related variables. Releases should modify and double check these vars.
 REGISTRY ?= mocimages.azurecr.io
@@ -100,7 +127,7 @@ PROD_REGISTRY := mocimages.azurecr.io
 IMAGE_NAME ?= caphcontroller
 CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME)
 TAG := $(MAJOR_VER).$(MINOR_VER).$(PATCH_VER)
-ARCH := amd64
+ARCH := $(GOARCH)
 ALL_ARCH = amd64 arm arm64 ppc64le s390x
 
 # Local repository path for development
@@ -145,7 +172,7 @@ test-e2e: ## Run e2e tests
 	MANAGER_IMAGE=$(CONTROLLER_IMG)-$(ARCH):$(TAG) \
 	go test ./test/e2e -v -tags=e2e -ginkgo.v -ginkgo.trace -count=1 -timeout=90m
 
-$(KUBECTL) $(KUBE_APISERVER) $(ETCD): ## install test asset kubectl, kube-apiserver, etcd
+$(KUBE_APISERVER) $(ETCD): ## install test asset kube-apiserver, etcd
 	source ./scripts/fetch_ext_bins.sh && fetch_tools
 
 ## --------------------------------------
@@ -163,8 +190,15 @@ manager: ## Build manager binary.
 ## Tooling Binaries
 ## --------------------------------------
 
-$(CLUSTERCTL): go.mod ## Build clusterctl binary.
-	go build -o $(BIN_DIR)/clusterctl sigs.k8s.io/cluster-api/cmd/clusterctl
+$(CLUSTERCTL): ## Get clusterctl binary.
+	mkdir -p $(TOOLS_BIN_DIR)
+	rm -f "$(TOOLS_BIN_DIR)/$(CLUSTERCTL_BIN)*"
+	curl --retry 3 -fsL https://github.com/kubernetes-sigs/cluster-api/releases/download/$(CLUSTERCTL_VER)/clusterctl-$(GOOS)-$(GOARCH) -o $(CLUSTERCTL)
+	ln -sf $(CLUSTERCTL) $(TOOLS_BIN_DIR)/$(CLUSTERCTL_BIN)
+	chmod +x $(CLUSTERCTL) $(TOOLS_BIN_DIR)/$(CLUSTERCTL_BIN)
+
+.PHONY: $(CLUSTERCTL_BIN)
+$(CLUSTERCTL_BIN): $(CLUSTERCTL)
 
 $(CONTROLLER_GEN): ## Build controller-gen from tools folder.
 	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) sigs.k8s.io/controller-tools/cmd/controller-gen $(CONTROLLER_GEN_BIN) $(CONTROLLER_GEN_VER)
@@ -173,12 +207,10 @@ $(CONVERSION_GEN): ## Build conversion-gen.
 	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) k8s.io/code-generator/cmd/conversion-gen $(CONVERSION_GEN_BIN) $(CONVERSION_GEN_VER)
 
 $(ENVSUBST): ## Build envsubst from tools folder.
-	rm -f $(TOOLS_BIN_DIR)/$(ENVSUBST_BIN)*
-	mkdir -p $(TOOLS_DIR) && cd $(TOOLS_DIR) && go build -tags=tools -o $(ENVSUBST) github.com/drone/envsubst/v2/cmd/envsubst
-	ln -sf $(ENVSUBST) $(TOOLS_BIN_DIR)/$(ENVSUBST_BIN)
+	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/drone/envsubst/v2/cmd/envsubst $(ENVSUBST_BIN) $(ENVSUBST_VER)
 
 .PHONY: $(ENVSUBST_BIN)
-$(ENVSUBST_BIN): $(ENVSUBST) ## Build envsubst from tools folder.
+$(ENVSUBST_BIN): $(ENVSUBST)
 
 $(GOLANGCI_LINT): ## Build golangci-lint from tools folder.
 	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/golangci/golangci-lint/cmd/golangci-lint $(GOLANGCI_LINT_BIN) $(GOLANGCI_LINT_VER)
@@ -198,8 +230,15 @@ $(GO_APIDIFF): ## Build go-apidiff.
 $(GINKGO): ## Build ginkgo.
 	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/onsi/ginkgo/ginkgo $(GINKGO_BIN) $(GINKGO_VER)
 
-$(RELEASE_NOTES) : $(TOOLS_DIR)/go.mod
-	cd $(TOOLS_DIR) && go build -tags tools -o $(BIN_DIR)/release-notes sigs.k8s.io/cluster-api/hack/tools/release
+$(KUBECTL): ## Get kubectl
+	mkdir -p $(TOOLS_BIN_DIR)
+	rm -f "$(TOOLS_BIN_DIR)/$(KUBECTL_BIN)*"
+	curl --retry 3 -fsL https://storage.googleapis.com/kubernetes-release/release/$(KUBECTL_VER)/bin/$(GOOS)/$(GOARCH)/kubectl -o $(KUBECTL)
+	ln -sf $(KUBECTL) $(TOOLS_BIN_DIR)/$(KUBECTL_BIN)
+	chmod +x $(KUBECTL) $(TOOLS_BIN_DIR)/$(KUBECTL_BIN)
+
+.PHONY: $(KUBECTL_BIN)
+$(KUBECTL_BIN): $(KUBECTL)
 
 ## --------------------------------------
 ## Linting
@@ -236,6 +275,7 @@ generate-go: $(CONTROLLER_GEN) $(MOCKGEN) $(CONVERSION_GEN) ## Runs Go related g
 
 	$(CONVERSION_GEN) \
 		--input-dirs=./api/v1alpha3 \
+		--input-dirs=./api/v1alpha4 \
 		--output-file-base=zz_generated.conversion $(OUTPUT_BASE) \
 		--go-header-file=./hack/boilerplate/boilerplate.generatego.txt
 	
@@ -340,8 +380,8 @@ release: clean-release  ## Builds and push container images using the latest git
 	$(MAKE) release-manifests
 
 .PHONY: release-manifests
-release-manifests: $(RELEASE_DIR) ## Builds the manifests to publish with a release
-	kustomize build config/default > $(RELEASE_DIR)/infrastructure-components.yaml
+release-manifests: $(KUSTOMIZE) $(RELEASE_DIR) ## Builds the manifests to publish with a release
+	$(KUSTOMIZE) build config/default > $(RELEASE_DIR)/infrastructure-components.yaml
 
 .PHONY: release-binary
 release-binary: $(RELEASE_DIR)
@@ -352,7 +392,7 @@ release-binary: $(RELEASE_DIR)
 		-e GOARCH=$(GOARCH) \
 		-v "$$(pwd):/workspace" \
 		-w /workspace \
-		golang:1.13.8 \
+		golang:$(GO_VERSION) \
 		go build -a -ldflags '-extldflags "-static"' \
 		-o $(RELEASE_DIR)/$(notdir $(RELEASE_BINARY))-$(GOOS)-$(GOARCH) $(RELEASE_BINARY)
 
@@ -361,9 +401,9 @@ release-staging: ## Builds and push container images to the staging bucket.
 	REGISTRY=$(STAGING_REGISTRY) $(MAKE) docker-build-all docker-push-all release-alias-tag
 
 .PHONY: release-pipelines
-release-pipelines: $(RELEASE_DIR) ## Builds the manifests to publish with a release
+release-pipelines: $(KUSTOMIZE) $(RELEASE_DIR) ## Builds the manifests to publish with a release
 	$(MAKE) set-manifest-image MANIFEST_IMG=$(PROD_REGISTRY)/$(IMAGE_NAME) MANIFEST_TAG=$(RELEASE_TAG)
-	kustomize build config/manager > $(RELEASE_DIR)/deployment.yaml
+	$(KUSTOMIZE) build config/manager > $(RELEASE_DIR)/deployment.yaml
 
 RELEASE_ALIAS_TAG=$(PULL_BASE_REF)
 
@@ -421,8 +461,8 @@ local-dev-set-manifest-image:
 
 # Build config.
 .PHONY: local-dev-release-manifests
-local-dev-release-manifests: $(RELEASE_DIR)
-	kustomize build ./hack/config > $(RELEASE_DIR)/infrastructure-components.yaml
+local-dev-release-manifests: $(KUSTOMIZE) $(RELEASE_DIR)
+	$(KUSTOMIZE) build ./hack/config > $(RELEASE_DIR)/infrastructure-components.yaml
 
 .PHONY: local-dev-release
 local-dev-release:

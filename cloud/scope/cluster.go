@@ -22,14 +22,14 @@ import (
 	"os"
 
 	"github.com/go-logr/logr"
-	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha4"
+	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1"
 	azhciauth "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/auth"
 	"github.com/microsoft/moc/pkg/auth"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/klog/klogr"
-	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha4"
+	"k8s.io/klog/v2/klogr"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/cluster-api/util/conditions"
 	"sigs.k8s.io/cluster-api/util/patch"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -39,7 +39,7 @@ import (
 type ClusterScopeParams struct {
 	AzureStackHCIClients
 	Client               client.Client
-	Logger               logr.Logger
+	Logger               *logr.Logger
 	Cluster              *clusterv1.Cluster
 	AzureStackHCICluster *infrav1.AzureStackHCICluster
 	Context              context.Context
@@ -56,7 +56,8 @@ func NewClusterScope(params ClusterScopeParams) (*ClusterScope, error) {
 	}
 
 	if params.Logger == nil {
-		params.Logger = klogr.New()
+		log := klogr.New()
+		params.Logger = &log
 	}
 
 	agentFqdn := os.Getenv("AZURESTACKHCI_CLOUDAGENT_FQDN")
@@ -70,7 +71,7 @@ func NewClusterScope(params ClusterScopeParams) (*ClusterScope, error) {
 		return nil, errors.Wrap(err, "failed to init patch helper")
 	}
 	scope := &ClusterScope{
-		Logger:               params.Logger,
+		Logger:               *params.Logger,
 		Client:               params.Client,
 		AzureStackHCIClients: params.AzureStackHCIClients,
 		Cluster:              params.Cluster,

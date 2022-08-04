@@ -13,4 +13,4 @@ limitations under the License.
 
 package v1alpha3
 
-// +k8s:conversion-gen=github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha4
+// +k8s:conversion-gen=github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1

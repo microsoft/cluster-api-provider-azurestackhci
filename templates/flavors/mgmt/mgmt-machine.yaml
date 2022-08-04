@@ -1,5 +1,5 @@
 ---
-apiVersion: cluster.x-k8s.io/v1alpha4
+apiVersion: cluster.x-k8s.io/v1beta1
 kind: Machine
 metadata:
   labels:
@@ -13,15 +13,15 @@ spec:
   clusterName: ${CLUSTER_NAME}
   bootstrap:
     configRef:
-      apiVersion: bootstrap.cluster.x-k8s.io/v1alpha4
+      apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
       kind: KubeadmConfig
       name: ${CLUSTER_NAME}-control-plane-0
   infrastructureRef:
-    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+    apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
     kind: AzureStackHCIMachine
     name: ${CLUSTER_NAME}-control-plane-0
 ---
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
 kind: AzureStackHCIMachine
 metadata:
   labels:
@@ -35,7 +35,7 @@ spec:
   sshPublicKey: ${AZURESTACKHCI_SSH_PUBLIC_KEY:=""}
   vmSize: ${AZURESTACKHCI_CONTROL_PLANE_MACHINE_TYPE}
 ---
-apiVersion: bootstrap.cluster.x-k8s.io/v1alpha4
+apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
 kind: KubeadmConfig
 metadata:
   name: ${CLUSTER_NAME}-control-plane-0

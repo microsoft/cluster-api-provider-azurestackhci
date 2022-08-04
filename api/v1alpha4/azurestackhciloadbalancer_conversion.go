@@ -17,8 +17,27 @@ limitations under the License.
 
 package v1alpha4
 
-// Hub marks AzureStackHCILoadBalancer as a conversion hub.
-func (*AzureStackHCILoadBalancer) Hub() {}
+import (
+	infrav1beta1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1"
+	"sigs.k8s.io/controller-runtime/pkg/conversion"
+)
 
-// Hub marks AzureStackHCILoadBalancerList as a conversion hub.
-func (*AzureStackHCILoadBalancerList) Hub() {}
+func (src *AzureStackHCILoadBalancer) ConvertTo(dstRaw conversion.Hub) error {
+	dst := dstRaw.(*infrav1beta1.AzureStackHCILoadBalancer)
+	return Convert_v1alpha4_AzureStackHCILoadBalancer_To_v1beta1_AzureStackHCILoadBalancer(src, dst, nil)
+}
+
+func (dst *AzureStackHCILoadBalancer) ConvertFrom(srcRaw conversion.Hub) error {
+	src := srcRaw.(*infrav1beta1.AzureStackHCILoadBalancer)
+	return Convert_v1beta1_AzureStackHCILoadBalancer_To_v1alpha4_AzureStackHCILoadBalancer(src, dst, nil)
+}
+
+func (src *AzureStackHCILoadBalancerList) ConvertTo(dstRaw conversion.Hub) error {
+	dst := dstRaw.(*infrav1beta1.AzureStackHCILoadBalancerList)
+	return Convert_v1alpha4_AzureStackHCILoadBalancerList_To_v1beta1_AzureStackHCILoadBalancerList(src, dst, nil)
+}
+
+func (dst *AzureStackHCILoadBalancerList) ConvertFrom(srcRaw conversion.Hub) error {
+	src := srcRaw.(*infrav1beta1.AzureStackHCILoadBalancerList)
+	return Convert_v1beta1_AzureStackHCILoadBalancerList_To_v1alpha4_AzureStackHCILoadBalancerList(src, dst, nil)
+}
