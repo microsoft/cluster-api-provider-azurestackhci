@@ -201,6 +201,8 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileNormal(lbs *scope.LoadBal
 		}
 	}
 
+	// When a SDN integration is present, LB replica count will be 0 as the loadbalancing is handled by SDN.
+	// So fail only if the configured replica count is not 0.
 	if lbs.GetReplicas() != 0 && lbs.GetReadyReplicas() < 1 {
 		if lbs.GetReady() {
 			// we achieved ready state at any earlier point, but have now lost all ready replicas
