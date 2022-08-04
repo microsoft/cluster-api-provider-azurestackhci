@@ -15,14 +15,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha4
+package v1beta1
 
-import (
-	ctrl "sigs.k8s.io/controller-runtime"
-)
+// Hub marks AzureStackHCIMachineTemplate as a conversion hub.
+func (*AzureStackHCIMachineTemplate) Hub() {}
 
-func (r *AzureStackHCIVirtualMachine) SetupWebhookWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewWebhookManagedBy(mgr).
-		For(r).
-		Complete()
-}
+// Hub marks AzureStackHCIMachineTemplateList as a conversion hub.
+func (*AzureStackHCIMachineTemplateList) Hub() {}

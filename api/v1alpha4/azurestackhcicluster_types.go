@@ -93,7 +93,6 @@ func (c *AzureStackHCIClusterStatus) GetTypedPhase() AzureStackHCIClusterPhase {
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:path=azurestackhciclusters,scope=Namespaced,categories=cluster-api
 // +kubebuilder:subresource:status
-// +kubebuilder:storageversion
 // +kubebuilder:printcolumn:name="Phase",type="string",JSONPath=".status.phase",description="AzureStackHCICluster status such as Pending/Provisioning/Provisioned/Deleting/Failed"
 
 // AzureStackHCICluster is the Schema for the azurestackhciclusters API

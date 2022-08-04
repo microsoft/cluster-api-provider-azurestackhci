@@ -145,7 +145,6 @@ func (c *AzureStackHCILoadBalancerStatus) GetTypedPhase() AzureStackHCILoadBalan
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:path=azurestackhciloadbalancers,scope=Namespaced,categories=cluster-api
 // +kubebuilder:subresource:status
-// +kubebuilder:storageversion
 // +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas,selectorpath=.status.selector
 // +kubebuilder:printcolumn:name="Phase",type="string",JSONPath=".status.phase",description="The current phase/status of the loadbalancer"
 // +kubebuilder:printcolumn:name="IP",type="string",JSONPath=".status.address",description="The frontend VIP address assigned to the loadbalancer"

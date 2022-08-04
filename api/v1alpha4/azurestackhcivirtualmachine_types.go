@@ -78,7 +78,6 @@ type AzureStackHCIVirtualMachineStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:path=azurestackhcivirtualmachines,scope=Namespaced,categories=cluster-api
 // +kubebuilder:subresource:status
-// +kubebuilder:storageversion
 
 // AzureStackHCIVirtualMachine is the Schema for the azurestackhcivirtualmachines API
 type AzureStackHCIVirtualMachine struct {
