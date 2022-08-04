@@ -201,7 +201,7 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileNormal(lbs *scope.LoadBal
 		}
 	}
 
-	if lbs.GetReadyReplicas() < 1 {
+	if lbs.GetReplicas() != 0 && lbs.GetReadyReplicas() < 1 {
 		if lbs.GetReady() {
 			// we achieved ready state at any earlier point, but have now lost all ready replicas
 			r.Recorder.Eventf(lbs.AzureStackHCILoadBalancer, corev1.EventTypeWarning, "FailureLBNoReadyReplicas", "No replicas are ready for LoadBalancer %s", lbs.Name())
