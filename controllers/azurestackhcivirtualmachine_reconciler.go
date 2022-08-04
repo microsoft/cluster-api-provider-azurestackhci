@@ -20,7 +20,7 @@ package controllers
 import (
 	"encoding/base64"
 
-	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha4"
+	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/disks"
@@ -29,7 +29,7 @@ import (
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/virtualmachines"
 	sdk_compute "github.com/microsoft/moc-sdk-for-go/services/compute"
 	"github.com/pkg/errors"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 // azureStackHCIVirtualMachineService are list of services required by cluster actuator, easy to create a fake

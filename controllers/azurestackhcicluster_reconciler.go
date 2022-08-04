@@ -26,7 +26,7 @@ import (
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/secrets"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/virtualnetworks"
 	"github.com/pkg/errors"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 const (

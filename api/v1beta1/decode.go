@@ -15,14 +15,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha4
+package v1beta1
 
 import (
-	ctrl "sigs.k8s.io/controller-runtime"
+	"github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 )
 
-func (r *AzureStackHCIMachineTemplate) SetupWebhookWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewWebhookManagedBy(mgr).
-		For(r).
-		Complete()
+// DecodeRawExtension will decode a runtime.RawExtension into a specific runtime object based on the schema
+func DecodeRawExtension(in *runtime.RawExtension, out runtime.Object) error {
+	scheme, err := SchemeBuilder.Build()
+	if err != nil {
+		return errors.Wrap(err, "Error building schema")
+	}
+
+	codecs := serializer.NewCodecFactory(scheme)
+	deserializer := codecs.UniversalDeserializer()
+
+	return runtime.DecodeInto(deserializer, in.Raw, out)
 }

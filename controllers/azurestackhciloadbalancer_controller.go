@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
-	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha4"
+	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/loadbalancers"
@@ -33,7 +33,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/tools/record"
-	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha4"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/cluster-api/util"
 	"sigs.k8s.io/cluster-api/util/conditions"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -108,7 +108,7 @@ func (r *AzureStackHCILoadBalancerReconciler) Reconcile(ctx context.Context, req
 	// create a cluster scope for the request.
 	clusterScope, err := scope.NewClusterScope(scope.ClusterScopeParams{
 		Client:               r.Client,
-		Logger:               logger,
+		Logger:               &logger,
 		Cluster:              cluster,
 		AzureStackHCICluster: azureStackHCICluster,
 	})
@@ -119,7 +119,7 @@ func (r *AzureStackHCILoadBalancerReconciler) Reconcile(ctx context.Context, req
 
 	// create a lb scope for this request.
 	loadBalancerScope, err := scope.NewLoadBalancerScope(scope.LoadBalancerScopeParams{
-		Logger:                    logger,
+		Logger:                    &logger,
 		Client:                    r.Client,
 		AzureStackHCILoadBalancer: azureStackHCILoadBalancer,
 		AzureStackHCICluster:      azureStackHCICluster,

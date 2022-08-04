@@ -22,13 +22,13 @@ import (
 	"encoding/base64"
 
 	"github.com/go-logr/logr"
-	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha4"
+	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/klog/klogr"
+	"k8s.io/klog/v2/klogr"
 	"k8s.io/utils/pointer"
-	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha4"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/cluster-api/controllers/noderefutil"
 	capierrors "sigs.k8s.io/cluster-api/errors"
 	"sigs.k8s.io/cluster-api/util"
@@ -41,7 +41,7 @@ import (
 type MachineScopeParams struct {
 	AzureStackHCIClients
 	Client               client.Client
-	Logger               logr.Logger
+	Logger               *logr.Logger
 	Cluster              *clusterv1.Cluster
 	Machine              *clusterv1.Machine
 	AzureStackHCICluster *infrav1.AzureStackHCICluster
@@ -68,7 +68,8 @@ func NewMachineScope(params MachineScopeParams) (*MachineScope, error) {
 	}
 
 	if params.Logger == nil {
-		params.Logger = klogr.New()
+		log := klogr.New()
+		params.Logger = &log
 	}
 
 	helper, err := patch.NewHelper(params.AzureStackHCIMachine, params.Client)
@@ -81,7 +82,7 @@ func NewMachineScope(params MachineScopeParams) (*MachineScope, error) {
 		Machine:              params.Machine,
 		AzureStackHCICluster: params.AzureStackHCICluster,
 		AzureStackHCIMachine: params.AzureStackHCIMachine,
-		Logger:               params.Logger,
+		Logger:               *params.Logger,
 		patchHelper:          helper,
 	}, nil
 }
