@@ -121,7 +121,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		})
 	}
 
-	computerName := generateComputerName(vmSpec.Image.OSType)
+	computerName := generateComputerName(vmSpec.Image.OSType, infrav1.OsSku(*vmSpec.Image.SKU))
 
 	virtualMachine := compute.VirtualMachine{
 		Name: to.StringPtr(vmSpec.Name),
@@ -154,7 +154,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		},
 	}
 
-	if vmSpec.Image.OSType == infrav1.OSTypeWindows || vmSpec.Image.OSType == infrav1.OSTypeWindows2022 {
+	if vmSpec.Image.OSType == infrav1.OSTypeWindows {
 		virtualMachine.OsProfile.LinuxConfiguration = nil
 		pass := ""
 		virtualMachine.OsProfile.AdminPassword = &pass
@@ -307,17 +307,22 @@ func GenerateRandomString(n int) (string, error) {
 // generateComputerName returns a unique OS computer name which is expected to be valid on any
 // operating system. To satisfy Windows requirements, we generate a length-restricted name. The
 // generated computer name has the following format: <prefix><os_identifer><random chars>
-func generateComputerName(os infrav1.OSType) string {
+func generateComputerName(os infrav1.OSType, sku infrav1.OsSku) string {
 	computerName := computerNamePrefix
 
-	switch os {
-	case infrav1.OSTypeWindows:
-		computerName += "w"
-	case infrav1.OSTypeWindows2022:
-		computerName += "w2"
-	case infrav1.OSTypeLinux:
+	if os == infrav1.OSTypeWindows {
+		if sku == infrav1.OsSkuWindows {
+			//Windows2019
+			computerName += "w"
+		} else {
+			// Windows2022
+			computerName += "w2"
+		}
+	} else if os == infrav1.OSTypeLinux {
+		//Linux
 		computerName += "l"
-	default: // Unknown OS
+	} else {
+		// Unknown OS
 		computerName += "u"
 	}
 

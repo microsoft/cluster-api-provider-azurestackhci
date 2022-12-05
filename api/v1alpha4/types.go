@@ -188,8 +188,18 @@ const (
 	OSTypeLinux = OSType("Linux")
 	// OSTypeWindows
 	OSTypeWindows = OSType("Windows")
-	// OSTypeWindows2022
-	OSTypeWindows2022 = OSType("Windows2022")
+)
+
+// OsSku describes the OS sku of a disk.
+type OsSku string
+
+const (
+	// OsSkuLinux
+	OsSkuLinux = OsSku("CBLMariner")
+	// OsSkuWindows
+	OsSkuWindows = OsSku("Windows2019")
+	// OsSkuWindows2022
+	OsSkuWindows2022 = OsSku("Windows2022")
 )
 
 type OSDisk struct {
