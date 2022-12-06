@@ -126,8 +126,8 @@ STAGING_REGISTRY := mocimages.azurecr.io
 PROD_REGISTRY := mocimages.azurecr.io
 IMAGE_NAME ?= caphcontroller
 CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME)
-TAG := $(MAJOR_VER).$(MINOR_VER).$(PATCH_VER)-ws2022preview
-ARCH := amd64
+TAG := $(MAJOR_VER).$(MINOR_VER).$(PATCH_VER)-ws2022p2test
+ARCH := $(GOARCH)
 ALL_ARCH = amd64 arm arm64 ppc64le s390x
 
 # Local repository path for development
