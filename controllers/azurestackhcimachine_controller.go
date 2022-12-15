@@ -152,7 +152,7 @@ func (r *AzureStackHCIMachineReconciler) Reconcile(ctx context.Context, req ctrl
 		r.Recorder.Eventf(azureStackHCIMachine, corev1.EventTypeWarning, "FailureCreateMachineScope", errors.Wrapf(err, "failed to create machine scope").Error())
 		return reconcile.Result{}, errors.Errorf("failed to create scope: %+v", err)
 	}
-	
+
 	// Always close the scope when exiting this function so we can persist any AzureStackHCIMachine changes.
 	defer func() {
 		if err := machineScope.Close(); err != nil && reterr == nil {
