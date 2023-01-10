@@ -40,6 +40,7 @@ jobs:
           version: "1.17.x"
 
       - script: |
+          set -e
           mkdir manifest
           git config --global url.ssh://git@github.com/.insteadOf https://github.com/
           chmod +x hack/ensure-kustomize.sh
