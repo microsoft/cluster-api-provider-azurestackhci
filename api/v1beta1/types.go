@@ -188,6 +188,8 @@ const (
 	OSTypeLinux = OSType("Linux")
 	// OSTypeWindows
 	OSTypeWindows = OSType("Windows")
+	// OSTypeWindows2022
+	OSTypeWindows2022 = OSType("Windows2022")
 )
 
 type OSDisk struct {
