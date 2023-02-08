@@ -93,6 +93,8 @@ type VnetSpec struct {
 }
 
 // Subnets is a slice of Subnet.
+// +listType=map
+// +listMapKey=id
 type Subnets []*SubnetSpec
 
 // ToMap returns a map from id to subnet.
