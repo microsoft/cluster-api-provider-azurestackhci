@@ -34,8 +34,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	cgrecord "k8s.io/client-go/tools/record"
+	"k8s.io/component-base/logs"
 	"k8s.io/klog/v2"
-	"k8s.io/klog/v2/klogr"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/cluster-api/feature"
 	"sigs.k8s.io/cluster-api/util/record"
@@ -49,10 +49,11 @@ import (
 var (
 	scheme   = runtime.NewScheme()
 	setupLog = ctrl.Log.WithName("setup")
+
+	logOptions = logs.NewOptions()
 )
 
 func init() {
-	klog.InitFlags(nil)
 
 	_ = clientgoscheme.AddToScheme(scheme)
 	_ = clusterv1.AddToScheme(scheme)
@@ -77,6 +78,9 @@ var (
 )
 
 func InitFlags(fs *pflag.FlagSet) {
+	logs.AddFlags(fs, logs.SkipLoggingConfigurationFlags())
+	logOptions.AddFlags(fs)
+
 	flag.StringVar(
 		&metricsAddr,
 		"metrics-bind-addr",
@@ -166,7 +170,13 @@ func main() {
 		}()
 	}
 
-	ctrl.SetLogger(klogr.New())
+	if err := logOptions.ValidateAndApply(); err != nil {
+		setupLog.Error(err, "unable to start manager")
+		os.Exit(1)
+	}
+
+	// klog.Background will automatically use the right logger.
+	ctrl.SetLogger(klog.Background())
 
 	// Machine and cluster operations can create enough events to trigger the event recorder spam filter
 	// Setting the burst size higher ensures all events will be recorded and submitted to the API
