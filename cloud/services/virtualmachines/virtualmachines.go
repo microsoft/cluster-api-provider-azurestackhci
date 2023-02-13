@@ -314,7 +314,7 @@ func generateComputerName(os infrav1.OSType) string {
 	case infrav1.OSTypeWindows:
 		computerName += "w"
 	case infrav1.OSTypeWindows2022:
-		computerName += "w2"
+		computerName += "w"
 	case infrav1.OSTypeLinux:
 		computerName += "l"
 	default: // Unknown OS
