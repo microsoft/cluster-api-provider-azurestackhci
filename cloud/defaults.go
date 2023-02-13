@@ -153,7 +153,12 @@ func getDefaultImageName(osType infrav1.OSType, k8sVersion string) (string, erro
 	if err != nil {
 		return "", errors.Wrapf(err, "unable to parse Kubernetes version \"%s\" in spec, expected valid SemVer string", k8sVersion)
 	}
-	return fmt.Sprintf("%s_k8s_%d-%d-%d", osType, version.Major, version.Minor, version.Patch), nil
+
+	imageName := fmt.Sprintf("%s_k8s_%d-%d-%d", osType, version.Major, version.Minor, version.Patch)
+	if len(version.Pre) == 2 {
+		imageName = fmt.Sprintf("%s-%s", imageName, version.Pre[1])
+	}
+	return imageName, nil
 }
 
 // GetDefaultImage returns the default image spec for the provided OS and version of Kubernetes.
