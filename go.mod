@@ -87,6 +87,8 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
+replace github.com/microsoft/moc => /home/hp/repos/moc
+
 replace github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.2
 
 replace github.com/miekg/dns => github.com/miekg/dns v1.1.25
