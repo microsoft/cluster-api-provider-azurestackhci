@@ -34,6 +34,8 @@ const (
 	OutOfMemoryReason = "OutOfMemory"
 	// OutOfCapacityReason used when the AzureStackHCI resource is out of capacity.
 	OutOfCapacityReason = "OutOfCapacity"
+	// NodeOutOfCapacityReason used when the AzureStackHCI node is out of capacity.
+	NodeOutOfCapacityReason = "NodeOutOfCapacity"
 )
 
 // Conditions and condition Reasons for the AzureStackHCICluster object
