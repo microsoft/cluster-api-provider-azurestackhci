@@ -22,6 +22,7 @@ import (
 
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
+	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/groups"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/keyvaults"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/secrets"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/virtualnetworks"
@@ -32,6 +33,7 @@ import (
 const (
 	KubeConfigSecretName    = "kubeconf" // lgtm - Semmle Suppression [SM03415] Not a secret
 	KubeConfigDataFieldName = "value"
+	MocLocation             = "MocLocation"
 )
 
 // azureStackHCIClusterReconciler are list of services required by cluster controller
@@ -40,6 +42,7 @@ type azureStackHCIClusterReconciler struct {
 	vnetSvc     azurestackhci.Service
 	keyvaultSvc azurestackhci.Service
 	secretSvc   azurestackhci.GetterService
+	groupSvc    azurestackhci.Service
 }
 
 // newAzureStackHCIClusterReconciler populates all the services based on input scope
@@ -49,12 +52,14 @@ func newAzureStackHCIClusterReconciler(scope *scope.ClusterScope) *azureStackHCI
 		vnetSvc:     virtualnetworks.NewService(scope),
 		keyvaultSvc: keyvaults.NewService(scope),
 		secretSvc:   secrets.NewService(scope),
+		groupSvc:    groups.NewService(scope),
 	}
 }
 
 // Reconcile reconciles all the services in pre determined order
 func (r *azureStackHCIClusterReconciler) Reconcile() error {
-	klog.V(2).Infof("reconciling cluster %s", r.scope.Name())
+	//TODO: remove DEBUG from logs
+	klog.V(2).Infof("DEBUG reconciling cluster %s", r.scope.Name())
 
 	r.createOrUpdateVnetName()
 
@@ -72,6 +77,16 @@ func (r *azureStackHCIClusterReconciler) Reconcile() error {
 		return errors.Wrapf(err, "failed to reconcile virtual network for cluster %s", r.scope.Name())
 	}
 
+	klog.V(2).Infof("DEBUG reconciling group cluster %s", r.scope.GetResourceGroup())
+	groupSpec := &groups.Spec{
+		Name:     r.scope.GetResourceGroup(),
+		Location: MocLocation,
+	}
+
+	if err := r.groupSvc.Reconcile(r.scope.Context, groupSpec); err != nil {
+		return errors.Wrapf(err, "DEBUG failed to reconcile group for cluster %s", r.scope.Name())
+	}
+
 	vaultSpec := &keyvaults.Spec{
 		Name: r.scope.Name(),
 	}
@@ -84,6 +99,7 @@ func (r *azureStackHCIClusterReconciler) Reconcile() error {
 
 // Delete reconciles all the services in pre determined order
 func (r *azureStackHCIClusterReconciler) Delete() error {
+	klog.V(2).Infof("DEBUG deleting cluster %s", r.scope.Name())
 	vaultSpec := &keyvaults.Spec{
 		Name: r.scope.Name(),
 	}
@@ -91,6 +107,15 @@ func (r *azureStackHCIClusterReconciler) Delete() error {
 		if !azurestackhci.ResourceNotFound(err) {
 			return errors.Wrapf(err, "failed to delete keyvault %s for cluster %s", r.scope.Name(), r.scope.Name())
 		}
+	}
+	klog.V(2).Infof("DEBUG deleting group %s", r.scope.GetResourceGroup())
+	groupSpec := &groups.Spec{
+		Name:     r.scope.GetResourceGroup(),
+		Location: MocLocation,
+	}
+
+	if err := r.groupSvc.Delete(r.scope.Context, groupSpec); err != nil {
+		return errors.Wrapf(err, "failed to delete group %s for cluster %s", r.scope.GetResourceGroup(), r.scope.Name())
 	}
 
 	vnetSpec := &virtualnetworks.Spec{
