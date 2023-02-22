@@ -6,7 +6,7 @@ require (
 	github.com/Azure/go-autorest/autorest/to v0.4.0
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/go-logr/logr v1.2.0
-	github.com/microsoft/moc v0.10.27-alpha.0
+	github.com/microsoft/moc v0.10.27-alpha.4
 	github.com/microsoft/moc-sdk-for-go v0.10.27-alpha.7
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/pflag v1.0.5
@@ -86,8 +86,6 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.0 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
-
-replace github.com/microsoft/moc => /home/hp/repos/moc
 
 replace github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.2
 
