@@ -188,6 +188,8 @@ func (r *AzureStackHCIVirtualMachineReconciler) getOrCreate(virtualMachineScope 
 				conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.OutOfMemoryReason, clusterv1.ConditionSeverityError, err.Error())
 			case mocerrors.OutOfCapacity.Error():
 				conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.OutOfCapacityReason, clusterv1.ConditionSeverityError, err.Error())
+			case mocerrors.OutOfNodeCapacity.Error():
+				conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.OutOfNodeCapacityReason, clusterv1.ConditionSeverityWarning, err.Error())
 			default:
 				conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.VMProvisionFailedReason, clusterv1.ConditionSeverityError, err.Error())
 			}
