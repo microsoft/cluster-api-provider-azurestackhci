@@ -447,8 +447,8 @@ github.com/mattn/go-runewidth v0.0.13/go.mod h1:Jdepj2loyihRzMpdS35Xk/zdY8IAYHsh
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
 github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 h1:I0XW9+e1XWDxdcEniV4rQAIOPUGDq67JSCiRCgGCZLI=
 github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369/go.mod h1:BSXmuO+STAnVfrANrmjBb36TMTDstsz7MSK+HVaYKv4=
-github.com/microsoft/moc v0.10.27-alpha.0 h1:/BMgy++D3o1lxArYsAjr8PdCpre7erlOOFYt1RDif3k=
-github.com/microsoft/moc v0.10.27-alpha.0/go.mod h1:dOkeGSUQPI+L6YB8DlwCQOgpfUzqHvkk9uzd8sdvgTs=
+github.com/microsoft/moc v0.10.27-alpha.4 h1:kL2TS+TUb+3wvl3nRM0W2HChSMLZo7hFqoHJOyFBWfc=
+github.com/microsoft/moc v0.10.27-alpha.4/go.mod h1:dOkeGSUQPI+L6YB8DlwCQOgpfUzqHvkk9uzd8sdvgTs=
 github.com/microsoft/moc-sdk-for-go v0.10.27-alpha.7 h1:aSKmGfLIF4tLSCYglQQCA0wpbibUrqkrQjc3oig5TUw=
 github.com/microsoft/moc-sdk-for-go v0.10.27-alpha.7/go.mod h1:HI19skmLOOjcAatNofLMbdMsMIq83YYopdu/b1OMvZU=
 github.com/microsoft/wmi v0.5.0-alpha.11 h1:4RMeVJQgaC4Ai/JoPwvfUrpXK5F77bgav4Imp7Zgmss=
