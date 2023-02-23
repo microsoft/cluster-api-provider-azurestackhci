@@ -34,6 +34,7 @@ type Spec struct {
 	VnetName        string
 	FrontendPort    int32
 	BackendPort     int32
+	Tags            map[string]*string
 }
 
 // Get provides information about a load balancer.
@@ -91,6 +92,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 				},
 			},
 		},
+		Tags: lbSpec.Tags,
 	}
 
 	// create the load balancer
