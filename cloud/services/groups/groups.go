@@ -54,7 +54,6 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 
 // Reconcile gets/creates/updates a group.
 func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
-
 	groupSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("Invalid group specification")
@@ -69,6 +68,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	cloudop := TagValClusterGroup
 	tag[TagKeyClusterGroup] = &cloudop
 
+	klog.V(2).Infof("creating group %s in location %s", groupSpec.Name, groupSpec.Location)
 	_, err := s.Client.CreateOrUpdate(ctx, groupSpec.Location, groupSpec.Name,
 		&cloud.Group{
 			Name:     &groupSpec.Name,
@@ -88,6 +88,7 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	if !ok {
 		return errors.New("Invalid group specification")
 	}
+	klog.V(2).Infof("deleting group %s in location %s", groupSpec.Name, groupSpec.Location)
 	group, err := s.Client.Get(ctx, groupSpec.Location, groupSpec.Name)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// ignoring the NotFound error, since it might be already deleted
