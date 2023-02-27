@@ -69,7 +69,6 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	cloudop := TagValClusterGroup
 	tag[TagKeyClusterGroup] = &cloudop
 
-	klog.V(2).Infof(" DEBUG creating group %s in location %s with tag %v", groupSpec.Name, groupSpec.Location, tag)
 	_, err := s.Client.CreateOrUpdate(ctx, groupSpec.Location, groupSpec.Name,
 		&cloud.Group{
 			Name:     &groupSpec.Name,
@@ -79,14 +78,12 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	if err != nil {
 		return err
 	}
-
-	klog.V(2).Infof("DEBUG successfully created group %s", groupSpec.Name)
+	klog.V(2).Infof("successfully created group %s", groupSpec.Name)
 	return err
 }
 
 // Delete deletes a group if group is created by cloud operator
 func (s *Service) Delete(ctx context.Context, spec interface{}) error {
-	klog.V(2).Infof("DEBUG Deleting group")
 	groupSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("Invalid group specification")
@@ -94,13 +91,12 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	group, err := s.Client.Get(ctx, groupSpec.Location, groupSpec.Name)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// ignoring the NotFound error, since it might be already deleted
-		klog.V(2).Infof("DEBUG group %s not found in location %s", groupSpec.Name, groupSpec.Location)
+		klog.V(2).Infof("group %s not found in location %s", groupSpec.Name, groupSpec.Location)
 		return nil
 	} else if err != nil {
 		return err
 	}
 	groupObj := (*group)[0]
-	klog.V(2).Infof("DEBUG Got group spec", "Group Spec", groupObj)
 	value, ok := groupObj.Tags[TagKeyClusterGroup]
 	// delete only if created by cloud operator
 	if ok && (value != nil && *value == TagValClusterGroup) {
@@ -112,9 +108,9 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to delete group %s", groupSpec.Name)
 		}
-		klog.V(2).Infof("DEBUG successfully deleted group %s", groupSpec.Name)
+		klog.V(2).Infof("successfully deleted group %s", groupSpec.Name)
 	} else {
-		klog.V(2).Infof("DEBUG skipping group %s deletion, since it is not created by cloud operator", groupSpec.Name)
+		klog.V(2).Infof("skipping group %s deletion, since it is not created by cloud operator", groupSpec.Name)
 	}
 	return err
 }
