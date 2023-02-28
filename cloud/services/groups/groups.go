@@ -28,7 +28,7 @@ import (
 
 const (
 	TagKeyClusterGroup = "createdBy"
-	TagValClusterGroup = "cloud-operator"
+	TagValClusterGroup = "caph"
 )
 
 // Spec specification for group
