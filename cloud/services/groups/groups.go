@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	TagKeyClusterGroup = "createdBy"
+	TagKeyClusterGroup = "ownedBy"
 	TagValClusterGroup = "caph"
 )
 
@@ -65,8 +65,8 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	}
 	//adding tag to group
 	tag := make(map[string]*string, 1)
-	cloudop := TagValClusterGroup
-	tag[TagKeyClusterGroup] = &cloudop
+	caphVal := TagValClusterGroup
+	tag[TagKeyClusterGroup] = &caphVal
 
 	klog.V(2).Infof("creating group %s in location %s", groupSpec.Name, groupSpec.Location)
 	_, err := s.Client.CreateOrUpdate(ctx, groupSpec.Location, groupSpec.Name,
@@ -82,7 +82,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	return err
 }
 
-// Delete deletes a group if group is created by cloud operator
+// Delete deletes a group if group is created by caph
 func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	groupSpec, ok := spec.(*Spec)
 	if !ok {
@@ -99,7 +99,7 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	}
 	groupObj := (*group)[0]
 	value, ok := groupObj.Tags[TagKeyClusterGroup]
-	// delete only if created by cloud operator
+	// delete only if created by caph
 	if ok && (value != nil && *value == TagValClusterGroup) {
 		err := s.Client.Delete(ctx, groupSpec.Location, groupSpec.Name)
 		if err != nil && azurestackhci.ResourceNotFound(err) {
@@ -111,7 +111,7 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 		}
 		klog.V(2).Infof("successfully deleted group %s", groupSpec.Name)
 	} else {
-		klog.V(2).Infof("skipping group %s deletion, since it is not created by cloud operator", groupSpec.Name)
+		klog.V(2).Infof("skipping group %s deletion, since it is not created by caph", groupSpec.Name)
 	}
 	return err
 }
