@@ -6,7 +6,7 @@ require (
 	github.com/Azure/go-autorest/autorest/to v0.4.0
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/go-logr/logr v1.2.0
-	github.com/microsoft/moc v0.10.27-alpha.4
+	github.com/microsoft/moc v0.10.28-alpha.2
 	github.com/microsoft/moc-sdk-for-go v0.10.27-alpha.7
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/pflag v1.0.5
@@ -68,7 +68,7 @@ require (
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
 	golang.org/x/sys v0.0.0-20220915200043-7b5979e65e41 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
-	golang.org/x/text v0.5.0 // indirect
+	golang.org/x/text v0.7.0 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
@@ -92,6 +92,3 @@ replace github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.2
 replace github.com/miekg/dns => github.com/miekg/dns v1.1.25
 
 replace github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
-
-replace github.com/microsoft/moc-sdk-for-go => ../moc-sdk-for-go
-replace github.com/microsoft/moc => ../moc
