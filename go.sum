@@ -361,8 +361,8 @@ github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182aff
 github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369/go.mod h1:BSXmuO+STAnVfrANrmjBb36TMTDstsz7MSK+HVaYKv4=
 github.com/microsoft/moc v0.10.28-alpha.2 h1:g1NQMFImQMKSgH+SbtBDugYuTAwI8Q/ubPi9+keli34=
 github.com/microsoft/moc v0.10.28-alpha.2/go.mod h1:lgNtdRRGcq0jyLy0yo/ZG62GMZKZ+ngJMpPzisoPWVE=
-github.com/microsoft/moc-sdk-for-go v0.10.27-alpha.8 h1:bD28MlAUFMOSLL2zAB9w7GCq1Qzonlba/97vZ3YE4c4=
-github.com/microsoft/moc-sdk-for-go v0.10.27-alpha.8/go.mod h1:f7LwJ0pRzMzcZ4baHZHhQq6+joISI1R4ukZAsLT5M+c=
+github.com/microsoft/moc-sdk-for-go v0.10.28-alpha.0 h1:T902I7CV0OCwqcZ2yiT02yLj6Y4DUQcozB8MXCfGgJw=
+github.com/microsoft/moc-sdk-for-go v0.10.28-alpha.0/go.mod h1:f7LwJ0pRzMzcZ4baHZHhQq6+joISI1R4ukZAsLT5M+c=
 github.com/microsoft/wmi v0.5.0-alpha.11 h1:4RMeVJQgaC4Ai/JoPwvfUrpXK5F77bgav4Imp7Zgmss=
 github.com/microsoft/wmi v0.5.0-alpha.11/go.mod h1:CB4quQE5BBSQWcvI1g95npg6dmCjrAhMgc/jy8D9Jr4=
 github.com/miekg/dns v1.1.25/go.mod h1:bPDLeHnStXmXAq1m/Ch/hvfNHr14JKNPMBo3VZKjuso=
