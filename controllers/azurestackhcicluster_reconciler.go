@@ -80,7 +80,7 @@ func (r *azureStackHCIClusterReconciler) Reconcile() error {
 		Name:     r.scope.GetResourceGroup(),
 		Location: r.scope.Location(),
 	}
-
+	// creates a group with tag as "ownedBy: caph"
 	if err := r.groupSvc.Reconcile(r.scope.Context, groupSpec); err != nil {
 		return errors.Wrapf(err, "failed to reconcile group for cluster %s", r.scope.Name())
 	}
@@ -111,6 +111,8 @@ func (r *azureStackHCIClusterReconciler) Delete() error {
 		Location: r.scope.Location(),
 	}
 
+	// a group is deleted only if it was created by azureStackHCIClusterReconciler
+	// which has tag "ownedBy: caph"
 	if err := r.groupSvc.Delete(r.scope.Context, groupSpec); err != nil {
 		return errors.Wrapf(err, "failed to delete group %s for cluster %s", r.scope.GetResourceGroup(), r.scope.Name())
 	}
