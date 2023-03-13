@@ -22,6 +22,7 @@ import (
 
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
+	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/groups"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/keyvaults"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/secrets"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/virtualnetworks"
@@ -40,6 +41,7 @@ type azureStackHCIClusterReconciler struct {
 	vnetSvc     azurestackhci.Service
 	keyvaultSvc azurestackhci.Service
 	secretSvc   azurestackhci.GetterService
+	groupSvc    azurestackhci.Service
 }
 
 // newAzureStackHCIClusterReconciler populates all the services based on input scope
@@ -49,11 +51,13 @@ func newAzureStackHCIClusterReconciler(scope *scope.ClusterScope) *azureStackHCI
 		vnetSvc:     virtualnetworks.NewService(scope),
 		keyvaultSvc: keyvaults.NewService(scope),
 		secretSvc:   secrets.NewService(scope),
+		groupSvc:    groups.NewService(scope),
 	}
 }
 
 // Reconcile reconciles all the services in pre determined order
 func (r *azureStackHCIClusterReconciler) Reconcile() error {
+
 	klog.V(2).Infof("reconciling cluster %s", r.scope.Name())
 
 	r.createOrUpdateVnetName()
@@ -72,6 +76,15 @@ func (r *azureStackHCIClusterReconciler) Reconcile() error {
 		return errors.Wrapf(err, "failed to reconcile virtual network for cluster %s", r.scope.Name())
 	}
 
+	groupSpec := &groups.Spec{
+		Name:     r.scope.GetResourceGroup(),
+		Location: r.scope.Location(),
+	}
+	// creates a group with tag as "ownedBy: caph"
+	if err := r.groupSvc.Reconcile(r.scope.Context, groupSpec); err != nil {
+		return errors.Wrapf(err, "failed to reconcile group for cluster %s", r.scope.Name())
+	}
+
 	vaultSpec := &keyvaults.Spec{
 		Name: r.scope.Name(),
 	}
@@ -84,6 +97,7 @@ func (r *azureStackHCIClusterReconciler) Reconcile() error {
 
 // Delete reconciles all the services in pre determined order
 func (r *azureStackHCIClusterReconciler) Delete() error {
+	klog.V(2).Infof(" deleting cluster %s", r.scope.Name())
 	vaultSpec := &keyvaults.Spec{
 		Name: r.scope.Name(),
 	}
@@ -91,6 +105,16 @@ func (r *azureStackHCIClusterReconciler) Delete() error {
 		if !azurestackhci.ResourceNotFound(err) {
 			return errors.Wrapf(err, "failed to delete keyvault %s for cluster %s", r.scope.Name(), r.scope.Name())
 		}
+	}
+	groupSpec := &groups.Spec{
+		Name:     r.scope.GetResourceGroup(),
+		Location: r.scope.Location(),
+	}
+
+	// a group is deleted only if it was created by azureStackHCIClusterReconciler
+	// which has tag "ownedBy: caph"
+	if err := r.groupSvc.Delete(r.scope.Context, groupSpec); err != nil {
+		return errors.Wrapf(err, "failed to delete group %s for cluster %s", r.scope.GetResourceGroup(), r.scope.Name())
 	}
 
 	vnetSpec := &virtualnetworks.Spec{
