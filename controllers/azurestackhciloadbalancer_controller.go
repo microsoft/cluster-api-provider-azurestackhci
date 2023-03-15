@@ -249,12 +249,15 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileLoadBalancerServiceStatus
 func (r *AzureStackHCILoadBalancerReconciler) reconcileLoadBalancerService(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) error {
 	backendPoolName := azurestackhci.GenerateControlPlaneBackendPoolName(clusterScope.Name())
 	loadBalancerScope.SetPort(clusterScope.APIServerPort())
+	role := azurestackhci.LBRoleAksHciApiServer
+	tags := map[string]*string{azurestackhci.LBRoleTagName: &role}
 	lbSpec := &loadbalancers.Spec{
 		Name:            loadBalancerScope.AzureStackHCILoadBalancer.Name,
 		BackendPoolName: backendPoolName,
 		FrontendPort:    loadBalancerScope.GetPort(),
 		BackendPort:     clusterScope.APIServerPort(),
 		VnetName:        clusterScope.AzureStackHCICluster.Spec.NetworkSpec.Vnet.Name,
+		Tags:     tags,
 	}
 
 	if err := loadbalancers.NewService(clusterScope).Reconcile(clusterScope.Context, lbSpec); err != nil {

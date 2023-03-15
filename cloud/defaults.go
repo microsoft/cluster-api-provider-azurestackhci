@@ -59,6 +59,13 @@ const (
 	LatestVersion = "latest"
 )
 
+const (
+	// Role is used to distinguish api server lb from other lbs.
+	// used by SDN integration
+	LBRoleTagName         = "Role"
+	LBRoleAksHciApiServer = "AKSHCI_APISERVER"
+)
+
 // SupportedAvailabilityZoneLocations is a slice of the locations where Availability Zones are supported.
 // This is used to validate whether a virtual machine should leverage an Availability Zone.
 // Based on the Availability Zones listed in https://docs.microsoft.com/en-us/azure/availability-zones/az-overview
