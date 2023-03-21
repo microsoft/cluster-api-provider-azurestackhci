@@ -141,10 +141,15 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileDeleteVirtualMachines(loa
 }
 
 func (r *AzureStackHCILoadBalancerReconciler) createOrUpdateVirtualMachine(loadBalancerScope *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) (*infrav1.AzureStackHCIVirtualMachine, error) {
+	loadBalancerName, err := azurestackhci.GenerateAzureStackHCILoadBalancerMachineName(loadBalancerScope.Name())
+	if err != nil {
+		return nil, err
+	}
+	
 	vm := &infrav1.AzureStackHCIVirtualMachine{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: clusterScope.Namespace(),
-			Name:      azurestackhci.GenerateAzureStackHCILoadBalancerMachineName(loadBalancerScope.Name()),
+			Name:      loadBalancerName,
 		},
 	}
 

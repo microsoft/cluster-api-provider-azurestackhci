@@ -138,8 +138,12 @@ func GenerateAzureStackHCILoadBalancerName(clusterName string) string {
 }
 
 // GenerateAzureStackHCILoadBalancerMachineName generates the name of a load balancer machine based on the name of the load balancer.
-func GenerateAzureStackHCILoadBalancerMachineName(loadBalancerName string) string {
-	return fmt.Sprintf("%s-%s", loadBalancerName, infrav1util.RandomAlphaNumericString(5))
+func GenerateAzureStackHCILoadBalancerMachineName(loadBalancerName string) (string, error) {
+	randomString, err := infrav1util.RandomAlphaNumericString(5)
+	if err != nil {
+		return loadBalancerName, err
+	}
+	return fmt.Sprintf("%s-%s", loadBalancerName, randomString), nil
 }
 
 // GenerateControlPlaneBackendPoolName generates the name of a control plane backend pool based on the name of a cluster.
