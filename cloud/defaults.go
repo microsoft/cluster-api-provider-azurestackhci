@@ -25,6 +25,7 @@ import (
 	infrav1util "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/util"
 	"github.com/pkg/errors"
 	"k8s.io/utils/pointer"
+	rand "github.com/microsoft/moc-pkg/pkg/rand"
 )
 
 const (
@@ -139,7 +140,7 @@ func GenerateAzureStackHCILoadBalancerName(clusterName string) string {
 
 // GenerateAzureStackHCILoadBalancerMachineName generates the name of a load balancer machine based on the name of the load balancer.
 func GenerateAzureStackHCILoadBalancerMachineName(loadBalancerName string) (string, error) {
-	randomString, err := infrav1util.RandomAlphaNumericString(5)
+	randomString, err := rand.RandomString(5)
 	if err != nil {
 		return loadBalancerName, err
 	}

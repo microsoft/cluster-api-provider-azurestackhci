@@ -28,8 +28,3 @@ func GetAzureStackHCIMachinesInCluster(ctx context.Context, controllerClient cli
 
 	return machines, nil
 }
-
-// RandomAlphaNumericString returns a random alphanumeric string.
-func RandomAlphaNumericString(n int) (string, error) {
-	return rand.RandomString(n)
-}

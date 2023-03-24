@@ -35,6 +35,7 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh"
 	"k8s.io/klog/v2"
+	mrand "github.com/microsoft/moc-pkg/pkg/rand"
 )
 
 const (
@@ -325,7 +326,7 @@ func generateComputerName(os infrav1.OSType) (string, error) {
 	}
 
 	if len(computerName) < computerNameLength {
-		randomString, err := infrav1util.RandomAlphaNumericString(computerNameLength - len(computerName))
+		randomString, err := mrand.RandomString(computerNameLength - len(computerName))
 		if err != nil {
 			return "", err
 		}
