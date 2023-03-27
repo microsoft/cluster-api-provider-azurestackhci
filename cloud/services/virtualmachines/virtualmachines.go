@@ -121,7 +121,10 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		})
 	}
 
-	computerName := generateComputerName(vmSpec.Image.OSType)
+	computerName, err := generateComputerName(vmSpec.Image.OSType)
+	if err != nil {
+		return errors.Wrap(err, "Failed to generate computer name")
+	}
 
 	virtualMachine := compute.VirtualMachine{
 		Name: to.StringPtr(vmSpec.Name),
@@ -307,7 +310,7 @@ func GenerateRandomString(n int) (string, error) {
 // generateComputerName returns a unique OS computer name which is expected to be valid on any
 // operating system. To satisfy Windows requirements, we generate a length-restricted name. The
 // generated computer name has the following format: <prefix><os_identifer><random chars>
-func generateComputerName(os infrav1.OSType) string {
+func generateComputerName(os infrav1.OSType) (string, error) {
 	computerName := computerNamePrefix
 
 	switch os {
@@ -322,8 +325,12 @@ func generateComputerName(os infrav1.OSType) string {
 	}
 
 	if len(computerName) < computerNameLength {
-		computerName += infrav1util.RandomAlphaNumericString(computerNameLength - len(computerName))
+		randomString, err := infrav1util.RandomAlphaNumericString(computerNameLength - len(computerName))
+		if err != nil {
+			return "", err
+		}
+		computerName += randomString
 	}
 
-	return computerName
+	return computerName, nil
 }
