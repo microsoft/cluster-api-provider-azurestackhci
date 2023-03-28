@@ -2,8 +2,8 @@ package util
 
 import (
 	"context"
-	"math/rand"
-	"time"
+	"crypto/rand"
+	"math/big"
 
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
@@ -12,10 +12,6 @@ import (
 
 const (
 	charSet = "abcdefghijklmnopqrstuvwxyz0123456789"
-)
-
-var (
-	rnd = rand.New(rand.NewSource(time.Now().UnixNano())) //nolint:gosec
 )
 
 // GetAzureStackHCIMachinesInCluster gets a cluster's AzureStackHCIMachines resources.
@@ -39,10 +35,14 @@ func GetAzureStackHCIMachinesInCluster(ctx context.Context, controllerClient cli
 }
 
 // RandomAlphaNumericString returns a random alphanumeric string.
-func RandomAlphaNumericString(n int) string {
+func RandomAlphaNumericString(n int) (string, error) {
 	result := make([]byte, n)
 	for i := range result {
-		result[i] = charSet[rnd.Intn(len(charSet))]
+		val, err := rand.Int(rand.Reader, big.NewInt(int64(len(charSet))))
+		if err!= nil {
+			return "", err
+		}
+		result[i] = charSet[val.Int64()]
 	}
-	return string(result)
+	return string(result), nil
 }
