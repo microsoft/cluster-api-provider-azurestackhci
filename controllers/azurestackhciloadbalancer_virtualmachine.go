@@ -262,7 +262,7 @@ func (r *AzureStackHCILoadBalancerReconciler) selectVirtualMachineForScaleDown(l
 // getVMImage returns the image to use for a virtual machine
 func (r *AzureStackHCILoadBalancerReconciler) getVMImage(loadBalancerScope *scope.LoadBalancerScope) (*infrav1.Image, error) {
 	// Use custom image if provided
-	if loadBalancerScope.AzureStackHCILoadBalancer.Spec.Image.Name != nil {
+	if loadBalancerScope.AzureStackHCILoadBalancer.Spec.Image.Name != nil && *loadBalancerScope.AzureStackHCILoadBalancer.Spec.Image.Name != "" {
 		loadBalancerScope.Info("Using custom image name for loadbalancer", "loadbalancer", loadBalancerScope.AzureStackHCILoadBalancer.GetName(), "imageName", loadBalancerScope.AzureStackHCILoadBalancer.Spec.Image.Name)
 		return &loadBalancerScope.AzureStackHCILoadBalancer.Spec.Image, nil
 	}
