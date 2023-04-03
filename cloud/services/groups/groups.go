@@ -26,11 +26,6 @@ import (
 	"k8s.io/klog/v2"
 )
 
-const (
-	TagKeyClusterGroup = "ownedBy"
-	TagValClusterGroup = "caph"
-)
-
 // Spec specification for group
 type Spec struct {
 	Name     string
@@ -63,55 +58,37 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		// group already exists, cannot update since its immutable
 		return nil
 	}
-	//adding tag to group
-	tag := make(map[string]*string, 1)
-	caphVal := TagValClusterGroup
-	tag[TagKeyClusterGroup] = &caphVal
 
 	klog.V(2).Infof("creating group %s in location %s", groupSpec.Name, groupSpec.Location)
 	_, err := s.Client.CreateOrUpdate(ctx, groupSpec.Location, groupSpec.Name,
 		&cloud.Group{
 			Name:     &groupSpec.Name,
 			Location: &groupSpec.Location,
-			Tags:     tag,
 		})
 	if err != nil {
 		return err
 	}
+
 	klog.V(2).Infof("successfully created group %s", groupSpec.Name)
 	return err
 }
 
-// Delete deletes a group if group is created by caph
+// Delete deletes a group.
 func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	groupSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("Invalid group specification")
 	}
 	klog.V(2).Infof("deleting group %s in location %s", groupSpec.Name, groupSpec.Location)
-	group, err := s.Client.Get(ctx, groupSpec.Location, groupSpec.Name)
+	err := s.Client.Delete(ctx, groupSpec.Location, groupSpec.Name)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
-		// ignoring the NotFound error, since it might be already deleted
-		klog.V(2).Infof("group %s not found in location %s", groupSpec.Name, groupSpec.Location)
+		// already deleted
 		return nil
-	} else if err != nil {
-		return err
 	}
-	groupObj := (*group)[0]
-	value, ok := groupObj.Tags[TagKeyClusterGroup]
-	// delete only if created by caph
-	if ok && (value != nil && *value == TagValClusterGroup) {
-		err := s.Client.Delete(ctx, groupSpec.Location, groupSpec.Name)
-		if err != nil && azurestackhci.ResourceNotFound(err) {
-			// already deleted
-			return nil
-		}
-		if err != nil {
-			return errors.Wrapf(err, "failed to delete group %s", groupSpec.Name)
-		}
-		klog.V(2).Infof("successfully deleted group %s", groupSpec.Name)
-	} else {
-		klog.V(2).Infof("skipping group %s deletion, since it is not created by caph", groupSpec.Name)
+	if err != nil {
+		return errors.Wrapf(err, "failed to delete group %s", groupSpec.Name)
 	}
+
+	klog.V(2).Infof("successfully deleted group %s", groupSpec.Name)
 	return err
 }
