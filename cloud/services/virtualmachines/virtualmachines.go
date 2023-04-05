@@ -96,7 +96,14 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	}
 	klog.V(2).Infof("got nic %s", vmSpec.NICName)
 
-	klog.V(2).Infof("creating vm %s : %v", vmSpec.Name, vmSpec)
+	klog.V(2).InfoS("creating vm",
+		"Name", vmSpec.Name,
+		"NICName", vmSpec.NICName,
+		"Size", vmSpec.Size,
+		"Image", vmSpec.Image,
+		"OSDisk", vmSpec.OSDisk,
+		"VMType", vmSpec.VMType,
+	)
 
 	sshKeyData := vmSpec.SSHKeyData
 	if len(sshKeyData) == 0 {
