@@ -76,7 +76,7 @@ jobs:
           docker push $new_imagename
           sed -i "s|$imagename|$new_imagename|g" deployment/cloud-operator.yaml
 
-          cp deployment/cloud-operator.yaml out/
+          cp deployment/cloud-operator.yaml out/cloud-operator.yaml
         workingDirectory: "$(System.DefaultWorkingDirectory)"
         displayName: "Build CAPH"
 
