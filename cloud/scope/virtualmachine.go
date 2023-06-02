@@ -19,6 +19,7 @@ package scope
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/go-logr/logr"
@@ -109,6 +110,11 @@ func (m *VirtualMachineScope) GetCloudAgentFqdn() string {
 // GetAuthorizer is a getter for the environment generated authorizer.
 func (m *VirtualMachineScope) GetAuthorizer() auth.Authorizer {
 	return m.Authorizer
+}
+
+// GetCustomResourceTypeWithName return the type and name string of the associated CR.
+func (m *VirtualMachineScope) GetCustomResourceTypeWithName() string {
+	return fmt.Sprintf("%s/%s/%s", m.AzureStackHCIVirtualMachine.Kind, m.Namespace(), m.Name())
 }
 
 // VnetName returns the vnet name given in the vm spec.

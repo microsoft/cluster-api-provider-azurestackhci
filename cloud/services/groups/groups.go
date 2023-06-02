@@ -39,6 +39,8 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 		return cloud.Group{}, errors.New("Invalid group specification")
 	}
 	group, err := s.Client.Get(ctx, groupSpec.Location, groupSpec.Name)
+	azurestackhci.WriteMocOperationLog(azurestackhci.Get, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Group,
+		azurestackhci.GenerateMocResourceName(groupSpec.Location, groupSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		return nil, errors.Wrapf(err, "group %s not found in location %s", groupSpec.Name, groupSpec.Location)
 	} else if err != nil {
@@ -65,6 +67,8 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			Name:     &groupSpec.Name,
 			Location: &groupSpec.Location,
 		})
+	azurestackhci.WriteMocOperationLog(azurestackhci.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Group,
+		azurestackhci.GenerateMocResourceName(groupSpec.Location, groupSpec.Name), nil, err)
 	if err != nil {
 		return err
 	}
@@ -81,6 +85,8 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	}
 	klog.V(2).Infof("deleting group %s in location %s", groupSpec.Name, groupSpec.Location)
 	err := s.Client.Delete(ctx, groupSpec.Location, groupSpec.Name)
+	azurestackhci.WriteMocOperationLog(azurestackhci.Delete, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Group,
+		azurestackhci.GenerateMocResourceName(groupSpec.Location, groupSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted
 		return nil

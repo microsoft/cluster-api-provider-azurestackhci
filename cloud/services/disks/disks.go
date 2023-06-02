@@ -39,6 +39,8 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 		return storage.VirtualHardDisk{}, errors.New("Invalid Disk Specification")
 	}
 	disk, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), "", diskSpec.Name)
+	azurestackhci.WriteMocOperationLog(azurestackhci.Get, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Disk,
+		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), diskSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		return nil, errors.Wrapf(err, "disk %s not found", diskSpec.Name)
 	} else if err != nil {
@@ -65,6 +67,8 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			Name:                      &diskSpec.Name,
 			VirtualHardDiskProperties: &storage.VirtualHardDiskProperties{},
 		})
+	azurestackhci.WriteMocOperationLog(azurestackhci.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Disk,
+		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), diskSpec.Name), nil, err)
 	if err != nil {
 		return err
 	}
@@ -81,6 +85,8 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	}
 	klog.V(2).Infof("deleting disk %s", diskSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), "", diskSpec.Name)
+	azurestackhci.WriteMocOperationLog(azurestackhci.Delete, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Disk,
+		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), diskSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted
 		return nil

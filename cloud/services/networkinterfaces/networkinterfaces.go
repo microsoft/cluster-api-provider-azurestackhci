@@ -44,6 +44,8 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 		return network.Interface{}, errors.New("invalid network interface specification")
 	}
 	nic, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), nicSpec.Name)
+	azurestackhci.WriteMocOperationLog(azurestackhci.Get, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.NetworkInterface,
+		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), nicSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		return nil, errors.Wrapf(err, "network interface %s not found", nicSpec.Name)
 	} else if err != nil {
@@ -79,24 +81,27 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		nicConfig.PrivateIPAddress = to.StringPtr(nicSpec.StaticIPAddress)
 	}
 
+	networkInterface := network.Interface{
+		Name: &nicSpec.Name,
+		InterfacePropertiesFormat: &network.InterfacePropertiesFormat{
+			EnableIPForwarding: to.BoolPtr(true),
+			EnableMACSpoofing:  to.BoolPtr(true),
+			MacAddress:         &nicSpec.MacAddress,
+			IPConfigurations: &[]network.InterfaceIPConfiguration{
+				{
+					Name:                                     to.StringPtr("pipConfig"),
+					InterfaceIPConfigurationPropertiesFormat: nicConfig,
+				},
+			},
+		},
+	}
+
 	_, err := s.Client.CreateOrUpdate(ctx,
 		s.Scope.GetResourceGroup(),
 		nicSpec.Name,
-		&network.Interface{
-			Name: &nicSpec.Name,
-			InterfacePropertiesFormat: &network.InterfacePropertiesFormat{
-				EnableIPForwarding: to.BoolPtr(true),
-				EnableMACSpoofing:  to.BoolPtr(true),
-				MacAddress:         &nicSpec.MacAddress,
-				IPConfigurations: &[]network.InterfaceIPConfiguration{
-					{
-						Name:                                     to.StringPtr("pipConfig"),
-						InterfaceIPConfigurationPropertiesFormat: nicConfig,
-					},
-				},
-			},
-		})
-
+		&networkInterface)
+	azurestackhci.WriteMocOperationLog(azurestackhci.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.NetworkInterface,
+		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), nicSpec.Name), &networkInterface, err)
 	if err != nil {
 		return errors.Wrapf(err, "failed to create network interface %s in resource group %s", nicSpec.Name, s.Scope.GetResourceGroup())
 	}
@@ -113,6 +118,8 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	}
 	klog.V(2).Infof("deleting nic %s", nicSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), nicSpec.Name)
+	azurestackhci.WriteMocOperationLog(azurestackhci.Delete, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.NetworkInterface,
+		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), nicSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted
 		return nil
