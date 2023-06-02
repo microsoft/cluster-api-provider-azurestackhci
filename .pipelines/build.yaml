@@ -37,7 +37,7 @@ jobs:
           containerRegistry: mocimages-connection
       - task: GoTool@0
         inputs:
-          version: "1.17.x"
+          version: "1.19.9"
 
       - script: |
           mkdir manifest
@@ -76,7 +76,8 @@ jobs:
           docker push $new_imagename
           sed -i "s|$imagename|$new_imagename|g" deployment/cloud-operator.yaml
 
-          cp deployment/cloud-operator.yaml out/
+          mkdir out/
+          cp deployment/cloud-operator.yaml out/cloud-operator.yaml
         workingDirectory: "$(System.DefaultWorkingDirectory)"
         displayName: "Build CAPH"
 
