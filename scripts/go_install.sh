@@ -12,7 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+set -x
+set -e
 set -o errexit
 set -o nounset
 set -o pipefail
@@ -52,5 +53,7 @@ go mod init fake/mod
 
 # install the golang module specified as the first argument
 go get -tags tools "${1}@${3}"
-mv "${GOBIN}/${2}" "${GOBIN}/${2}-${3}"
+if [ -e "${GOBIN}/${2}" ]; then
+  mv "${GOBIN}/${2}" "${GOBIN}/${2}-${3}"
+fi
 ln -sf "${GOBIN}/${2}-${3}" "${GOBIN}/${2}"
