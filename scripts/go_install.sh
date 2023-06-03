@@ -38,25 +38,9 @@ if [ -z "${GOBIN}" ]; then
   exit 1
 fi
 
-tmp_dir=$(mktemp -d -t goinstall_XXXXXXXXXX)
-function clean {
-  rv=$?
-  rm -rf "${tmp_dir}"
-  exit $rv
-}
-trap clean EXIT
-
-rm "${GOBIN}/${2}"* || true
-
-cd "${tmp_dir}"
-
-# create a new module in the tmp directory
-go mod init fake/mod
+rm "${GOBIN}/${2}"* 2> /dev/null || true
 
 # install the golang module specified as the first argument
-go get -tags tools "${1}@${3}"
-if [ -e "${GOBIN}/${2}" ]; then
-  mv "${GOBIN}/${2}" "${GOBIN}/${2}-${3}"
-fi
-mkdir -p "${GOBIN}"
+go install -tags capztools "${1}@${3}"
+mv "${GOBIN}/${2}" "${GOBIN}/${2}-${3}"
 ln -sf "${GOBIN}/${2}-${3}" "${GOBIN}/${2}"
