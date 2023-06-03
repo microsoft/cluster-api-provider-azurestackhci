@@ -40,7 +40,9 @@ fi
 
 tmp_dir=$(mktemp -d -t goinstall_XXXXXXXXXX)
 function clean {
+  rv=$?
   rm -rf "${tmp_dir}"
+  exit $rv
 }
 trap clean EXIT
 
@@ -56,4 +58,5 @@ go get -tags tools "${1}@${3}"
 if [ -e "${GOBIN}/${2}" ]; then
   mv "${GOBIN}/${2}" "${GOBIN}/${2}-${3}"
 fi
+mkdir -p "${GOBIN}"
 ln -sf "${GOBIN}/${2}-${3}" "${GOBIN}/${2}"
