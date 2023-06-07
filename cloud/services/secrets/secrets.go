@@ -41,6 +41,8 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 		return keyvault.Secret{}, errors.New("Invalid secret specification")
 	}
 	secret, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), secretSpec.Name, secretSpec.VaultName)
+	azurestackhci.WriteMocOperationLog(azurestackhci.Get, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Secret,
+		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), secretSpec.VaultName, secretSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		return nil, errors.Wrapf(err, "secret %s not found", secretSpec.Name)
 	} else if err != nil {
@@ -64,16 +66,22 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		return nil
 	}
 
+	keyvaultSecret := keyvault.Secret{
+		Name:  &secretSpec.Name,
+		Value: &secretSpec.Value,
+		SecretProperties: &keyvault.SecretProperties{
+			VaultName: &secretSpec.VaultName,
+			FileName:  &secretSpec.FileName,
+		},
+	}
+
+	keyvaultSecretCopy := keyvaultSecret
+	keyvaultSecretCopy.Value = nil
+
 	klog.V(2).Infof("creating secret %s ", secretSpec.Name)
-	_, err := s.Client.CreateOrUpdate(ctx, s.Scope.GetResourceGroup(), secretSpec.Name,
-		&keyvault.Secret{
-			Name:  &secretSpec.Name,
-			Value: &secretSpec.Value,
-			SecretProperties: &keyvault.SecretProperties{
-				VaultName: &secretSpec.VaultName,
-				FileName:  &secretSpec.FileName,
-			},
-		})
+	_, err := s.Client.CreateOrUpdate(ctx, s.Scope.GetResourceGroup(), secretSpec.Name, &keyvaultSecret)
+	azurestackhci.WriteMocOperationLog(azurestackhci.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Secret,
+		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), secretSpec.VaultName, secretSpec.Name), keyvaultSecretCopy, err)
 	if err != nil {
 		return err
 	}
@@ -90,6 +98,8 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	}
 	klog.V(2).Infof("deleting secret %s", secretSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), secretSpec.Name, secretSpec.VaultName)
+	azurestackhci.WriteMocOperationLog(azurestackhci.Delete, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Secret,
+		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), secretSpec.VaultName, secretSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted
 		return nil

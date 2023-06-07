@@ -26,4 +26,5 @@ type ScopeInterface interface {
 	GetResourceGroup() string
 	GetCloudAgentFqdn() string
 	GetAuthorizer() auth.Authorizer
+	GetCustomResourceTypeWithName() string
 }

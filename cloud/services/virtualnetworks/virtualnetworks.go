@@ -45,6 +45,8 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 		return network.VirtualNetwork{}, errors.New("Invalid VNET Specification")
 	}
 	vnet, err := s.Client.Get(ctx, vnetSpec.Group, vnetSpec.Name)
+	azurestackhci.WriteMocOperationLog(azurestackhci.Get, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.VirtualNetwork,
+		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), vnetSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		return nil, errors.Wrapf(err, "vnet %s not found", vnetSpec.Name)
 	} else if err != nil {
@@ -78,18 +80,21 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	//networkType := ""
 	caph := CAPH
 
-	klog.V(2).Infof("creating vnet %s in resource group %s", vnetSpec.Name, vnetSpec.Group)
-	_, err := s.Client.CreateOrUpdate(ctx, vnetSpec.Group, vnetSpec.Name,
-		&network.VirtualNetwork{
-			Name: &vnetSpec.Name,
-			Type: &networkType,
-			VirtualNetworkPropertiesFormat: &network.VirtualNetworkPropertiesFormat{
-				AddressSpace: &network.AddressSpace{
-					AddressPrefixes: &[]string{vnetSpec.CIDR},
-				},
+	virtualNetwork := network.VirtualNetwork{
+		Name: &vnetSpec.Name,
+		Type: &networkType,
+		VirtualNetworkPropertiesFormat: &network.VirtualNetworkPropertiesFormat{
+			AddressSpace: &network.AddressSpace{
+				AddressPrefixes: &[]string{vnetSpec.CIDR},
 			},
-			Tags: map[string]*string{OWNER: &caph},
-		})
+		},
+		Tags: map[string]*string{OWNER: &caph},
+	}
+
+	klog.V(2).Infof("creating vnet %s in resource group %s", vnetSpec.Name, vnetSpec.Group)
+	_, err := s.Client.CreateOrUpdate(ctx, vnetSpec.Group, vnetSpec.Name, &virtualNetwork)
+	azurestackhci.WriteMocOperationLog(azurestackhci.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.VirtualNetwork,
+		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), vnetSpec.Name), &virtualNetwork, err)
 	if err != nil {
 		return err
 	}
@@ -119,6 +124,8 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 
 	klog.V(2).Infof("deleting vnet %s in resource group %s", vnetSpec.Name, vnetSpec.Group)
 	err = s.Client.Delete(ctx, vnetSpec.Group, vnetSpec.Name)
+	azurestackhci.WriteMocOperationLog(azurestackhci.Delete, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.VirtualNetwork,
+		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), vnetSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted
 		return nil

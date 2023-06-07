@@ -19,6 +19,7 @@ package scope
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/go-logr/logr"
@@ -114,6 +115,11 @@ func (s *ClusterScope) GetCloudAgentFqdn() string {
 // GetAuthorizer is a getter for the environment generated authorizer.
 func (s *ClusterScope) GetAuthorizer() auth.Authorizer {
 	return s.Authorizer
+}
+
+// GetCustomResourceTypeWithName return the type and name string of the associated CR.
+func (s *ClusterScope) GetCustomResourceTypeWithName() string {
+	return fmt.Sprintf("%s/%s/%s", s.Kind(), s.Namespace(), s.Name())
 }
 
 // Vnet returns the cluster Vnet.
