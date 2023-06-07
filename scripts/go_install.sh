@@ -41,6 +41,6 @@ fi
 rm "${GOBIN}/${2}"* 2> /dev/null || true
 
 # install the golang module specified as the first argument
-go install -tags capztools "${1}@${3}"
+go install -tags caphtools "${1}@${3}"
 mv "${GOBIN}/${2}" "${GOBIN}/${2}-${3}"
 ln -sf "${GOBIN}/${2}-${3}" "${GOBIN}/${2}"
