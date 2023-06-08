@@ -40,6 +40,8 @@ jobs:
           version: "1.19.9"
 
       - script: |
+          set -e
+          set -x
           mkdir manifest
           git config --global url.ssh://git@github.com/.insteadOf https://github.com/
           chmod +x hack/ensure-kustomize.sh
@@ -76,7 +78,7 @@ jobs:
           docker push $new_imagename
           sed -i "s|$imagename|$new_imagename|g" deployment/cloud-operator.yaml
 
-          mkdir out/
+          mkdir -p out/
           cp deployment/cloud-operator.yaml out/cloud-operator.yaml
         workingDirectory: "$(System.DefaultWorkingDirectory)"
         displayName: "Build CAPH"
