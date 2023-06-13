@@ -26,7 +26,7 @@ SHELL:=/usr/bin/env bash
 # Go version
 GO_VERSION := $(shell go env GOVERSION | sed "s/[^[:digit:].-]//g")
 ifeq ($(GO_VERSION),)
-GO_VERSION := 1.17.9
+GO_VERSION := 1.19.9
 endif
 
 # Use GOPROXY environment variable if set
@@ -75,7 +75,7 @@ CLUSTERCTL_VER := $(CAPI_VERSION)
 CLUSTERCTL_BIN := clusterctl
 CLUSTERCTL := $(TOOLS_BIN_DIR)/$(CLUSTERCTL_BIN)-$(CLUSTERCTL_VER)
 
-CONTROLLER_GEN_VER := v0.8.0
+CONTROLLER_GEN_VER := v0.11.4
 CONTROLLER_GEN_BIN := controller-gen
 CONTROLLER_GEN := $(TOOLS_BIN_DIR)/$(CONTROLLER_GEN_BIN)-$(CONTROLLER_GEN_VER)
 
