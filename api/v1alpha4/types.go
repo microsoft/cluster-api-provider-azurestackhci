@@ -104,6 +104,41 @@ func (s Subnets) ToMap() map[string]*SubnetSpec {
 	return res
 }
 
+type IPAllocationMethod int32
+
+const (
+	IPAllocationMethod_Invalid IPAllocationMethod = 0
+	IPAllocationMethod_Dynamic IPAllocationMethod = 1
+	IPAllocationMethod_Static  IPAllocationMethod = 2
+)
+
+type IpConfigurationSpec struct {
+	Name string `json:"name,omitempty"`
+	// +optional
+	Primary bool `json:"primary,omitempty"`
+	// +optional
+	Allocation IPAllocationMethod `json:"allocation,omitempty"`
+	// below fields are unused, but adding for completeness
+	// +optional
+	Ipaddress string `json:"ipaddress,omitempty"`
+	// +optional
+	Prefixlength string `json:"prefixlength,omitempty"`
+	// +optional
+	Subnetid string `json:"subnetid,omitempty"`
+	// +optional
+	Gateway string `json:"gateway,omitempty"`
+}
+type IpConfigurations []*IpConfigurationSpec
+
+type NetworkInterfaceSpec struct {
+	// +optional
+	Name string `json:"name,omitempty"`
+	// +optional
+	IPConfigurations IpConfigurations `json:"ipConfigurations,omitempty"`
+}
+
+type NetworkInterfaces []*NetworkInterfaceSpec
+
 const (
 	// OSVersionLabelName is the label set on resources to identify their os version
 	OSVersionLabelName = "msft.microsoft/os-version"

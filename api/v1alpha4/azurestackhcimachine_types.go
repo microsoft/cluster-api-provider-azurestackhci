@@ -53,6 +53,9 @@ type AzureStackHCIMachineSpec struct {
 	AllocatePublicIP bool `json:"allocatePublicIP,omitempty"`
 
 	AdditionalSSHKeys []string `json:"additionalSSHKeys,omitempty"`
+
+	// +optional
+	NetworkInterfaces NetworkInterfaces `json:"networkInterfaces,omitempty"`
 }
 
 // AzureStackHCIMachineStatus defines the observed state of AzureStackHCIMachine

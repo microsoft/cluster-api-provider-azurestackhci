@@ -56,7 +56,26 @@ func newAzureStackHCIVirtualMachineService(vmScope *scope.VirtualMachineScope) *
 // Create creates machine if and only if machine exists, handled by cluster-api
 func (s *azureStackHCIVirtualMachineService) Create() (*infrav1.VM, error) {
 	nicName := azurestackhci.GenerateNICName(s.vmScope.Name())
-	nicErr := s.reconcileNetworkInterface(nicName)
+
+	var ipconfigs networkinterfaces.IPConfigurations
+
+	if len(s.vmScope.AzureStackHCIVirtualMachine.Spec.NetworkInterfaces) > 0 {
+		ipconfigs = networkinterfaces.IPConfigurations{}
+		for i, ipconfigSpec := range s.vmScope.AzureStackHCIVirtualMachine.Spec.NetworkInterfaces[0].IPConfigurations {
+			ipconfigName := ipconfigSpec.Name
+			if len(ipconfigName) == 0 {
+				ipconfigName = azurestackhci.GenerateIPConfigName(nicName, i)
+			}
+			ipconfig := &networkinterfaces.IPConfiguration{
+				Name:    ipconfigName,
+				Primary: ipconfigSpec.Primary,
+			}
+
+			ipconfigs = append(ipconfigs, ipconfig)
+		}
+	}
+
+	nicErr := s.reconcileNetworkInterface(nicName, ipconfigs)
 	if nicErr != nil {
 		return nil, errors.Wrapf(nicErr, "failed to create nic %s for machine %s", nicName, s.vmScope.Name())
 	}
@@ -147,12 +166,13 @@ func (s *azureStackHCIVirtualMachineService) reconcileDisk(disk infrav1.OSDisk) 
 	return err
 }
 
-func (s *azureStackHCIVirtualMachineService) reconcileNetworkInterface(nicName string) error {
+func (s *azureStackHCIVirtualMachineService) reconcileNetworkInterface(nicName string, ipconfigs networkinterfaces.IPConfigurations) error {
 	networkInterfaceSpec := &networkinterfaces.Spec{
 		Name:             nicName,
 		VnetName:         s.vmScope.VnetName(),
 		SubnetName:       s.vmScope.SubnetName(), // this field is required to be passed from AzureStackHCIMachine
 		BackendPoolNames: s.vmScope.BackendPoolNames(),
+		IPConfigurations: ipconfigs,
 	}
 	err := s.networkInterfacesSvc.Reconcile(s.vmScope.Context, networkInterfaceSpec)
 	if err != nil {

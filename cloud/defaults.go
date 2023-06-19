@@ -127,6 +127,11 @@ func GenerateNICName(machineName string) string {
 	return fmt.Sprintf("%s-nic", machineName)
 }
 
+// GenerateIPConfigName generates the name of an ipconfiguration based on the nic name.
+func GenerateIPConfigName(nicName string, index int) string {
+	return fmt.Sprintf("%s-ipconfig-%d", nicName, index)
+}
+
 // GenerateOSDiskName generates the name of an OS disk based on the name of a VM.
 func GenerateOSDiskName(machineName string) string {
 	return fmt.Sprintf("%s_OSDisk", machineName)
