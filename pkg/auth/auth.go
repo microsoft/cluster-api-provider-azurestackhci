@@ -26,7 +26,6 @@ import (
 
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/moc-sdk-for-go/services/security/authentication"
-	"github.com/microsoft/moc-sdk-for-go/services/security/authentication/casigned"
 	"github.com/microsoft/moc/pkg/auth"
 	"github.com/microsoft/moc/pkg/config"
 	mocerrors "github.com/microsoft/moc/pkg/errors"
@@ -114,7 +113,7 @@ func UpdateLoginConfig(ctx context.Context, cli client.Client) {
 	}
 
 	// update login config to moc-sdk for recovery
-	casigned.UpdateLoginConfig(loginconfig)
+	authentication.UpdateLoginConfig(loginconfig)
 
 }
 
