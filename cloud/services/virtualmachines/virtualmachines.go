@@ -201,7 +201,7 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	}
 	klog.V(2).Infof("deleting vm %s ", vmSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
-	azurestackhci.WriteMocOperationLog(azurestackhci.Delete, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.VirtualMachine,
+	azurestackhci.WriteMocOperationLog(s.Scope, azurestackhci.Delete, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.VirtualMachine,
 		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), vmSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted

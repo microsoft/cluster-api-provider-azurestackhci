@@ -8,6 +8,10 @@ import (
 
 	mocerrors "github.com/microsoft/moc/pkg/errors"
 	"k8s.io/klog"
+
+	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
+	"github.com/microsoft/moc-sdk-for-go/services/admin/deploymentid"
+	"github.com/microsoft/moc/pkg/auth"
 )
 
 type MocResourceType string
@@ -43,7 +47,7 @@ type OperationLog struct {
 	Message        string      `json:"msg"`
 }
 
-func WriteMocOperationLog(operation MocOperation, crResourceName string, mocResourceType MocResourceType, mocResourceName string, params interface{}, err error) {
+func WriteMocOperationLog(scope scope.ScopeInterface, operation MocOperation, crResourceName string, mocResourceType MocResourceType, mocResourceName string, params interface{}, err error) {
 	errcode := "0"
 	message := ""
 	if err != nil {
@@ -68,8 +72,33 @@ func WriteMocOperationLog(operation MocOperation, crResourceName string, mocReso
 	} else {
 		klog.Info(string(jsonData))
 	}
+
+	WriteMocDeploymentIdLog(scope)
 }
 
 func GenerateMocResourceName(nameSegments ...string) string {
 	return strings.Join(nameSegments, "/")
+}
+
+var (
+	deploymentIdClient deploymentid.DeploymentIdClient
+)
+
+func WriteMocDeploymentIdLog(scope scope.ScopeInterface) {
+	if deploymentIdClient == nil {
+		deploymentIdClient = getDeploymentIdClient(scope.GetCloudAgentFqdn(), scope.GetAuthorizer())
+	}
+
+	deploymentId, err := deploymentIdClient.GetDeploymentId()
+	if err != nil {
+		klog.Error("Unable to get moc deployment id. ", err)
+	} else {
+		klog.Info("MOC Deployment Id: %s", deploymentId)
+	}
+}
+
+// getDeploymentIdClient creates a new deployment id client.
+func getDeploymentIdClient(cloudAgentFqdn string, authorizer auth.Authorizer) deploymentid.DeploymentIdClient {
+	client, _ := deploymentid.NewDeploymentIdClient(cloudAgentFqdn, authorizer)
+	return *client
 }

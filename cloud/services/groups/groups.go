@@ -76,7 +76,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			Location: &groupSpec.Location,
 			Tags:     tag,
 		})
-	azurestackhci.WriteMocOperationLog(azurestackhci.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Group,
+	azurestackhci.WriteMocOperationLog(s.Scope, azurestackhci.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Group,
 		azurestackhci.GenerateMocResourceName(groupSpec.Location, groupSpec.Name), nil, err)
 	if err != nil {
 		return err
@@ -95,7 +95,7 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	klog.V(2).Infof("deleting group %s in location %s", groupSpec.Name, groupSpec.Location)
 
 	group, err := s.Client.Get(ctx, groupSpec.Location, groupSpec.Name)
-	azurestackhci.WriteMocOperationLog(azurestackhci.Delete, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Group,
+	azurestackhci.WriteMocOperationLog(s.Scope, azurestackhci.Delete, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Group,
 		azurestackhci.GenerateMocResourceName(groupSpec.Location, groupSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// ignoring the NotFound error, since it might be already deleted
