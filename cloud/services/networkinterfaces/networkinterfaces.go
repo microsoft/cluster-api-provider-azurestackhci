@@ -95,6 +95,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			},
 		},
 	}
+
 	_, err := s.Client.CreateOrUpdate(ctx,
 		s.Scope.GetResourceGroup(),
 		nicSpec.Name,

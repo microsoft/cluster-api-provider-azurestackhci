@@ -72,7 +72,6 @@ func WriteMocOperationLog(operation MocOperation, crResourceName string, mocReso
 	} else {
 		klog.Info(string(jsonData))
 	}
-
 }
 
 func GenerateMocResourceName(nameSegments ...string) string {
