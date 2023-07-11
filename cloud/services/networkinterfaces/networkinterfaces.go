@@ -39,6 +39,7 @@ type Spec struct {
 
 // Get provides information about a network interface.
 func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error) {
+	azurestackhci.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	nicSpec, ok := spec.(*Spec)
 	if !ok {
 		return network.Interface{}, errors.New("invalid network interface specification")
@@ -54,6 +55,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 
 // Reconcile gets/creates/updates a network interface.
 func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
+	azurestackhci.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	nicSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("invalid network interface specification")
@@ -93,12 +95,11 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			},
 		},
 	}
-
 	_, err := s.Client.CreateOrUpdate(ctx,
 		s.Scope.GetResourceGroup(),
 		nicSpec.Name,
 		&networkInterface)
-	azurestackhci.WriteMocOperationLog(s.Scope, azurestackhci.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.NetworkInterface,
+	azurestackhci.WriteMocOperationLog(azurestackhci.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.NetworkInterface,
 		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), nicSpec.Name), &networkInterface, err)
 	if err != nil {
 		return errors.Wrapf(err, "failed to create network interface %s in resource group %s", nicSpec.Name, s.Scope.GetResourceGroup())
@@ -110,13 +111,14 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
 // Delete deletes the network interface with the provided name.
 func (s *Service) Delete(ctx context.Context, spec interface{}) error {
+	azurestackhci.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	nicSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("invalid network interface Specification")
 	}
 	klog.V(2).Infof("deleting nic %s", nicSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), nicSpec.Name)
-	azurestackhci.WriteMocOperationLog(s.Scope, azurestackhci.Delete, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.NetworkInterface,
+	azurestackhci.WriteMocOperationLog(azurestackhci.Delete, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.NetworkInterface,
 		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), nicSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted

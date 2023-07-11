@@ -39,11 +39,11 @@ type Spec struct {
 
 // Get provides information about a load balancer.
 func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error) {
+	azurestackhci.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	lbSpec, ok := spec.(*Spec)
 	if !ok {
 		return network.LoadBalancer{}, errors.New("invalid loadbalancer specification")
 	}
-
 	lb, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), lbSpec.Name)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		return nil, errors.Wrapf(err, "loadbalancer %s not found", lbSpec.Name)
@@ -55,6 +55,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 
 // Reconcile gets/creates/updates a load balancer.
 func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
+	azurestackhci.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	lbSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("invalid loadbalancer specification")
@@ -98,7 +99,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	// create the load balancer
 	klog.V(2).Infof("creating loadbalancer %s ", lbSpec.Name)
 	_, err := s.Client.CreateOrUpdate(ctx, s.Scope.GetResourceGroup(), lbSpec.Name, &networkLB)
-	azurestackhci.WriteMocOperationLog(s.Scope, azurestackhci.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.LoadBalancer,
+	azurestackhci.WriteMocOperationLog(azurestackhci.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.LoadBalancer,
 		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), lbSpec.Name), &networkLB, err)
 	if err != nil {
 		return err
@@ -110,13 +111,14 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
 // Delete deletes the load balancer with the provided name.
 func (s *Service) Delete(ctx context.Context, spec interface{}) error {
+	azurestackhci.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	lbSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("invalid loadbalancer specification")
 	}
 	klog.V(2).Infof("deleting loadbalancer %s ", lbSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), lbSpec.Name)
-	azurestackhci.WriteMocOperationLog(s.Scope, azurestackhci.Delete, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.LoadBalancer,
+	azurestackhci.WriteMocOperationLog(azurestackhci.Delete, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.LoadBalancer,
 		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), lbSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted

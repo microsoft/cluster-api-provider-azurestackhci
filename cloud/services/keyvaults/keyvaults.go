@@ -33,6 +33,7 @@ type Spec struct {
 
 // Get provides information about a keyvault.
 func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error) {
+	azurestackhci.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	vaultSpec, ok := spec.(*Spec)
 	if !ok {
 		return security.KeyVault{}, errors.New("Invalid keyvault specification")
@@ -48,6 +49,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 
 // Reconcile gets/creates/updates a keyvault.
 func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
+	azurestackhci.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	vaultSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("Invalid keyvault specification")
@@ -64,7 +66,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			Name:               &vaultSpec.Name,
 			KeyVaultProperties: &security.KeyVaultProperties{},
 		})
-	azurestackhci.WriteMocOperationLog(s.Scope, azurestackhci.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.KeyVault,
+	azurestackhci.WriteMocOperationLog(azurestackhci.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.KeyVault,
 		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), vaultSpec.Name), nil, err)
 	if err != nil {
 		return err
@@ -76,13 +78,14 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
 // Delete deletes a keyvault.
 func (s *Service) Delete(ctx context.Context, spec interface{}) error {
+	azurestackhci.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	vaultSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("Invalid keyvault specification")
 	}
 	klog.V(2).Infof("deleting keyvault %s", vaultSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), vaultSpec.Name)
-	azurestackhci.WriteMocOperationLog(s.Scope, azurestackhci.Delete, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.KeyVault,
+	azurestackhci.WriteMocOperationLog(azurestackhci.Delete, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.KeyVault,
 		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), vaultSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted

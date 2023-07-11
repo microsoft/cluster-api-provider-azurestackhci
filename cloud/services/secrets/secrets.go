@@ -36,6 +36,7 @@ type Spec struct {
 
 // Get provides information about a secret.
 func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error) {
+	azurestackhci.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	secretSpec, ok := spec.(*Spec)
 	if !ok {
 		return keyvault.Secret{}, errors.New("Invalid secret specification")
@@ -54,6 +55,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 
 // Reconcile gets/creates/updates a secret.
 func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
+	azurestackhci.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	secretSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("Invalid secret specification")
@@ -78,7 +80,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
 	klog.V(2).Infof("creating secret %s ", secretSpec.Name)
 	_, err := s.Client.CreateOrUpdate(ctx, s.Scope.GetResourceGroup(), secretSpec.Name, &keyvaultSecret)
-	azurestackhci.WriteMocOperationLog(s.Scope, azurestackhci.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Secret,
+	azurestackhci.WriteMocOperationLog(azurestackhci.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Secret,
 		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), secretSpec.VaultName, secretSpec.Name), keyvaultSecretCopy, err)
 	if err != nil {
 		return err
@@ -90,13 +92,14 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
 // Delete deletes a secret.
 func (s *Service) Delete(ctx context.Context, spec interface{}) error {
+	azurestackhci.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	secretSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("Invalid secret specification")
 	}
 	klog.V(2).Infof("deleting secret %s", secretSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), secretSpec.Name, secretSpec.VaultName)
-	azurestackhci.WriteMocOperationLog(s.Scope, azurestackhci.Delete, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Secret,
+	azurestackhci.WriteMocOperationLog(azurestackhci.Delete, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Secret,
 		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), secretSpec.VaultName, secretSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted

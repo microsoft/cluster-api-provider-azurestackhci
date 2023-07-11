@@ -34,6 +34,7 @@ type Spec struct {
 
 // Get provides information about a disk.
 func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error) {
+	azurestackhci.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	diskSpec, ok := spec.(*Spec)
 	if !ok {
 		return storage.VirtualHardDisk{}, errors.New("Invalid Disk Specification")
@@ -49,6 +50,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 
 // Reconcile gets/creates/updates a disk.
 func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
+	azurestackhci.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	diskSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("Invalid Disk Specification")
@@ -65,7 +67,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			Name:                      &diskSpec.Name,
 			VirtualHardDiskProperties: &storage.VirtualHardDiskProperties{},
 		})
-	azurestackhci.WriteMocOperationLog(s.Scope, azurestackhci.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Disk,
+	azurestackhci.WriteMocOperationLog(azurestackhci.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Disk,
 		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), diskSpec.Name), nil, err)
 	if err != nil {
 		return err
@@ -77,13 +79,14 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
 // Delete deletes the disk associated with a VM.
 func (s *Service) Delete(ctx context.Context, spec interface{}) error {
+	azurestackhci.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	diskSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("Invalid disk specification")
 	}
 	klog.V(2).Infof("deleting disk %s", diskSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), "", diskSpec.Name)
-	azurestackhci.WriteMocOperationLog(s.Scope, azurestackhci.Delete, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Disk,
+	azurestackhci.WriteMocOperationLog(azurestackhci.Delete, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Disk,
 		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), diskSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted

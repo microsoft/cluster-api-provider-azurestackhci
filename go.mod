@@ -6,8 +6,8 @@ require (
 	github.com/Azure/go-autorest/autorest/to v0.4.0
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/go-logr/logr v1.2.3
-	github.com/microsoft/moc v0.11.0-alpha.10
-	github.com/microsoft/moc-sdk-for-go v0.11.1-alpha.1
+	github.com/microsoft/moc v0.11.0-alpha.12
+	github.com/microsoft/moc-sdk-for-go v0.11.1-alpha.4
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/pflag v1.0.5
 	golang.org/x/crypto v0.6.0
@@ -72,7 +72,7 @@ require (
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20230110181048-76db0878b65f // indirect
-	google.golang.org/protobuf v1.30.0 // indirect
+	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
