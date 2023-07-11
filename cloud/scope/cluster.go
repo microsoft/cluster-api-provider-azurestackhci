@@ -117,9 +117,9 @@ func (s *ClusterScope) GetAuthorizer() auth.Authorizer {
 	return s.Authorizer
 }
 
-// GetCustomResourceTypeWithName return the type and name string of the associated CR.
+// GetCustomResourceTypeWithName return cluster resource string.
 func (s *ClusterScope) GetCustomResourceTypeWithName() string {
-	return fmt.Sprintf("%s/%s/%s", s.Kind(), s.Namespace(), s.Name())
+	return fmt.Sprintf("Cluster/%s/%s", s.Namespace(), s.Name())
 }
 
 // Vnet returns the cluster Vnet.

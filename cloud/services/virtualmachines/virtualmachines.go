@@ -186,7 +186,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		vmSpec.Name,
 		&virtualMachine)
 	azurestackhci.WriteMocOperationLog(azurestackhci.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.VirtualMachine,
-		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), vmSpec.Name), &virtualMachine, err)
+		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), vmSpec.Name), nil, err)
 	if err != nil {
 		return errors.Wrapf(err, "cannot create vm")
 	}
