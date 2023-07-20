@@ -39,8 +39,6 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 		return storage.VirtualHardDisk{}, errors.New("Invalid Disk Specification")
 	}
 	disk, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), "", diskSpec.Name)
-	azurestackhci.WriteMocOperationLog(azurestackhci.Get, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Disk,
-		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), diskSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		return nil, errors.Wrapf(err, "disk %s not found", diskSpec.Name)
 	} else if err != nil {

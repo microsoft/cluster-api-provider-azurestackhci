@@ -45,8 +45,6 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 	}
 
 	lb, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), lbSpec.Name)
-	azurestackhci.WriteMocOperationLog(azurestackhci.Get, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.LoadBalancer,
-		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), lbSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		return nil, errors.Wrapf(err, "loadbalancer %s not found", lbSpec.Name)
 	} else if err != nil {

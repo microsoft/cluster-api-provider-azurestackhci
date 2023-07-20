@@ -51,11 +51,6 @@ func WriteMocOperationLog(operation MocOperation, crResourceName string, mocReso
 		message = err.Error()
 	}
 
-	// don't collect get moc operation log to minimize log size.
-	if operation == Get {
-		return
-	}
-
 	oplog := OperationLog{
 		Timestamp:      time.Now().Format(time.RFC3339),
 		ParentResource: crResourceName,

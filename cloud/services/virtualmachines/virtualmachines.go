@@ -63,8 +63,6 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 	}
 
 	vm, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
-	azurestackhci.WriteMocOperationLog(azurestackhci.Get, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.VirtualMachine,
-		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), vmSpec.Name), nil, err)
 	if err != nil {
 		return nil, err
 	}

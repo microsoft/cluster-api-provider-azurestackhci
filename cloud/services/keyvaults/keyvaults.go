@@ -38,8 +38,6 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 		return security.KeyVault{}, errors.New("Invalid keyvault specification")
 	}
 	vault, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), vaultSpec.Name)
-	azurestackhci.WriteMocOperationLog(azurestackhci.Get, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.KeyVault,
-		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), vaultSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		return nil, errors.Wrapf(err, "keyvault %s not found", vaultSpec.Name)
 	} else if err != nil {
