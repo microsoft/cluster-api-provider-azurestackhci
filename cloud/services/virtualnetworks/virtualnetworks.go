@@ -45,8 +45,6 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 		return network.VirtualNetwork{}, errors.New("Invalid VNET Specification")
 	}
 	vnet, err := s.Client.Get(ctx, vnetSpec.Group, vnetSpec.Name)
-	azurestackhci.WriteMocOperationLog(azurestackhci.Get, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.VirtualNetwork,
-		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), vnetSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		return nil, errors.Wrapf(err, "vnet %s not found", vnetSpec.Name)
 	} else if err != nil {

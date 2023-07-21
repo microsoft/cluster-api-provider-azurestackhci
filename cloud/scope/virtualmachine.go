@@ -112,9 +112,9 @@ func (m *VirtualMachineScope) GetAuthorizer() auth.Authorizer {
 	return m.Authorizer
 }
 
-// GetCustomResourceTypeWithName return the type and name string of the associated CR.
+// GetCustomResourceTypeWithName return cluster resource string.
 func (m *VirtualMachineScope) GetCustomResourceTypeWithName() string {
-	return fmt.Sprintf("%s/%s/%s", m.AzureStackHCIVirtualMachine.Kind, m.Namespace(), m.Name())
+	return fmt.Sprintf("Cluster/%s/%s", m.Namespace(), m.ClusterName())
 }
 
 // VnetName returns the vnet name given in the vm spec.

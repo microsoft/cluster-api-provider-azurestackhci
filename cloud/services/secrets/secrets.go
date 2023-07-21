@@ -41,8 +41,6 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 		return keyvault.Secret{}, errors.New("Invalid secret specification")
 	}
 	secret, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), secretSpec.Name, secretSpec.VaultName)
-	azurestackhci.WriteMocOperationLog(azurestackhci.Get, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Secret,
-		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), secretSpec.VaultName, secretSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		return nil, errors.Wrapf(err, "secret %s not found", secretSpec.Name)
 	} else if err != nil {
