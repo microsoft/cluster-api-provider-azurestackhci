@@ -1,4 +1,4 @@
-package azurestackhci
+package telemetry
 
 import (
 	"context"

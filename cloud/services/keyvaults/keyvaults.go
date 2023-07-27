@@ -21,6 +21,7 @@ import (
 	"context"
 
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
+	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/telemetry"
 	"github.com/microsoft/moc-sdk-for-go/services/security"
 	"github.com/pkg/errors"
 	"k8s.io/klog/v2"
@@ -33,7 +34,7 @@ type Spec struct {
 
 // Get provides information about a keyvault.
 func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error) {
-	azurestackhci.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
+	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	vaultSpec, ok := spec.(*Spec)
 	if !ok {
 		return security.KeyVault{}, errors.New("Invalid keyvault specification")
@@ -49,7 +50,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 
 // Reconcile gets/creates/updates a keyvault.
 func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
-	azurestackhci.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
+	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	vaultSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("Invalid keyvault specification")
@@ -66,8 +67,8 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			Name:               &vaultSpec.Name,
 			KeyVaultProperties: &security.KeyVaultProperties{},
 		})
-	azurestackhci.WriteMocOperationLog(azurestackhci.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.KeyVault,
-		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), vaultSpec.Name), nil, err)
+	telemetry.WriteMocOperationLog(telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.KeyVault,
+		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), vaultSpec.Name), nil, err)
 	if err != nil {
 		return err
 	}
@@ -78,15 +79,15 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
 // Delete deletes a keyvault.
 func (s *Service) Delete(ctx context.Context, spec interface{}) error {
-	azurestackhci.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
+	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	vaultSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("Invalid keyvault specification")
 	}
 	klog.V(2).Infof("deleting keyvault %s", vaultSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), vaultSpec.Name)
-	azurestackhci.WriteMocOperationLog(azurestackhci.Delete, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.KeyVault,
-		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), vaultSpec.Name), nil, err)
+	telemetry.WriteMocOperationLog(telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.KeyVault,
+		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), vaultSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted
 		return nil

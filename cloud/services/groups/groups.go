@@ -21,6 +21,7 @@ import (
 	"context"
 
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
+	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/telemetry"
 	"github.com/microsoft/moc-sdk-for-go/services/cloud"
 	"github.com/pkg/errors"
 	"k8s.io/klog/v2"
@@ -39,7 +40,7 @@ type Spec struct {
 
 // Get provides information about a group.
 func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error) {
-	azurestackhci.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
+	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	groupSpec, ok := spec.(*Spec)
 	if !ok {
 		return cloud.Group{}, errors.New("Invalid group specification")
@@ -55,7 +56,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 
 // Reconcile gets/creates/updates a group.
 func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
-	azurestackhci.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
+	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	groupSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("Invalid group specification")
@@ -78,8 +79,8 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			Location: &groupSpec.Location,
 			Tags:     tag,
 		})
-	azurestackhci.WriteMocOperationLog(azurestackhci.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Group,
-		azurestackhci.GenerateMocResourceName(groupSpec.Location, groupSpec.Name), nil, err)
+	telemetry.WriteMocOperationLog(telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.Group,
+		telemetry.GenerateMocResourceName(groupSpec.Location, groupSpec.Name), nil, err)
 	if err != nil {
 		return err
 	}
@@ -90,7 +91,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
 // Delete deletes a group if group is created by caph
 func (s *Service) Delete(ctx context.Context, spec interface{}) error {
-	azurestackhci.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
+	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	groupSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("Invalid group specification")
@@ -98,8 +99,8 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	klog.V(2).Infof("deleting group %s in location %s", groupSpec.Name, groupSpec.Location)
 
 	group, err := s.Client.Get(ctx, groupSpec.Location, groupSpec.Name)
-	azurestackhci.WriteMocOperationLog(azurestackhci.Delete, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Group,
-		azurestackhci.GenerateMocResourceName(groupSpec.Location, groupSpec.Name), nil, err)
+	telemetry.WriteMocOperationLog(telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.Group,
+		telemetry.GenerateMocResourceName(groupSpec.Location, groupSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// ignoring the NotFound error, since it might be already deleted
 		klog.V(2).Infof("group %s not found in location %s", groupSpec.Name, groupSpec.Location)
