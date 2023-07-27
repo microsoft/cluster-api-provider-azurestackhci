@@ -40,7 +40,6 @@ type Spec struct {
 
 // Get provides information about a load balancer.
 func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error) {
-	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	lbSpec, ok := spec.(*Spec)
 	if !ok {
 		return network.LoadBalancer{}, errors.New("invalid loadbalancer specification")

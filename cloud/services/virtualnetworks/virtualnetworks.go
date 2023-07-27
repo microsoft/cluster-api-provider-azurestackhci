@@ -41,7 +41,6 @@ type Spec struct {
 
 // Get provides information about a virtual network.
 func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error) {
-	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	vnetSpec, ok := spec.(*Spec)
 	if !ok {
 		return network.VirtualNetwork{}, errors.New("Invalid VNET Specification")

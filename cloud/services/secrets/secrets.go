@@ -37,7 +37,6 @@ type Spec struct {
 
 // Get provides information about a secret.
 func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error) {
-	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	secretSpec, ok := spec.(*Spec)
 	if !ok {
 		return keyvault.Secret{}, errors.New("Invalid secret specification")

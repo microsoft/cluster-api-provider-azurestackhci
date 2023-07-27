@@ -58,18 +58,12 @@ type Spec struct {
 
 // Get provides information about a virtual machine.
 func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error) {
-	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	vmSpec, ok := spec.(*Spec)
 	if !ok {
 		return compute.VirtualMachine{}, errors.New("invalid vm specification")
 	}
 
 	vm, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
-<<<<<<< HEAD
-=======
-	telemetry.WriteMocOperationLog(telemetry.Get, s.Scope.GetCustomResourceTypeWithName(), telemetry.VirtualMachine,
-		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), vmSpec.Name), nil, err)
->>>>>>> 9c1fe3b (move the logutils to a separate package)
 	if err != nil {
 		return nil, err
 	}
@@ -191,8 +185,8 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		s.Scope.GetResourceGroup(),
 		vmSpec.Name,
 		&virtualMachine)
-	azurestackhci.WriteMocOperationLog(azurestackhci.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.VirtualMachine,
-		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), vmSpec.Name), nil, err)
+	telemetry.WriteMocOperationLog(telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.VirtualMachine,
+		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), vmSpec.Name), nil, err)
 	if err != nil {
 		return errors.Wrapf(err, "cannot create vm")
 	}

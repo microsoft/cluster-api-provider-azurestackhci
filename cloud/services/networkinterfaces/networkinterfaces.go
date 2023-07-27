@@ -40,7 +40,6 @@ type Spec struct {
 
 // Get provides information about a network interface.
 func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error) {
-	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	nicSpec, ok := spec.(*Spec)
 	if !ok {
 		return network.Interface{}, errors.New("invalid network interface specification")

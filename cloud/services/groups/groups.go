@@ -40,7 +40,6 @@ type Spec struct {
 
 // Get provides information about a group.
 func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error) {
-	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	groupSpec, ok := spec.(*Spec)
 	if !ok {
 		return cloud.Group{}, errors.New("Invalid group specification")

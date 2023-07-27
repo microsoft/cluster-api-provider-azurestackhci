@@ -34,7 +34,6 @@ type Spec struct {
 
 // Get provides information about a keyvault.
 func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error) {
-	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
 	vaultSpec, ok := spec.(*Spec)
 	if !ok {
 		return security.KeyVault{}, errors.New("Invalid keyvault specification")
