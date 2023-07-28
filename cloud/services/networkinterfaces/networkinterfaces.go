@@ -55,7 +55,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 
 // Reconcile gets/creates/updates a network interface.
 func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
-	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
+	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope)
 	nicSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("invalid network interface specification")
@@ -112,7 +112,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
 // Delete deletes the network interface with the provided name.
 func (s *Service) Delete(ctx context.Context, spec interface{}) error {
-	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
+	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope)
 	nicSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("invalid network interface Specification")

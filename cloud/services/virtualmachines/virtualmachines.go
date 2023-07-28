@@ -76,7 +76,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 
 // Reconcile gets/creates/updates a virtual machine.
 func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
-	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
+	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope)
 	vmSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("invalid vm specification")
@@ -197,7 +197,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
 // Delete deletes the virtual machine with the provided name.
 func (s *Service) Delete(ctx context.Context, spec interface{}) error {
-	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
+	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope)
 	vmSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("invalid vm Specification")

@@ -64,7 +64,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	//    * Control Plane NSG
 	//    * Node NSG
 	//    * Node Routetable
-	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
+	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope)
 	vnetSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("Invalid VNET Specification")
@@ -105,7 +105,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
 // Delete deletes the virtual network with the provided name.
 func (s *Service) Delete(ctx context.Context, spec interface{}) error {
-	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
+	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope)
 	vnetSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("Invalid VNET Specification")

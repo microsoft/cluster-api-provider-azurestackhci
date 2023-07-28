@@ -55,7 +55,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 
 // Reconcile gets/creates/updates a secret.
 func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
-	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
+	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope)
 	secretSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("Invalid secret specification")
@@ -92,7 +92,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
 // Delete deletes a secret.
 func (s *Service) Delete(ctx context.Context, spec interface{}) error {
-	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
+	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope)
 	secretSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("Invalid secret specification")

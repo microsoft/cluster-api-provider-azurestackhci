@@ -56,7 +56,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 
 // Reconcile gets/creates/updates a load balancer.
 func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
-	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
+	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope)
 	lbSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("invalid loadbalancer specification")
@@ -112,7 +112,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
 // Delete deletes the load balancer with the provided name.
 func (s *Service) Delete(ctx context.Context, spec interface{}) error {
-	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope.GetCloudAgentFqdn(), s.Scope.GetAuthorizer())
+	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope)
 	lbSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("invalid loadbalancer specification")

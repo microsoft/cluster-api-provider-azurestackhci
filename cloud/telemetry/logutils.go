@@ -7,11 +7,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
+	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/health"
 	mocerrors "github.com/microsoft/moc/pkg/errors"
 	"k8s.io/klog"
-
-	"github.com/microsoft/moc-sdk-for-go/services/admin/health"
-	"github.com/microsoft/moc/pkg/auth"
 )
 
 type MocResourceType string
@@ -78,28 +77,19 @@ func GenerateMocResourceName(nameSegments ...string) string {
 	return strings.Join(nameSegments, "/")
 }
 
-var healthClient *health.HealthClient
+var healthService *health.Service
 
-func WriteMocDeploymentIdLog(ctx context.Context, cloudAgentFqdn string, authorizer auth.Authorizer) {
-	deploymentId, err := getHealthClient(cloudAgentFqdn, authorizer).GetDeploymentId(ctx)
-	if err != nil {
-		klog.Error("Unable to get moc deployment id. ", err)
-	} else {
-		klog.Infof("MOC Deployment Id: %s", deploymentId)
-	}
+func WriteMocDeploymentIdLog(ctx context.Context, scope scope.ScopeInterface) {
+	deploymentId := getHealthService(scope).GetMocDeploymentId(ctx)
+	klog.Infof("MOC Deployment Id: %s", deploymentId)
 }
 
-func getHealthClient(cloudAgentFqdn string, authorizer auth.Authorizer) *health.HealthClient {
-	// if deploymentIdClient instance is created, directy return instance
-	if healthClient != nil {
-		return healthClient
+func getHealthService(scope scope.ScopeInterface) *health.Service {
+	// if healthService instance is created, directy return instance
+	if healthService != nil {
+		return healthService
 	}
 
-	client, err := health.NewHealthClient(cloudAgentFqdn, authorizer)
-	if err != nil {
-		klog.Error("Unable to create health client. ", err)
-		return nil
-	}
-	healthClient = client
-	return healthClient
+	healthService = health.NewService(scope)
+	return healthService
 }
