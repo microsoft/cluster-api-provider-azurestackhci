@@ -159,6 +159,7 @@ func (r *AzureStackHCIClusterReconciler) reconcileNormal(clusterScope *scope.Clu
 	azureStackHCICluster.Status.Ready = true
 	conditions.MarkTrue(azureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition)
 
+	/* //not required
 	// We mark the Cluster as Ready so CAPI can progress on ... but we still need to wait for
 	// the kubeconfig to be written to secrets.
 	err = newAzureStackHCIClusterReconciler(clusterScope).ReconcileKubeConfig()
@@ -166,7 +167,7 @@ func (r *AzureStackHCIClusterReconciler) reconcileNormal(clusterScope *scope.Clu
 		wrappedErr := errors.Wrap(err, "failed to reconcile kube config from cluster")
 		r.Recorder.Eventf(azureStackHCICluster, corev1.EventTypeWarning, "ClusterReconcilerKubeConfigFailed", wrappedErr.Error())
 		return reconcile.Result{}, wrappedErr
-	}
+	} */
 
 	return reconcile.Result{}, nil
 }
