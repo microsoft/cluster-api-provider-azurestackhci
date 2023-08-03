@@ -36,7 +36,6 @@ type azureStackHCIClusterReconciler struct {
 	scope       *scope.ClusterScope
 	vnetSvc     azurestackhci.Service
 	keyvaultSvc azurestackhci.Service
-	//secretSvc   azurestackhci.GetterService
 }
 
 // newAzureStackHCIClusterReconciler populates all the services based on input scope
@@ -45,7 +44,6 @@ func newAzureStackHCIClusterReconciler(scope *scope.ClusterScope) *azureStackHCI
 		scope:       scope,
 		vnetSvc:     virtualnetworks.NewService(scope),
 		keyvaultSvc: keyvaults.NewService(scope),
-		//secretSvc:   secrets.NewService(scope),
 	}
 }
 
@@ -109,36 +107,6 @@ func (r *azureStackHCIClusterReconciler) Delete() error {
 	return nil
 }
 
-/*
-// ReconcileKubeConfig reconciles the kubeconfig from the cluster secrets
-func (r *azureStackHCIClusterReconciler) ReconcileKubeConfig() error {
-	r.scope.Logger.Info("reconciling kubeconfig %s", r.scope.Name())
-
-	cluster := r.scope.Cluster
-	name := fmt.Sprintf("%s-kubeconfig", cluster.Name)
-	secret, err := r.scope.GetSecret(name) //fectching the CAPI secret
-	if err != nil {
-		return errors.Wrapf(err, "kubernetes secret query failed %s", r.scope.Name())
-	}
-	r.scope.Logger.Info("recieved kubeconfig from the cluster")
-
-	data, ok := secret.Data[KubeConfigDataFieldName]
-	if !ok {
-		return nil
-	}
-
-	secretSpec := &secrets.Spec{
-		Name:      KubeConfigSecretName,
-		VaultName: r.scope.Name(),
-		Value:     string(data),
-	}
-
-	if err := r.secretSvc.Reconcile(r.scope.Context, secretSpec); err != nil { //this is not required?
-		return errors.Wrapf(err, "failed to reconcile secret for cluster %s", r.scope.Name())
-	}
-	return nil
-}
-*/
 // createOrUpdateVnetName creates or updates the virtual network (vnet) name
 func (r *azureStackHCIClusterReconciler) createOrUpdateVnetName() {
 	if r.scope.Vnet().Name == "" {
