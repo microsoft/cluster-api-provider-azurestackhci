@@ -26,6 +26,11 @@ import (
 	"k8s.io/klog/v2"
 )
 
+const (
+	TagKeyClusterGroup = "ownedBy"
+	TagValClusterGroup = "caph"
+)
+
 // Spec specification for group
 type Spec struct {
 	Name     string
@@ -59,11 +64,17 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		return nil
 	}
 
+	//adding tag to group
+	tag := make(map[string]*string, 1)
+	caphVal := TagValClusterGroup
+	tag[TagKeyClusterGroup] = &caphVal
+
 	klog.V(2).Infof("creating group %s in location %s", groupSpec.Name, groupSpec.Location)
 	_, err := s.Client.CreateOrUpdate(ctx, groupSpec.Location, groupSpec.Name,
 		&cloud.Group{
 			Name:     &groupSpec.Name,
 			Location: &groupSpec.Location,
+			Tags:     tag,
 		})
 	azurestackhci.WriteMocOperationLog(azurestackhci.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Group,
 		azurestackhci.GenerateMocResourceName(groupSpec.Location, groupSpec.Name), nil, err)
@@ -75,24 +86,41 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	return err
 }
 
-// Delete deletes a group.
+// Delete deletes a group if group is created by caph
 func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	groupSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("Invalid group specification")
 	}
 	klog.V(2).Infof("deleting group %s in location %s", groupSpec.Name, groupSpec.Location)
-	err := s.Client.Delete(ctx, groupSpec.Location, groupSpec.Name)
+
+	group, err := s.Client.Get(ctx, groupSpec.Location, groupSpec.Name)
 	azurestackhci.WriteMocOperationLog(azurestackhci.Delete, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Group,
 		azurestackhci.GenerateMocResourceName(groupSpec.Location, groupSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
-		// already deleted
+		// ignoring the NotFound error, since it might be already deleted
+		klog.V(2).Infof("group %s not found in location %s", groupSpec.Name, groupSpec.Location)
 		return nil
-	}
-	if err != nil {
-		return errors.Wrapf(err, "failed to delete group %s", groupSpec.Name)
+	} else if err != nil {
+		return err
 	}
 
-	klog.V(2).Infof("successfully deleted group %s", groupSpec.Name)
+	groupObj := (*group)[0]
+	value, ok := groupObj.Tags[TagKeyClusterGroup]
+	// delete only if created by caph
+	if ok && (value != nil && *value == TagValClusterGroup) {
+		err := s.Client.Delete(ctx, groupSpec.Location, groupSpec.Name)
+		if err != nil && azurestackhci.ResourceNotFound(err) {
+			// already deleted
+			return nil
+		}
+		if err != nil {
+			return errors.Wrapf(err, "failed to delete group %s", groupSpec.Name)
+		}
+		klog.V(2).Infof("successfully deleted group %s", groupSpec.Name)
+	} else {
+		klog.V(2).Infof("skipping group %s deletion, since it is not created by caph", groupSpec.Name)
+	}
+
 	return err
 }
