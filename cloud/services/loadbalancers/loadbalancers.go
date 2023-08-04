@@ -22,6 +22,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/to"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
+	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/telemetry"
 	"github.com/microsoft/moc-sdk-for-go/services/network"
 	"github.com/pkg/errors"
 	"k8s.io/klog/v2"
@@ -55,6 +56,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 
 // Reconcile gets/creates/updates a load balancer.
 func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
+	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope)
 	lbSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("invalid loadbalancer specification")
@@ -98,8 +100,8 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	// create the load balancer
 	klog.V(2).Infof("creating loadbalancer %s ", lbSpec.Name)
 	_, err := s.Client.CreateOrUpdate(ctx, s.Scope.GetResourceGroup(), lbSpec.Name, &networkLB)
-	azurestackhci.WriteMocOperationLog(azurestackhci.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.LoadBalancer,
-		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), lbSpec.Name), &networkLB, err)
+	telemetry.WriteMocOperationLog(telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.LoadBalancer,
+		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), lbSpec.Name), &networkLB, err)
 	if err != nil {
 		return err
 	}
@@ -110,14 +112,15 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
 // Delete deletes the load balancer with the provided name.
 func (s *Service) Delete(ctx context.Context, spec interface{}) error {
+	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope)
 	lbSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("invalid loadbalancer specification")
 	}
 	klog.V(2).Infof("deleting loadbalancer %s ", lbSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), lbSpec.Name)
-	azurestackhci.WriteMocOperationLog(azurestackhci.Delete, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.LoadBalancer,
-		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), lbSpec.Name), nil, err)
+	telemetry.WriteMocOperationLog(telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.LoadBalancer,
+		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), lbSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted
 		return nil

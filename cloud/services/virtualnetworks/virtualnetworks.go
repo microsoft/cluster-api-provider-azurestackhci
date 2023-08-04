@@ -21,6 +21,7 @@ import (
 	"context"
 
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
+	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/telemetry"
 	"github.com/microsoft/moc-sdk-for-go/services/network"
 	"github.com/pkg/errors"
 	"k8s.io/klog/v2"
@@ -63,6 +64,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	//    * Control Plane NSG
 	//    * Node NSG
 	//    * Node Routetable
+	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope)
 	vnetSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("Invalid VNET Specification")
@@ -91,8 +93,8 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
 	klog.V(2).Infof("creating vnet %s in resource group %s", vnetSpec.Name, vnetSpec.Group)
 	_, err := s.Client.CreateOrUpdate(ctx, vnetSpec.Group, vnetSpec.Name, &virtualNetwork)
-	azurestackhci.WriteMocOperationLog(azurestackhci.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.VirtualNetwork,
-		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), vnetSpec.Name), &virtualNetwork, err)
+	telemetry.WriteMocOperationLog(telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.VirtualNetwork,
+		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), vnetSpec.Name), &virtualNetwork, err)
 	if err != nil {
 		return err
 	}
@@ -103,6 +105,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
 // Delete deletes the virtual network with the provided name.
 func (s *Service) Delete(ctx context.Context, spec interface{}) error {
+	telemetry.WriteMocDeploymentIdLog(ctx, s.Scope)
 	vnetSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("Invalid VNET Specification")
@@ -122,8 +125,8 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 
 	klog.V(2).Infof("deleting vnet %s in resource group %s", vnetSpec.Name, vnetSpec.Group)
 	err = s.Client.Delete(ctx, vnetSpec.Group, vnetSpec.Name)
-	azurestackhci.WriteMocOperationLog(azurestackhci.Delete, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.VirtualNetwork,
-		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), vnetSpec.Name), nil, err)
+	telemetry.WriteMocOperationLog(telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.VirtualNetwork,
+		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), vnetSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted
 		return nil

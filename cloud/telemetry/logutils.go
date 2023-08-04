@@ -1,11 +1,14 @@
-package azurestackhci
+package telemetry
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
+	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/health"
 	mocerrors "github.com/microsoft/moc/pkg/errors"
 	"k8s.io/klog"
 )
@@ -72,4 +75,21 @@ func WriteMocOperationLog(operation MocOperation, crResourceName string, mocReso
 
 func GenerateMocResourceName(nameSegments ...string) string {
 	return strings.Join(nameSegments, "/")
+}
+
+var healthService *health.Service
+
+func WriteMocDeploymentIdLog(ctx context.Context, scope scope.ScopeInterface) {
+	deploymentId := getHealthService(scope).GetMocDeploymentId(ctx)
+	klog.Infof("MOC Deployment Id: %s", deploymentId)
+}
+
+func getHealthService(scope scope.ScopeInterface) *health.Service {
+	// if healthService instance is created, directy return instance
+	if healthService != nil {
+		return healthService
+	}
+
+	healthService = health.NewService(scope)
+	return healthService
 }
