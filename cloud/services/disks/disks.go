@@ -21,6 +21,7 @@ import (
 	"context"
 
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
+	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/telemetry"
 	"github.com/microsoft/moc-sdk-for-go/services/storage"
 	"github.com/pkg/errors"
 	"k8s.io/klog/v2"
@@ -49,6 +50,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 
 // Reconcile gets/creates/updates a disk.
 func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
+	telemetry.WriteMocInfoLog(ctx, s.Scope)
 	diskSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("Invalid Disk Specification")
@@ -65,8 +67,8 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			Name:                      &diskSpec.Name,
 			VirtualHardDiskProperties: &storage.VirtualHardDiskProperties{},
 		})
-	azurestackhci.WriteMocOperationLog(azurestackhci.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Disk,
-		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), diskSpec.Name), nil, err)
+	telemetry.WriteMocOperationLog(telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.Disk,
+		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), diskSpec.Name), nil, err)
 	if err != nil {
 		return err
 	}
@@ -77,14 +79,15 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
 // Delete deletes the disk associated with a VM.
 func (s *Service) Delete(ctx context.Context, spec interface{}) error {
+	telemetry.WriteMocInfoLog(ctx, s.Scope)
 	diskSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("Invalid disk specification")
 	}
 	klog.V(2).Infof("deleting disk %s", diskSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), "", diskSpec.Name)
-	azurestackhci.WriteMocOperationLog(azurestackhci.Delete, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.Disk,
-		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), diskSpec.Name), nil, err)
+	telemetry.WriteMocOperationLog(telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.Disk,
+		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), diskSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted
 		return nil

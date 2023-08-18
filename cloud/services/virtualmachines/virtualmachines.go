@@ -29,6 +29,7 @@ import (
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/converters"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/networkinterfaces"
+	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/telemetry"
 	infrav1util "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/util"
 	"github.com/microsoft/moc-sdk-for-go/services/compute"
 	"github.com/microsoft/moc-sdk-for-go/services/network"
@@ -75,6 +76,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 
 // Reconcile gets/creates/updates a virtual machine.
 func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
+	telemetry.WriteMocInfoLog(ctx, s.Scope)
 	vmSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("invalid vm specification")
@@ -183,8 +185,8 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		s.Scope.GetResourceGroup(),
 		vmSpec.Name,
 		&virtualMachine)
-	azurestackhci.WriteMocOperationLog(azurestackhci.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.VirtualMachine,
-		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), vmSpec.Name), nil, err)
+	telemetry.WriteMocOperationLog(telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.VirtualMachine,
+		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), vmSpec.Name), nil, err)
 	if err != nil {
 		return errors.Wrapf(err, "cannot create vm")
 	}
@@ -195,14 +197,15 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
 // Delete deletes the virtual machine with the provided name.
 func (s *Service) Delete(ctx context.Context, spec interface{}) error {
+	telemetry.WriteMocInfoLog(ctx, s.Scope)
 	vmSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("invalid vm Specification")
 	}
 	klog.V(2).Infof("deleting vm %s ", vmSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
-	azurestackhci.WriteMocOperationLog(azurestackhci.Delete, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.VirtualMachine,
-		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), vmSpec.Name), nil, err)
+	telemetry.WriteMocOperationLog(telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.VirtualMachine,
+		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), vmSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted
 		return nil

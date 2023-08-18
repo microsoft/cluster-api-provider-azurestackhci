@@ -16,7 +16,7 @@ const (
 
 // GetAzureStackHCIMachinesInCluster gets a cluster's AzureStackHCIMachines resources.
 func GetAzureStackHCIMachinesInCluster(ctx context.Context, controllerClient client.Client, namespace, clusterName string) ([]*infrav1.AzureStackHCIMachine, error) {
-	labels := map[string]string{clusterv1.ClusterNameLabel: clusterName}
+	labels := map[string]string{clusterv1.ClusterLabelName: clusterName}
 	machineList := &infrav1.AzureStackHCIMachineList{}
 
 	if err := controllerClient.List(
@@ -39,7 +39,7 @@ func RandomAlphaNumericString(n int) (string, error) {
 	result := make([]byte, n)
 	for i := range result {
 		val, err := rand.Int(rand.Reader, big.NewInt(int64(len(charSet))))
-		if err != nil {
+		if err!= nil {
 			return "", err
 		}
 		result[i] = charSet[val.Int64()]

@@ -22,6 +22,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/to"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
+	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/telemetry"
 	"github.com/microsoft/moc-sdk-for-go/services/network"
 	"github.com/pkg/errors"
 	"k8s.io/klog/v2"
@@ -54,6 +55,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 
 // Reconcile gets/creates/updates a network interface.
 func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
+	telemetry.WriteMocInfoLog(ctx, s.Scope)
 	nicSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("invalid network interface specification")
@@ -98,8 +100,8 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		s.Scope.GetResourceGroup(),
 		nicSpec.Name,
 		&networkInterface)
-	azurestackhci.WriteMocOperationLog(azurestackhci.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.NetworkInterface,
-		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), nicSpec.Name), &networkInterface, err)
+	telemetry.WriteMocOperationLog(telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.NetworkInterface,
+		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), nicSpec.Name), &networkInterface, err)
 	if err != nil {
 		return errors.Wrapf(err, "failed to create network interface %s in resource group %s", nicSpec.Name, s.Scope.GetResourceGroup())
 	}
@@ -110,14 +112,15 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
 // Delete deletes the network interface with the provided name.
 func (s *Service) Delete(ctx context.Context, spec interface{}) error {
+	telemetry.WriteMocInfoLog(ctx, s.Scope)
 	nicSpec, ok := spec.(*Spec)
 	if !ok {
 		return errors.New("invalid network interface Specification")
 	}
 	klog.V(2).Infof("deleting nic %s", nicSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), nicSpec.Name)
-	azurestackhci.WriteMocOperationLog(azurestackhci.Delete, s.Scope.GetCustomResourceTypeWithName(), azurestackhci.NetworkInterface,
-		azurestackhci.GenerateMocResourceName(s.Scope.GetResourceGroup(), nicSpec.Name), nil, err)
+	telemetry.WriteMocOperationLog(telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.NetworkInterface,
+		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), nicSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted
 		return nil
