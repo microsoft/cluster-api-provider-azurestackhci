@@ -18,13 +18,10 @@ limitations under the License.
 package controllers
 
 import (
-	"fmt"
-
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/groups"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/keyvaults"
-	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/secrets"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/virtualnetworks"
 	"github.com/pkg/errors"
 	"k8s.io/klog/v2"
@@ -40,7 +37,6 @@ type azureStackHCIClusterReconciler struct {
 	scope       *scope.ClusterScope
 	vnetSvc     azurestackhci.Service
 	keyvaultSvc azurestackhci.Service
-	secretSvc   azurestackhci.GetterService
 	groupSvc    azurestackhci.Service
 }
 
@@ -50,7 +46,6 @@ func newAzureStackHCIClusterReconciler(scope *scope.ClusterScope) *azureStackHCI
 		scope:       scope,
 		vnetSvc:     virtualnetworks.NewService(scope),
 		keyvaultSvc: keyvaults.NewService(scope),
-		secretSvc:   secrets.NewService(scope),
 		groupSvc:    groups.NewService(scope),
 	}
 }
@@ -133,35 +128,6 @@ func (r *azureStackHCIClusterReconciler) Delete() error {
 		}
 	}
 
-	return nil
-}
-
-// ReconcileKubeConfig reconciles the kubeconfig from the cluster secrets
-func (r *azureStackHCIClusterReconciler) ReconcileKubeConfig() error {
-	r.scope.Logger.Info("reconciling kubeconfig %s", r.scope.Name())
-
-	cluster := r.scope.Cluster
-	name := fmt.Sprintf("%s-kubeconfig", cluster.Name)
-	secret, err := r.scope.GetSecret(name)
-	if err != nil {
-		return errors.Wrapf(err, "kubernetes secret query failed %s", r.scope.Name())
-	}
-	r.scope.Logger.Info("recieved kubeconfig from the cluster")
-
-	data, ok := secret.Data[KubeConfigDataFieldName]
-	if !ok {
-		return nil
-	}
-
-	secretSpec := &secrets.Spec{
-		Name:      KubeConfigSecretName,
-		VaultName: r.scope.Name(),
-		Value:     string(data),
-	}
-
-	if err := r.secretSvc.Reconcile(r.scope.Context, secretSpec); err != nil {
-		return errors.Wrapf(err, "failed to reconcile secret for cluster %s", r.scope.Name())
-	}
 	return nil
 }
 

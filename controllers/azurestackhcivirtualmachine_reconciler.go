@@ -25,7 +25,6 @@ import (
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/disks"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/networkinterfaces"
-	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/secrets"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/virtualmachines"
 	sdk_compute "github.com/microsoft/moc-sdk-for-go/services/compute"
 	"github.com/pkg/errors"
@@ -39,7 +38,6 @@ type azureStackHCIVirtualMachineService struct {
 	networkInterfacesSvc azurestackhci.Service
 	virtualMachinesSvc   azurestackhci.GetterService
 	disksSvc             azurestackhci.GetterService
-	secretsSvc           azurestackhci.GetterService
 }
 
 // newAzureStackHCIMachineService populates all the services based on input scope
@@ -49,7 +47,6 @@ func newAzureStackHCIVirtualMachineService(vmScope *scope.VirtualMachineScope) *
 		networkInterfacesSvc: networkinterfaces.NewService(vmScope),
 		virtualMachinesSvc:   virtualmachines.NewService(vmScope),
 		disksSvc:             disks.NewService(vmScope),
-		secretsSvc:           secrets.NewService(vmScope),
 	}
 }
 
