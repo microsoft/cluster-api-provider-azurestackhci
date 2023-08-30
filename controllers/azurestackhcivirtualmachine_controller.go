@@ -22,6 +22,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
+	infrav1util "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/util"
 	mocerrors "github.com/microsoft/moc/pkg/errors"
 	"github.com/pkg/errors"
 
@@ -62,9 +63,9 @@ func (r *AzureStackHCIVirtualMachineReconciler) SetupWithManager(mgr ctrl.Manage
 
 // Reconcile reacts to some event on the kubernetes object that the controller has registered to handle
 func (r *AzureStackHCIVirtualMachineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (_ ctrl.Result, reterr error) {
-	logger := r.Log.WithValues("namespace", req.Namespace, "azureStackHCIVirtualMachine", req.Name)
-
-	logger.Info("attempt reconcile resource", "name", req.NamespacedName)
+	logger := r.Log.WithValues("namespace", req.Namespace, "azureStackHCIVirtualMachine", req.NamespacedName)
+	logger = infrav1util.AttachReconcileIDToLogger(ctx, logger)
+	logger.Info("Attempt to reconcile resource")
 
 	azureStackHCIVirtualMachine := &infrav1.AzureStackHCIVirtualMachine{}
 	err := r.Get(ctx, req.NamespacedName, azureStackHCIVirtualMachine)
