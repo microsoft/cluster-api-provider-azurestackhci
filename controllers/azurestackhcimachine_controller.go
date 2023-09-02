@@ -82,8 +82,7 @@ func (r *AzureStackHCIMachineReconciler) SetupWithManager(mgr ctrl.Manager, opti
 // +kubebuilder:rbac:groups="",resources=secrets;,verbs=get;list;watch
 
 func (r *AzureStackHCIMachineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (_ ctrl.Result, reterr error) {
-	logger := r.Log.WithValues("azureStackHCIMachine", req.NamespacedName)
-	logger = infrav1util.AttachReconcileIDToLogger(ctx, logger)
+	logger := r.Log.WithValues("azureStackHCIMachine", req.NamespacedName, "reconcileID", infrav1util.GetReconcileID(ctx))
 	logger.Info("Attempt to reconcile resource")
 
 	// Fetch the AzureStackHCIMachine VM.

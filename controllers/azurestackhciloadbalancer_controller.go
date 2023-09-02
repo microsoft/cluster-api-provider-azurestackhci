@@ -70,8 +70,7 @@ func (r *AzureStackHCILoadBalancerReconciler) SetupWithManager(mgr ctrl.Manager,
 // +kubebuilder:rbac:groups="",resources=events,verbs=get;list;watch;create;update;patch
 
 func (r *AzureStackHCILoadBalancerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (_ ctrl.Result, reterr error) {
-	logger := r.Log.WithValues("azureStackHCILoadBalancer", req.NamespacedName)
-	logger = infrav1util.AttachReconcileIDToLogger(ctx, logger)
+	logger := r.Log.WithValues("azureStackHCILoadBalancer", req.NamespacedName, "reconcileID", infrav1util.GetReconcileID(ctx))
 	logger.Info("Attempt to reconcile resource")
 
 	// Fetch the AzureStackHCILoadBalancer resource.

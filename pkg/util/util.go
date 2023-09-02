@@ -5,8 +5,8 @@ import (
 	"crypto/rand"
 	"math/big"
 
-	"github.com/go-logr/logr"
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/uuid"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -50,10 +50,10 @@ func RandomAlphaNumericString(n int) (string, error) {
 	return string(result), nil
 }
 
-func AttachReconcileIDToLogger(ctx context.Context, logger logr.Logger) logr.Logger {
+func GetReconcileID(ctx context.Context) types.UID {
 	reconcileID := controller.ReconcileIDFromContext(ctx)
 	if len(reconcileID) == 0 {
 		reconcileID = uuid.NewUUID()
 	}
-	return logger.WithValues("reconcileID", reconcileID)
+	return reconcileID
 }

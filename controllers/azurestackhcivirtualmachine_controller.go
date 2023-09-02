@@ -63,8 +63,7 @@ func (r *AzureStackHCIVirtualMachineReconciler) SetupWithManager(mgr ctrl.Manage
 
 // Reconcile reacts to some event on the kubernetes object that the controller has registered to handle
 func (r *AzureStackHCIVirtualMachineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (_ ctrl.Result, reterr error) {
-	logger := r.Log.WithValues("namespace", req.Namespace, "azureStackHCIVirtualMachine", req.NamespacedName)
-	logger = infrav1util.AttachReconcileIDToLogger(ctx, logger)
+	logger := r.Log.WithValues("azureStackHCIVirtualMachine", req.NamespacedName, "reconcileID", infrav1util.GetReconcileID(ctx))
 	logger.Info("Attempt to reconcile resource")
 
 	azureStackHCIVirtualMachine := &infrav1.AzureStackHCIVirtualMachine{}
