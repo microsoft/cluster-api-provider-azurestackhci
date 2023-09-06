@@ -99,6 +99,33 @@ spec:
                         type: object
                       location:
                         type: string
+                      networkInterfaces:
+                        items:
+                          properties:
+                            ipConfigurations:
+                              items:
+                                properties:
+                                  allocation:
+                                    format: int32
+                                    type: integer
+                                  gateway:
+                                    type: string
+                                  ipaddress:
+                                    description: below fields are unused, but adding
+                                      for completeness
+                                    type: string
+                                  name:
+                                    type: string
+                                  prefixlength:
+                                    type: string
+                                  primary:
+                                    type: boolean
+                                  subnetid:
+                                    type: string
+                                type: object
+                              type: array
+                          type: object
+                        type: array
                       osDisk:
                         properties:
                           diskSizeGB:
@@ -229,6 +256,33 @@ spec:
                         type: object
                       location:
                         type: string
+                      networkInterfaces:
+                        items:
+                          properties:
+                            ipConfigurations:
+                              items:
+                                properties:
+                                  allocation:
+                                    format: int32
+                                    type: integer
+                                  gateway:
+                                    type: string
+                                  ipaddress:
+                                    description: below fields are unused, but adding
+                                      for completeness
+                                    type: string
+                                  name:
+                                    type: string
+                                  prefixlength:
+                                    type: string
+                                  primary:
+                                    type: boolean
+                                  subnetid:
+                                    type: string
+                                type: object
+                              type: array
+                          type: object
+                        type: array
                       osDisk:
                         properties:
                           diskSizeGB:
@@ -359,6 +413,33 @@ spec:
                         type: object
                       location:
                         type: string
+                      networkInterfaces:
+                        items:
+                          properties:
+                            ipConfigurations:
+                              items:
+                                properties:
+                                  allocation:
+                                    format: int32
+                                    type: integer
+                                  gateway:
+                                    type: string
+                                  ipaddress:
+                                    description: below fields are unused, but adding
+                                      for completeness
+                                    type: string
+                                  name:
+                                    type: string
+                                  prefixlength:
+                                    type: string
+                                  primary:
+                                    type: boolean
+                                  subnetid:
+                                    type: string
+                                type: object
+                              type: array
+                          type: object
+                        type: array
                       osDisk:
                         properties:
                           diskSizeGB:

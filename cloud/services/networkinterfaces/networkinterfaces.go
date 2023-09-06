@@ -28,6 +28,14 @@ import (
 	"k8s.io/klog/v2"
 )
 
+// Spec specification for ip configuration
+type IPConfiguration struct {
+	Name    string
+	Primary bool
+}
+
+type IPConfigurations []*IPConfiguration
+
 // Spec specification for network interface
 type Spec struct {
 	Name             string
@@ -36,6 +44,7 @@ type Spec struct {
 	StaticIPAddress  string
 	MacAddress       string
 	BackendPoolNames []string
+	IPConfigurations IPConfigurations
 }
 
 // Get provides information about a network interface.
@@ -87,13 +96,37 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			EnableIPForwarding: to.BoolPtr(true),
 			EnableMACSpoofing:  to.BoolPtr(true),
 			MacAddress:         &nicSpec.MacAddress,
-			IPConfigurations: &[]network.InterfaceIPConfiguration{
-				{
-					Name:                                     to.StringPtr("pipConfig"),
-					InterfaceIPConfigurationPropertiesFormat: nicConfig,
-				},
-			},
+			IPConfigurations:   &[]network.InterfaceIPConfiguration{},
 		},
+	}
+
+	if len(nicSpec.IPConfigurations) > 0 {
+		klog.V(2).Infof("Adding %d ipconfigurations to nic %s", len(nicSpec.IPConfigurations), nicSpec.Name)
+		for _, ipconfig := range nicSpec.IPConfigurations {
+
+			networkIpConfig := network.InterfaceIPConfiguration{
+				Name: &ipconfig.Name,
+				InterfaceIPConfigurationPropertiesFormat: &network.InterfaceIPConfigurationPropertiesFormat{
+					Primary: &ipconfig.Primary,
+					Subnet: &network.APIEntityReference{
+						ID: to.StringPtr(nicSpec.VnetName),
+					},
+				},
+			}
+
+			if ipconfig.Primary {
+				networkIpConfig.LoadBalancerBackendAddressPools = &backendAddressPools
+			}
+
+			*networkInterface.IPConfigurations = append(*networkInterface.IPConfigurations, networkIpConfig)
+		}
+	} else {
+		networkIpConfig := network.InterfaceIPConfiguration{
+			Name:                                     to.StringPtr("pipConfig"),
+			InterfaceIPConfigurationPropertiesFormat: nicConfig,
+		}
+
+		*networkInterface.IPConfigurations = append(*networkInterface.IPConfigurations, networkIpConfig)
 	}
 
 	_, err := s.Client.CreateOrUpdate(ctx,
