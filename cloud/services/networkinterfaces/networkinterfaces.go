@@ -100,7 +100,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		},
 	}
 
-	if nicSpec.IPConfigurations != nil {
+	if len(nicSpec.IPConfigurations) > 0 {
 		klog.V(2).Infof("Adding %d ipconfigurations to nic %s", len(nicSpec.IPConfigurations), nicSpec.Name)
 		for _, ipconfig := range nicSpec.IPConfigurations {
 
