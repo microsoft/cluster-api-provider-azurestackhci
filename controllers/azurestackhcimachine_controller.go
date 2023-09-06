@@ -28,6 +28,7 @@ import (
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
+	infrav1util "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/util"
 
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
@@ -81,7 +82,8 @@ func (r *AzureStackHCIMachineReconciler) SetupWithManager(mgr ctrl.Manager, opti
 // +kubebuilder:rbac:groups="",resources=secrets;,verbs=get;list;watch
 
 func (r *AzureStackHCIMachineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (_ ctrl.Result, reterr error) {
-	logger := r.Log.WithValues("azureStackHCIMachine", req.Name)
+	logger := r.Log.WithValues("azureStackHCIMachine", req.NamespacedName, "reconcileID", infrav1util.GetReconcileID(ctx))
+	logger.Info("Attempt to reconcile resource")
 
 	// Fetch the AzureStackHCIMachine VM.
 	azureStackHCIMachine := &infrav1.AzureStackHCIMachine{}

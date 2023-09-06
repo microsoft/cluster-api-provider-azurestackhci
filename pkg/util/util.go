@@ -6,8 +6,11 @@ import (
 	"math/big"
 
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/uuid"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 )
 
 const (
@@ -45,4 +48,12 @@ func RandomAlphaNumericString(n int) (string, error) {
 		result[i] = charSet[val.Int64()]
 	}
 	return string(result), nil
+}
+
+func GetReconcileID(ctx context.Context) types.UID {
+	reconcileID := controller.ReconcileIDFromContext(ctx)
+	if len(reconcileID) == 0 {
+		reconcileID = uuid.NewUUID()
+	}
+	return reconcileID
 }

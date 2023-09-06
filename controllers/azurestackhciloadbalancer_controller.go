@@ -27,6 +27,7 @@ import (
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/loadbalancers"
+	infrav1util "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/util"
 	"github.com/microsoft/moc-sdk-for-go/services/network"
 	mocerrors "github.com/microsoft/moc/pkg/errors"
 	"github.com/pkg/errors"
@@ -69,7 +70,8 @@ func (r *AzureStackHCILoadBalancerReconciler) SetupWithManager(mgr ctrl.Manager,
 // +kubebuilder:rbac:groups="",resources=events,verbs=get;list;watch;create;update;patch
 
 func (r *AzureStackHCILoadBalancerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (_ ctrl.Result, reterr error) {
-	logger := r.Log.WithValues("azureStackHCILoadBalancer", req.Name)
+	logger := r.Log.WithValues("azureStackHCILoadBalancer", req.NamespacedName, "reconcileID", infrav1util.GetReconcileID(ctx))
+	logger.Info("Attempt to reconcile resource")
 
 	// Fetch the AzureStackHCILoadBalancer resource.
 	azureStackHCILoadBalancer := &infrav1.AzureStackHCILoadBalancer{}
@@ -257,7 +259,7 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileLoadBalancerService(loadB
 		FrontendPort:    loadBalancerScope.GetPort(),
 		BackendPort:     clusterScope.APIServerPort(),
 		VnetName:        clusterScope.AzureStackHCICluster.Spec.NetworkSpec.Vnet.Name,
-		Tags:     tags,
+		Tags:            tags,
 	}
 
 	if err := loadbalancers.NewService(clusterScope).Reconcile(clusterScope.Context, lbSpec); err != nil {

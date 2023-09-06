@@ -63,7 +63,8 @@ func (r *AzureStackHCIClusterReconciler) SetupWithManager(mgr ctrl.Manager, opti
 // +kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io;bootstrap.cluster.x-k8s.io;controlplane.cluster.x-k8s.io,resources=*,verbs=get;list;watch
 
 func (r *AzureStackHCIClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (_ ctrl.Result, reterr error) {
-	log := r.Log.WithValues("azureStackHCICluster", req.Name)
+	log := r.Log.WithValues("azureStackHCICluster", req.NamespacedName, "reconcileID", infrav1util.GetReconcileID(ctx))
+	log.Info("Attempt to reconcile resource")
 
 	// Fetch the AzureStackHCICluster instance
 	azureStackHCICluster := &infrav1.AzureStackHCICluster{}
