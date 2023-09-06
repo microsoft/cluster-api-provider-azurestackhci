@@ -120,11 +120,11 @@ type IpConfigurationSpec struct {
 	Allocation IPAllocationMethod `json:"allocation,omitempty"`
 	// below fields are unused, but adding for completeness
 	// +optional
-	Ipaddress string `json:"ipaddress,omitempty"`
+	IpAddress string `json:"ipAddress,omitempty"`
 	// +optional
-	Prefixlength string `json:"prefixlength,omitempty"`
+	PrefixLength string `json:"prefixLength,omitempty"`
 	// +optional
-	Subnetid string `json:"subnetid,omitempty"`
+	SubnetId string `json:"subnetId,omitempty"`
 	// +optional
 	Gateway string `json:"gateway,omitempty"`
 }
