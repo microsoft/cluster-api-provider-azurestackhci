@@ -321,7 +321,9 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineNormal(machineSc
 		//
 		// We believe this is ok as this cache issue is only going to be seen very close to when the object was
 		// initially created. We are also looking to improve this behavior by introducing live clients or polling.
-		if !apierrors.IsAlreadyExists(err) {
+		if apierrors.IsAlreadyExists(err) {
+			machineScope.Info("CreateOrUpdate in reconcileVirtualMachineNormal returned AlreadyExists", "vmName", vm.Name)
+		} else {
 			return nil, errors.Wrapf(err, "failed to CreateOrUpdate AzureStackHCIVirtualMachine %s", vm.Name)
 		}
 	}
