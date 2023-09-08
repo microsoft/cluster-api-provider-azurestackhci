@@ -201,10 +201,6 @@ func (r *AzureStackHCIMachineReconciler) reconcileNormal(machineScope *scope.Mac
 	vm, err := r.reconcileVirtualMachineNormal(machineScope, clusterScope)
 
 	if err != nil {
-		if apierrors.IsAlreadyExists(err) {
-			clusterScope.Info("AzureStackHCIVirtualMachine already exists")
-			return reconcile.Result{}, nil
-		}
 		return reconcile.Result{}, err
 	}
 
@@ -312,7 +308,22 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineNormal(machineSc
 	}
 
 	if _, err := controllerutil.CreateOrUpdate(clusterScope.Context, r.Client, vm, mutateFn); err != nil {
-		return nil, err
+		// If CreateOrUpdate throws AlreadyExists, we know that we have encountered an edge case where
+		// Get with the cached client returned NotFound and then Create returned AlreadyExists.
+		//
+		// Because of this, it should be safe to ignore an AlreadyExists from this function. There
+		// is the gap that this opens up:
+		// 1. CreateOrUpdate is called and creates an object.
+		// 2. CreateOrUpdate is called a second time and returns AlreadyExists due to the cache reasoning.
+		//
+		// Since we are ignoring AlreadyExists, if the second call to CreateOrUpdate has updates to the object,
+		// they will not be applied silently.
+		//
+		// We believe this is ok as this cache issue is only going to be seen very close to when the object was
+		// initially created. We are also looking to improve this behavior by introducing live clients or polling.
+		if !apierrors.IsAlreadyExists(err) {
+			return nil, errors.Wrapf(err, "failed to CreateOrUpdate AzureStackHCIVirtualMachine %s", vm.Name)
+		}
 	}
 
 	azureStackHCIVirtualMachine := &infrav1.AzureStackHCIVirtualMachine{}
