@@ -174,6 +174,22 @@ func (c *AzureStackHCILoadBalancer) SetConditions(conditions clusterv1.Condition
 	c.Status.Conditions = conditions
 }
 
+func (c *AzureStackHCILoadBalancer) GetCorrelationId() string {
+	annotations := c.GetAnnotations()
+	if len(annotations) == 0 {
+		return ""
+	}
+	return annotations[AzureCorrelationIDAnnotationKey]
+}
+
+func (c *AzureStackHCILoadBalancer) GetOperationId() string {
+	annotations := c.GetAnnotations()
+	if len(annotations) == 0 {
+		return ""
+	}
+	return annotations[AzureOperationIDAnnotationKey]
+}
+
 // +kubebuilder:object:root=true
 
 // AzureStackHCILoadBalancerList contains a list of AzureStackHCILoadBalancers

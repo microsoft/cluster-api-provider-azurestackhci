@@ -258,4 +258,6 @@ const (
 	AnnotationClusterInfrastructureReady = "azurestackhci.cluster.sigs.k8s.io/infrastructure-ready"
 	ValueReady                           = "true"
 	AnnotationControlPlaneReady          = "azurestackhci.cluster.sigs.k8s.io/control-plane-ready"
+	AzureOperationIDAnnotationKey        = "management.azure.com/operationId"
+	AzureCorrelationIDAnnotationKey      = "management.azure.com/correlationId"
 )

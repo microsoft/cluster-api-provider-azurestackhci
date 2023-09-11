@@ -136,6 +136,22 @@ func (c *AzureStackHCIMachine) SetConditions(conditions clusterv1.Conditions) {
 	c.Status.Conditions = conditions
 }
 
+func (c *AzureStackHCIMachine) GetCorrelationId() string {
+	annotations := c.GetAnnotations()
+	if len(annotations) == 0 {
+		return ""
+	}
+	return annotations[AzureCorrelationIDAnnotationKey]
+}
+
+func (c *AzureStackHCIMachine) GetOperationId() string {
+	annotations := c.GetAnnotations()
+	if len(annotations) == 0 {
+		return ""
+	}
+	return annotations[AzureOperationIDAnnotationKey]
+}
+
 // +kubebuilder:object:root=true
 
 // AzureStackHCIMachineList contains a list of AzureStackHCIMachine

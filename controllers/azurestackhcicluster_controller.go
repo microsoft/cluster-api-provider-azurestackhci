@@ -77,6 +77,8 @@ func (r *AzureStackHCIClusterReconciler) Reconcile(ctx context.Context, req ctrl
 		return reconcile.Result{}, err
 	}
 
+	log = log.WithValues("operationId", azureStackHCICluster.GetOperationId(), "correlationId", azureStackHCICluster.GetCorrelationId())
+
 	// Fetch the Cluster.
 	cluster, err := util.GetOwnerCluster(ctx, r.Client, azureStackHCICluster.ObjectMeta)
 	if err != nil {
@@ -238,6 +240,13 @@ func (r *AzureStackHCIClusterReconciler) deleteOrphanedMachines(clusterScope *sc
 			return err
 		}
 		if machine == nil {
+			// update correlation id before deletion
+			infrav1util.CopyCorrelationId(clusterScope.AzureStackHCICluster, azhciMachine)
+			if err := r.Client.Update(clusterScope.Context, azhciMachine); err != nil {
+				if !apierrors.IsNotFound(err) {
+					return errors.Wrapf(err, "Failed to update AzureStackHCIMachine %s", azhciMachine)
+				}
+			}
 			clusterScope.Info("Deleting Orphaned Machine", "Name", azhciMachine.Name, "AzureStackHCICluster", clusterScope.AzureStackHCICluster.Name)
 			if err := r.Client.Delete(clusterScope.Context, azhciMachine); err != nil {
 				if !apierrors.IsNotFound(err) {
@@ -278,6 +287,7 @@ func (r *AzureStackHCIClusterReconciler) reconcileAzureStackHCILoadBalancer(clus
 		azureStackHCILoadBalancer.Spec.SSHPublicKey = clusterScope.AzureStackHCILoadBalancer().SSHPublicKey
 		azureStackHCILoadBalancer.Spec.VMSize = clusterScope.AzureStackHCILoadBalancer().VMSize
 		azureStackHCILoadBalancer.Spec.Replicas = clusterScope.AzureStackHCILoadBalancer().Replicas
+		infrav1util.CopyCorrelationId(clusterScope.AzureStackHCICluster, azureStackHCILoadBalancer)
 		return nil
 	}
 
@@ -326,6 +336,14 @@ func (r *AzureStackHCIClusterReconciler) reconcileDeleteAzureStackHCILoadBalance
 		}
 	} else if azureStackHCILoadBalancer.GetDeletionTimestamp().IsZero() {
 		// If the AzureStackHCILoadBalancer is not already marked for deletion, delete it
+		// Update correlation id before deletion
+		infrav1util.CopyCorrelationId(clusterScope.AzureStackHCICluster, azureStackHCILoadBalancer)
+		if err := r.Client.Update(clusterScope.Context, azureStackHCILoadBalancer); err != nil {
+			if !apierrors.IsNotFound(err) {
+				conditions.MarkFalse(clusterScope.AzureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, clusterv1.DeletionFailedReason, clusterv1.ConditionSeverityWarning, err.Error())
+				return errors.Wrapf(err, "Failed to update AzureStackHCILoadBalancer %s", azureStackHCILoadBalancerName)
+			}
+		}
 		if err := r.Client.Delete(clusterScope.Context, azureStackHCILoadBalancer); err != nil {
 			if !apierrors.IsNotFound(err) {
 				conditions.MarkFalse(clusterScope.AzureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, clusterv1.DeletionFailedReason, clusterv1.ConditionSeverityWarning, err.Error())

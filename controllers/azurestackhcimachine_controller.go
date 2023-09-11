@@ -95,6 +95,8 @@ func (r *AzureStackHCIMachineReconciler) Reconcile(ctx context.Context, req ctrl
 		return reconcile.Result{}, err
 	}
 
+	logger = logger.WithValues("operationId", azureStackHCIMachine.GetOperationId(), "correlationId", azureStackHCIMachine.GetCorrelationId())
+
 	// Fetch the Machine.
 	machine, err := util.GetOwnerMachine(ctx, r.Client, azureStackHCIMachine.ObjectMeta)
 	if err != nil {
@@ -304,6 +306,8 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineNormal(machineSc
 
 		machineScope.AzureStackHCIMachine.Spec.NetworkInterfaces.DeepCopyInto(&vm.Spec.NetworkInterfaces)
 
+		infrav1util.CopyCorrelationId(machineScope.AzureStackHCIMachine, vm)
+
 		return nil
 	}
 
@@ -371,10 +375,16 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineDelete(machineSc
 		}
 	} else if vm.GetDeletionTimestamp().IsZero() {
 		// this means the VM resource was found and has not been deleted
+		infrav1util.CopyCorrelationId(machineScope.AzureStackHCIMachine, vm)
+		if err := r.Client.Update(clusterScope.Context, vm); err != nil {
+			if !apierrors.IsNotFound(err) {
+				return errors.Wrapf(err, "failed to update AzureStackHCIVirtualMachine %s", vmName)
+			}
+		}
 		// is this a synchronous call?
 		if err := r.Client.Delete(clusterScope.Context, vm); err != nil {
 			if !apierrors.IsNotFound(err) {
-				return errors.Wrapf(err, "failed to get AzureStackHCIVirtualMachine %s", vmName)
+				return errors.Wrapf(err, "failed to delete AzureStackHCIVirtualMachine %s", vmName)
 			}
 		}
 	}

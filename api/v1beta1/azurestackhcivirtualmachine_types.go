@@ -102,6 +102,22 @@ func (m *AzureStackHCIVirtualMachine) SetConditions(conditions clusterv1.Conditi
 	m.Status.Conditions = conditions
 }
 
+func (m *AzureStackHCIVirtualMachine) GetCorrelationId() string {
+	annotations := m.GetAnnotations()
+	if len(annotations) == 0 {
+		return ""
+	}
+	return annotations[AzureCorrelationIDAnnotationKey]
+}
+
+func (m *AzureStackHCIVirtualMachine) GetOperationId() string {
+	annotations := m.GetAnnotations()
+	if len(annotations) == 0 {
+		return ""
+	}
+	return annotations[AzureOperationIDAnnotationKey]
+}
+
 // VirtualMachinesByCreationTimestamp sorts a list of AzureStackHCIVirtualMachine by creation timestamp, using their names as a tie breaker.
 type VirtualMachinesByCreationTimestamp []*AzureStackHCIVirtualMachine
 

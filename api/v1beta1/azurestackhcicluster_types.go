@@ -115,6 +115,22 @@ func (c *AzureStackHCICluster) SetConditions(conditions clusterv1.Conditions) {
 	c.Status.Conditions = conditions
 }
 
+func (c *AzureStackHCICluster) GetCorrelationId() string {
+	annotations := c.GetAnnotations()
+	if len(annotations) == 0 {
+		return ""
+	}
+	return annotations[AzureCorrelationIDAnnotationKey]
+}
+
+func (c *AzureStackHCICluster) GetOperationId() string {
+	annotations := c.GetAnnotations()
+	if len(annotations) == 0 {
+		return ""
+	}
+	return annotations[AzureOperationIDAnnotationKey]
+}
+
 // +kubebuilder:object:root=true
 
 // AzureStackHCIClusterList contains a list of AzureStackHCICluster
