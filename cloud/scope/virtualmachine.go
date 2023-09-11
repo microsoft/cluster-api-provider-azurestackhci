@@ -26,6 +26,7 @@ import (
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1"
 	azhciauth "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/auth"
 	"github.com/microsoft/moc/pkg/auth"
+	"github.com/microsoft/moc/pkg/diagnostics"
 	"github.com/pkg/errors"
 	"k8s.io/klog/v2/klogr"
 	"k8s.io/utils/pointer"
@@ -76,13 +77,14 @@ func NewVirtualMachineScope(params VirtualMachineScopeParams) (*VirtualMachineSc
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to init patch helper")
 	}
+	scopeContext := diagnostics.NewContextWithCorrelationId(context.Background(), params.AzureStackHCIVirtualMachine.GetAnnotations()[infrav1.AzureCorrelationIDAnnotationKey])
 	return &VirtualMachineScope{
 		client:                      params.Client,
 		AzureStackHCIVirtualMachine: params.AzureStackHCIVirtualMachine,
 		AzureStackHCIClients:        params.AzureStackHCIClients,
 		Logger:                      *params.Logger,
 		patchHelper:                 helper,
-		Context:                     context.Background(),
+		Context:                     scopeContext,
 	}, nil
 }
 

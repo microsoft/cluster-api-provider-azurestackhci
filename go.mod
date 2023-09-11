@@ -6,7 +6,7 @@ require (
 	github.com/Azure/go-autorest/autorest/to v0.4.0
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/go-logr/logr v1.2.3
-	github.com/microsoft/moc v0.11.0-alpha.12
+	github.com/microsoft/moc v0.11.0-alpha.28
 	github.com/microsoft/moc-sdk-for-go v0.11.1-alpha.4
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/pflag v1.0.5
@@ -67,7 +67,7 @@ require (
 	golang.org/x/oauth2 v0.6.0 // indirect
 	golang.org/x/sys v0.6.0 // indirect
 	golang.org/x/term v0.6.0 // indirect
-	golang.org/x/text v0.11.0 // indirect
+	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
