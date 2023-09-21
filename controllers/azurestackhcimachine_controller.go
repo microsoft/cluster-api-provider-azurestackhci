@@ -95,7 +95,7 @@ func (r *AzureStackHCIMachineReconciler) Reconcile(ctx context.Context, req ctrl
 		return reconcile.Result{}, err
 	}
 
-	logger = logger.WithValues("operationId", azureStackHCIMachine.GetOperationId(), "correlationId", azureStackHCIMachine.GetCorrelationId())
+	logger = logger.WithValues("operationId", azureStackHCIMachine.GetAnnotations()[infrav1.AzureOperationIDAnnotationKey], "correlationId", azureStackHCIMachine.GetAnnotations()[infrav1.AzureCorrelationIDAnnotationKey])
 
 	// Fetch the Machine.
 	machine, err := util.GetOwnerMachine(ctx, r.Client, azureStackHCIMachine.ObjectMeta)

@@ -77,7 +77,7 @@ func (r *AzureStackHCIClusterReconciler) Reconcile(ctx context.Context, req ctrl
 		return reconcile.Result{}, err
 	}
 
-	log = log.WithValues("operationId", azureStackHCICluster.GetOperationId(), "correlationId", azureStackHCICluster.GetCorrelationId())
+	log = log.WithValues("operationId", azureStackHCICluster.GetAnnotations()[infrav1.AzureOperationIDAnnotationKey], "correlationId", azureStackHCICluster.GetAnnotations()[infrav1.AzureCorrelationIDAnnotationKey])
 
 	// Fetch the Cluster.
 	cluster, err := util.GetOwnerCluster(ctx, r.Client, azureStackHCICluster.ObjectMeta)

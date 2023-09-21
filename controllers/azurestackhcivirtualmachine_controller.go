@@ -76,7 +76,7 @@ func (r *AzureStackHCIVirtualMachineReconciler) Reconcile(ctx context.Context, r
 		return reconcile.Result{}, err
 	}
 
-	logger = logger.WithValues("operationId", azureStackHCIVirtualMachine.GetOperationId(), "correlationId", azureStackHCIVirtualMachine.GetCorrelationId())
+	logger = logger.WithValues("operationId", azureStackHCIVirtualMachine.GetAnnotations()[infrav1.AzureOperationIDAnnotationKey], "correlationId", azureStackHCIVirtualMachine.GetAnnotations()[infrav1.AzureCorrelationIDAnnotationKey])
 
 	// Create the machine scope
 	virtualMachineScope, err := scope.NewVirtualMachineScope(scope.VirtualMachineScopeParams{
