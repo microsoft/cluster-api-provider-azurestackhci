@@ -83,6 +83,8 @@ func (r *AzureStackHCILoadBalancerReconciler) Reconcile(ctx context.Context, req
 		return reconcile.Result{}, err
 	}
 
+	logger = logger.WithValues("operationId", azureStackHCILoadBalancer.GetAnnotations()[infrav1.AzureOperationIDAnnotationKey], "correlationId", azureStackHCILoadBalancer.GetAnnotations()[infrav1.AzureCorrelationIDAnnotationKey])
+
 	// Fetch the CAPI Cluster.
 	cluster, err := util.GetOwnerCluster(ctx, r.Client, azureStackHCILoadBalancer.ObjectMeta)
 	if err != nil {

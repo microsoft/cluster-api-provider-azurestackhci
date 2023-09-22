@@ -57,3 +57,19 @@ func GetReconcileID(ctx context.Context) types.UID {
 	}
 	return reconcileID
 }
+
+func CopyCorrelationId(source, target client.Object) {
+	sourceAnnotations := source.GetAnnotations()
+	if len(sourceAnnotations) == 0 {
+		return
+	}
+
+	annotations := target.GetAnnotations()
+	if annotations == nil {
+		annotations = make(map[string]string)
+	}
+	annotations[infrav1.AzureCorrelationIDAnnotationKey] = sourceAnnotations[infrav1.AzureCorrelationIDAnnotationKey]
+	annotations[infrav1.AzureOperationIDAnnotationKey] = sourceAnnotations[infrav1.AzureOperationIDAnnotationKey]
+	target.SetAnnotations(annotations)
+
+}
