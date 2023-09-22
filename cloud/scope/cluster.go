@@ -26,6 +26,7 @@ import (
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1"
 	azhciauth "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/auth"
 	"github.com/microsoft/moc/pkg/auth"
+	"github.com/microsoft/moc/pkg/diagnostics"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -71,6 +72,8 @@ func NewClusterScope(params ClusterScopeParams) (*ClusterScope, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to init patch helper")
 	}
+
+	scopeContext := diagnostics.NewContextWithCorrelationId(context.Background(), params.AzureStackHCICluster.GetAnnotations()[infrav1.AzureCorrelationIDAnnotationKey])
 	scope := &ClusterScope{
 		Logger:               *params.Logger,
 		Client:               params.Client,
@@ -78,7 +81,7 @@ func NewClusterScope(params ClusterScopeParams) (*ClusterScope, error) {
 		Cluster:              params.Cluster,
 		AzureStackHCICluster: params.AzureStackHCICluster,
 		patchHelper:          helper,
-		Context:              context.Background(),
+		Context:              scopeContext,
 	}
 
 	authorizer, err := azhciauth.ReconcileAzureStackHCIAccess(scope.Context, scope.Client, agentFqdn)
