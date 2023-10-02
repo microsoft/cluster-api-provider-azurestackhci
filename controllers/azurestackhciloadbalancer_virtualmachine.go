@@ -181,6 +181,7 @@ func (r *AzureStackHCILoadBalancerReconciler) createOrUpdateVirtualMachine(loadB
 		vm.Spec.VMSize = loadBalancerScope.AzureStackHCILoadBalancer.Spec.VMSize
 		vm.Spec.Location = clusterScope.Location()
 		vm.Spec.SSHPublicKey = loadBalancerScope.AzureStackHCILoadBalancer.Spec.SSHPublicKey
+		vm.Spec.StorageContainer = loadBalancerScope.AzureStackHCILoadBalancer.Spec.StorageContainer
 
 		image, err := r.getVMImage(loadBalancerScope)
 		if err != nil {

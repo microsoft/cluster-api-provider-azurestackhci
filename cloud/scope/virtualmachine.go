@@ -149,6 +149,11 @@ func (m *VirtualMachineScope) Name() string {
 	return m.AzureStackHCIVirtualMachine.Name
 }
 
+// StorageContainer returns the AzureStackHCIVirtualMachine storage container
+func (m *VirtualMachineScope) StorageContainer() string {
+	return m.AzureStackHCIVirtualMachine.Spec.StorageContainer
+}
+
 // Namespace returns the namespace name.
 func (m *VirtualMachineScope) Namespace() string {
 	return m.AzureStackHCIVirtualMachine.Namespace

@@ -48,6 +48,9 @@ type AzureStackHCIMachineSpec struct {
 
 	SSHPublicKey string `json:"sshPublicKey"`
 
+	// +optional
+	StorageContainer string `json:"storageContainer"`
+
 	// AllocatePublicIP allows the ability to create dynamic public ips for machines where this value is true.
 	// +optional
 	AllocatePublicIP bool `json:"allocatePublicIP,omitempty"`

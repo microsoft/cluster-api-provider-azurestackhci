@@ -41,6 +41,9 @@ type AzureStackHCIVirtualMachineSpec struct {
 	Location         string           `json:"location"` // does location belong here?
 	SSHPublicKey     string           `json:"sshPublicKey"`
 
+	// +optional
+	StorageContainer string `json:"storageContainer"`
+
 	// come from the cluster scope for machine and lb controller creation path
 	ResourceGroup    string   `json:"resourceGroup"`
 	VnetName         string   `json:"vnetName"`

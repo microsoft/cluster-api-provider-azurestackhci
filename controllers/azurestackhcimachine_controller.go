@@ -303,6 +303,7 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineNormal(machineSc
 		vm.Spec.SSHPublicKey = machineScope.AzureStackHCIMachine.Spec.SSHPublicKey
 		vm.Spec.BootstrapData = &bootstrapData
 		vm.Spec.AdditionalSSHKeys = machineScope.AzureStackHCIMachine.Spec.AdditionalSSHKeys
+		vm.Spec.StorageContainer = machineScope.AzureStackHCIMachine.Spec.StorageContainer
 
 		machineScope.AzureStackHCIMachine.Spec.NetworkInterfaces.DeepCopyInto(&vm.Spec.NetworkInterfaces)
 
