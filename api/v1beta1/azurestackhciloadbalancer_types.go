@@ -33,6 +33,9 @@ type AzureStackHCILoadBalancerSpec struct {
 	Image        Image  `json:"image"`
 	VMSize       string `json:"vmSize"`
 
+	// +optional
+	StorageContainer string `json:"storageContainer"`
+
 	// Number of desired loadbalancer machines. Defaults to 1.
 	// This is a pointer to distinguish between explicit zero and not specified.
 	// +optional

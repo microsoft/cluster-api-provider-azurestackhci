@@ -45,15 +45,16 @@ const (
 
 // Spec input specification for Get/CreateOrUpdate/Delete calls
 type Spec struct {
-	Name       string
-	NICName    string
-	SSHKeyData []string
-	Size       string
-	Zone       string
-	Image      infrav1.Image
-	OSDisk     infrav1.OSDisk
-	CustomData string
-	VMType     compute.VMType
+	Name             string
+	NICName          string
+	SSHKeyData       []string
+	Size             string
+	Zone             string
+	Image            infrav1.Image
+	OSDisk           infrav1.OSDisk
+	CustomData       string
+	VMType           compute.VMType
+	StorageContainer string
 }
 
 // Get provides information about a virtual machine.
@@ -233,9 +234,10 @@ func generateStorageProfile(vmSpec Spec) (*compute.StorageProfile, error) {
 	}
 
 	storageProfile := &compute.StorageProfile{
-		OsDisk:         osDisk,
-		DataDisks:      &dataDisks,
-		ImageReference: imageRef,
+		OsDisk:                osDisk,
+		DataDisks:             &dataDisks,
+		ImageReference:        imageRef,
+		VmConfigContainerName: &vmSpec.StorageContainer,
 	}
 
 	return storageProfile, nil
