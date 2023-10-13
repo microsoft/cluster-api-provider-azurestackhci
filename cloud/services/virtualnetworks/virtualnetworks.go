@@ -93,7 +93,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
 	klog.V(2).Infof("creating vnet %s in resource group %s", vnetSpec.Name, vnetSpec.Group)
 	_, err := s.Client.CreateOrUpdate(ctx, vnetSpec.Group, vnetSpec.Name, &virtualNetwork)
-	telemetry.WriteMocOperationLog(telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.VirtualNetwork,
+	telemetry.WriteMocOperationLog(s.Scope.GetLogger(), telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.VirtualNetwork,
 		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), vnetSpec.Name), &virtualNetwork, err)
 	if err != nil {
 		return err
@@ -125,7 +125,7 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 
 	klog.V(2).Infof("deleting vnet %s in resource group %s", vnetSpec.Name, vnetSpec.Group)
 	err = s.Client.Delete(ctx, vnetSpec.Group, vnetSpec.Name)
-	telemetry.WriteMocOperationLog(telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.VirtualNetwork,
+	telemetry.WriteMocOperationLog(s.Scope.GetLogger(), telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.VirtualNetwork,
 		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), vnetSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted

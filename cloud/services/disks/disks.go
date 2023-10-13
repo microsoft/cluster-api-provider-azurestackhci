@@ -67,7 +67,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			Name:                      &diskSpec.Name,
 			VirtualHardDiskProperties: &storage.VirtualHardDiskProperties{},
 		})
-	telemetry.WriteMocOperationLog(telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.Disk,
+	telemetry.WriteMocOperationLog(s.Scope.GetLogger(), telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.Disk,
 		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), diskSpec.Name), nil, err)
 	if err != nil {
 		return err
@@ -86,7 +86,7 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	}
 	klog.V(2).Infof("deleting disk %s", diskSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), "", diskSpec.Name)
-	telemetry.WriteMocOperationLog(telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.Disk,
+	telemetry.WriteMocOperationLog(s.Scope.GetLogger(), telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.Disk,
 		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), diskSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted

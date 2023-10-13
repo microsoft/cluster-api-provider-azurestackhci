@@ -120,6 +120,11 @@ func (s *ClusterScope) GetAuthorizer() auth.Authorizer {
 	return s.Authorizer
 }
 
+// GetLogger returns the logger.
+func (s *ClusterScope) GetLogger() logr.Logger {
+	return s.Logger
+}
+
 // GetCustomResourceTypeWithName return cluster resource string.
 func (s *ClusterScope) GetCustomResourceTypeWithName() string {
 	return fmt.Sprintf("Cluster/%s/%s", s.Namespace(), s.Name())

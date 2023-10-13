@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-logr/logr"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/health"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/versions"
 	mocerrors "github.com/microsoft/moc/pkg/errors"
-	"k8s.io/klog"
 )
 
 type MocResourceType string
@@ -47,7 +47,7 @@ type OperationLog struct {
 	Message        string      `json:"msg"`
 }
 
-func WriteMocOperationLog(operation MocOperation, crResourceName string, mocResourceType MocResourceType, mocResourceName string, params interface{}, err error) {
+func WriteMocOperationLog(logger logr.Logger, operation MocOperation, crResourceName string, mocResourceType MocResourceType, mocResourceName string, params interface{}, err error) {
 	errcode := "0"
 	message := ""
 	if err != nil {
@@ -68,9 +68,9 @@ func WriteMocOperationLog(operation MocOperation, crResourceName string, mocReso
 
 	jsonData, err := json.Marshal(oplog)
 	if err != nil {
-		klog.Error("Unable to serialize operation log object. ", crResourceName)
+		logger.Error(err, "Unable to serialize operation log object.", "resourceName", crResourceName)
 	} else {
-		klog.Info(string(jsonData))
+		logger.Info(string(jsonData))
 	}
 }
 
@@ -93,8 +93,9 @@ func WriteMocInfoLog(ctx context.Context, scope scope.ScopeInterface) {
 	mocVersion := ""
 
 	versionPair, err := getVersionsService(scope).Get(ctx)
+	logger := scope.GetLogger()
 	if err != nil {
-		klog.Error("Unable to get moc version. ", err)
+		logger.Error(err, "Unable to get moc version.")
 	} else {
 		wssdCloudAgentVersion = versionPair.WssdCloudAgentVersion
 		mocVersion = versionPair.MocVersion
@@ -107,9 +108,9 @@ func WriteMocInfoLog(ctx context.Context, scope scope.ScopeInterface) {
 	}
 	jsonData, err := json.Marshal(infoLog)
 	if err != nil {
-		klog.Error("Unable to serialize moc info log object. ", err)
+		logger.Error(err, "Unable to serialize moc info log object.")
 	} else {
-		klog.Info(string(jsonData))
+		logger.Info(string(jsonData))
 	}
 }
 

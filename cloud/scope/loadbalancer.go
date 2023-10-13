@@ -225,3 +225,8 @@ func (l *LoadBalancerScope) SetPhase(p infrav1.AzureStackHCILoadBalancerPhase) {
 func (l *LoadBalancerScope) SetSelector(selector string) {
 	l.AzureStackHCILoadBalancer.Status.Selector = selector
 }
+
+// GetLogger returns the logger.
+func (l *LoadBalancerScope) GetLogger() logr.Logger {
+	return l.Logger
+}

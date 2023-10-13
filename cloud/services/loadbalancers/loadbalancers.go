@@ -100,7 +100,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	// create the load balancer
 	klog.V(2).Infof("creating loadbalancer %s ", lbSpec.Name)
 	_, err := s.Client.CreateOrUpdate(ctx, s.Scope.GetResourceGroup(), lbSpec.Name, &networkLB)
-	telemetry.WriteMocOperationLog(telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.LoadBalancer,
+	telemetry.WriteMocOperationLog(s.Scope.GetLogger(), telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.LoadBalancer,
 		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), lbSpec.Name), &networkLB, err)
 	if err != nil {
 		return err
@@ -119,7 +119,7 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	}
 	klog.V(2).Infof("deleting loadbalancer %s ", lbSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), lbSpec.Name)
-	telemetry.WriteMocOperationLog(telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.LoadBalancer,
+	telemetry.WriteMocOperationLog(s.Scope.GetLogger(), telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.LoadBalancer,
 		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), lbSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted

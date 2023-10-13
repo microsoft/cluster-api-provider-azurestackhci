@@ -186,7 +186,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		s.Scope.GetResourceGroup(),
 		vmSpec.Name,
 		&virtualMachine)
-	telemetry.WriteMocOperationLog(telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.VirtualMachine,
+	telemetry.WriteMocOperationLog(s.Scope.GetLogger(), telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.VirtualMachine,
 		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), vmSpec.Name), nil, err)
 	if err != nil {
 		return errors.Wrapf(err, "cannot create vm")
@@ -205,7 +205,7 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	}
 	klog.V(2).Infof("deleting vm %s ", vmSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
-	telemetry.WriteMocOperationLog(telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.VirtualMachine,
+	telemetry.WriteMocOperationLog(s.Scope.GetLogger(), telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.VirtualMachine,
 		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), vmSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted

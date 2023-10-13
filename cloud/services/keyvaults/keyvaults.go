@@ -66,7 +66,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			Name:               &vaultSpec.Name,
 			KeyVaultProperties: &security.KeyVaultProperties{},
 		})
-	telemetry.WriteMocOperationLog(telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.KeyVault,
+	telemetry.WriteMocOperationLog(s.Scope.GetLogger(), telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.KeyVault,
 		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), vaultSpec.Name), nil, err)
 	if err != nil {
 		return err
@@ -85,7 +85,7 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	}
 	klog.V(2).Infof("deleting keyvault %s", vaultSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), vaultSpec.Name)
-	telemetry.WriteMocOperationLog(telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.KeyVault,
+	telemetry.WriteMocOperationLog(s.Scope.GetLogger(), telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.KeyVault,
 		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), vaultSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted
