@@ -25,7 +25,6 @@ import (
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/telemetry"
 	"github.com/microsoft/moc-sdk-for-go/services/network"
 	"github.com/pkg/errors"
-	"k8s.io/klog/v2"
 )
 
 // Spec specification for ip configuration
@@ -74,6 +73,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		// Nic already exists, no update supported for now
 		return nil
 	}
+	logger := s.Scope.GetLogger()
 
 	nicConfig := &network.InterfaceIPConfigurationPropertiesFormat{}
 	nicConfig.Subnet = &network.APIEntityReference{
@@ -101,7 +101,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	}
 
 	if len(nicSpec.IPConfigurations) > 0 {
-		klog.V(2).Infof("Adding %d ipconfigurations to nic %s", len(nicSpec.IPConfigurations), nicSpec.Name)
+		logger.Info("Adding ipconfigurations to nic ", "len", len(nicSpec.IPConfigurations), "name", nicSpec.Name)
 		for _, ipconfig := range nicSpec.IPConfigurations {
 
 			networkIpConfig := network.InterfaceIPConfiguration{
@@ -139,7 +139,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		return errors.Wrapf(err, "failed to create network interface %s in resource group %s", nicSpec.Name, s.Scope.GetResourceGroup())
 	}
 
-	klog.V(2).Infof("successfully created network interface %s", nicSpec.Name)
+	logger.Info("successfully created network interface ", "name", nicSpec.Name)
 	return err
 }
 
@@ -150,9 +150,10 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	if !ok {
 		return errors.New("invalid network interface Specification")
 	}
-	klog.V(2).Infof("deleting nic %s", nicSpec.Name)
+	logger := s.Scope.GetLogger()
+	logger.Info("deleting nic", "name", nicSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), nicSpec.Name)
-	telemetry.WriteMocOperationLog(s.Scope.GetLogger(), telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.NetworkInterface,
+	telemetry.WriteMocOperationLog(logger, telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.NetworkInterface,
 		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), nicSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted
@@ -162,6 +163,6 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 		return errors.Wrapf(err, "failed to delete network interface %s in resource group %s", nicSpec.Name, s.Scope.GetResourceGroup())
 	}
 
-	klog.V(2).Infof("successfully deleted nic %s", nicSpec.Name)
+	logger.Info("successfully deleted nic", "name", nicSpec.Name)
 	return err
 }

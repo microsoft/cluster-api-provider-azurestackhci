@@ -24,7 +24,6 @@ import (
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/telemetry"
 	"github.com/microsoft/moc-sdk-for-go/services/network"
 	"github.com/pkg/errors"
-	"k8s.io/klog/v2"
 )
 
 const (
@@ -69,10 +68,11 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	if !ok {
 		return errors.New("Invalid VNET Specification")
 	}
+	logger := s.Scope.GetLogger()
 
 	if _, err := s.Get(ctx, vnetSpec); err == nil {
 		// vnet already exists, cannot update since its immutable
-		klog.V(2).Infof("found vnet %s in resource group %s", vnetSpec.Name, vnetSpec.Group)
+		logger.Info("found vnet in resource group", "vnet", vnetSpec.Name, "group", vnetSpec.Group)
 		return nil
 	}
 
@@ -91,15 +91,15 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		Tags: map[string]*string{OWNER: &caph},
 	}
 
-	klog.V(2).Infof("creating vnet %s in resource group %s", vnetSpec.Name, vnetSpec.Group)
+	logger.Info("creating vnet in resource group", "vnet", vnetSpec.Name, "group", vnetSpec.Group)
 	_, err := s.Client.CreateOrUpdate(ctx, vnetSpec.Group, vnetSpec.Name, &virtualNetwork)
-	telemetry.WriteMocOperationLog(s.Scope.GetLogger(), telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.VirtualNetwork,
+	telemetry.WriteMocOperationLog(logger, telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.VirtualNetwork,
 		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), vnetSpec.Name), &virtualNetwork, err)
 	if err != nil {
 		return err
 	}
 
-	klog.V(2).Infof("successfully created vnet %s in resource group %s", vnetSpec.Name, vnetSpec.Group)
+	logger.Info("successfully created vnet in resource group", "vnet", vnetSpec.Name, "group", vnetSpec.Group)
 	return err
 }
 
@@ -115,15 +115,16 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	if err != nil {
 		return err
 	}
+	logger := s.Scope.GetLogger()
 	vnet, _ := vnetInterface.(network.VirtualNetwork)
 	owner, ok := vnet.Tags[OWNER]
 	if !ok || owner == nil || *owner == CAPH {
 		//We do not own this object, so don't free it
-		klog.V(2).Infof("skipping deletion of vnet %s in resource group %s because it is not owned by CAPH", vnetSpec.Name, vnetSpec.Group)
+		logger.Info("skipping deletion of vnet in resource group because it is not owned by CAPH", "vnet", vnetSpec.Name, "group", vnetSpec.Group)
 		return nil
 	}
 
-	klog.V(2).Infof("deleting vnet %s in resource group %s", vnetSpec.Name, vnetSpec.Group)
+	logger.Info("deleting vnet in resource group", "vnet", vnetSpec.Name, "group", vnetSpec.Group)
 	err = s.Client.Delete(ctx, vnetSpec.Group, vnetSpec.Name)
 	telemetry.WriteMocOperationLog(s.Scope.GetLogger(), telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.VirtualNetwork,
 		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), vnetSpec.Name), nil, err)
@@ -135,6 +136,6 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 		return errors.Wrapf(err, "failed to delete vnet %s in resource group %s", vnetSpec.Name, vnetSpec.Group)
 	}
 
-	klog.V(2).Infof("successfully deleted vnet %s in resource group %s", vnetSpec.Name, vnetSpec.Group)
+	logger.Info("successfully deleted vnet in resource group", "vnet", vnetSpec.Name, "group", vnetSpec.Group)
 	return err
 }

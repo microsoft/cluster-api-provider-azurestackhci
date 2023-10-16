@@ -25,7 +25,6 @@ import (
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/telemetry"
 	"github.com/microsoft/moc-sdk-for-go/services/network"
 	"github.com/pkg/errors"
-	"k8s.io/klog/v2"
 )
 
 // Spec input specification for Get/CreateOrUpdate/Delete calls
@@ -98,15 +97,16 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	}
 
 	// create the load balancer
-	klog.V(2).Infof("creating loadbalancer %s ", lbSpec.Name)
+	logger := s.Scope.GetLogger()
+	logger.Info("creating loadbalancer", "name", lbSpec.Name)
 	_, err := s.Client.CreateOrUpdate(ctx, s.Scope.GetResourceGroup(), lbSpec.Name, &networkLB)
-	telemetry.WriteMocOperationLog(s.Scope.GetLogger(), telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.LoadBalancer,
+	telemetry.WriteMocOperationLog(logger, telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.LoadBalancer,
 		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), lbSpec.Name), &networkLB, err)
 	if err != nil {
 		return err
 	}
 
-	klog.V(2).Infof("successfully created loadbalancer %s ", lbSpec.Name)
+	logger.Info("successfully created loadbalancer", "name", lbSpec.Name)
 	return err
 }
 
@@ -117,9 +117,10 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	if !ok {
 		return errors.New("invalid loadbalancer specification")
 	}
-	klog.V(2).Infof("deleting loadbalancer %s ", lbSpec.Name)
+	logger := s.Scope.GetLogger()
+	logger.Info("deleting loadbalancer", "name", lbSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), lbSpec.Name)
-	telemetry.WriteMocOperationLog(s.Scope.GetLogger(), telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.LoadBalancer,
+	telemetry.WriteMocOperationLog(logger, telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.LoadBalancer,
 		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), lbSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted
@@ -129,6 +130,6 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 		return errors.Wrapf(err, "failed to delete loadbalancer %s in resource group %s", lbSpec.Name, s.Scope.GetResourceGroup())
 	}
 
-	klog.V(2).Infof("successfully deleted loadbalancer %s ", lbSpec.Name)
+	logger.Info("successfully deleted loadbalancer", "name", lbSpec.Name)
 	return err
 }

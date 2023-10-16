@@ -35,7 +35,6 @@ import (
 	"github.com/microsoft/moc-sdk-for-go/services/network"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh"
-	"k8s.io/klog/v2"
 )
 
 const (
@@ -65,6 +64,8 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 	}
 
 	vm, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
+	telemetry.WriteMocOperationLog(s.Scope.GetLogger(), telemetry.Get, s.Scope.GetCustomResourceTypeWithName(), telemetry.VirtualMachine,
+		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), vmSpec.Name), nil, err)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +89,8 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		return err
 	}
 
-	klog.V(2).Infof("getting nic %s", vmSpec.NICName)
+	logger := s.Scope.GetLogger()
+	logger.Info("getting nic", "nic", vmSpec.NICName)
 	nicInterface, err := networkinterfaces.NewService(s.Scope).Get(ctx, &networkinterfaces.Spec{Name: vmSpec.NICName})
 	if err != nil {
 		return err
@@ -97,9 +99,9 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	if !ok {
 		return errors.New("error getting network interface")
 	}
-	klog.V(2).Infof("got nic %s", vmSpec.NICName)
+	logger.Info("got nic", "nic", vmSpec.NICName)
 
-	klog.V(2).InfoS("creating vm",
+	logger.Info("creating vm",
 		"Name", vmSpec.Name,
 		"NICName", vmSpec.NICName,
 		"Size", vmSpec.Size,
@@ -186,13 +188,13 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		s.Scope.GetResourceGroup(),
 		vmSpec.Name,
 		&virtualMachine)
-	telemetry.WriteMocOperationLog(s.Scope.GetLogger(), telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.VirtualMachine,
+	telemetry.WriteMocOperationLog(logger, telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.VirtualMachine,
 		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), vmSpec.Name), nil, err)
 	if err != nil {
 		return errors.Wrapf(err, "cannot create vm")
 	}
 
-	klog.V(2).Infof("successfully created vm %s ", vmSpec.Name)
+	logger.Info("successfully created vm", "name", vmSpec.Name)
 	return err
 }
 
@@ -203,7 +205,8 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	if !ok {
 		return errors.New("invalid vm Specification")
 	}
-	klog.V(2).Infof("deleting vm %s ", vmSpec.Name)
+	logger := s.Scope.GetLogger()
+	logger.Info("deleting vm", "vm", vmSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
 	telemetry.WriteMocOperationLog(s.Scope.GetLogger(), telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.VirtualMachine,
 		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), vmSpec.Name), nil, err)
@@ -215,7 +218,7 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 		return errors.Wrapf(err, "failed to delete vm %s in resource group %s", vmSpec.Name, s.Scope.GetResourceGroup())
 	}
 
-	klog.V(2).Infof("successfully deleted vm %s ", vmSpec.Name)
+	logger.Info("successfully deleted vm", "name", vmSpec.Name)
 	return err
 }
 

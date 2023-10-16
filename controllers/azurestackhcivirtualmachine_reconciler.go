@@ -28,7 +28,6 @@ import (
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/virtualmachines"
 	sdk_compute "github.com/microsoft/moc-sdk-for-go/services/compute"
 	"github.com/pkg/errors"
-	"k8s.io/klog/v2"
 )
 
 // azureStackHCIVirtualMachineService are list of services required by cluster actuator, easy to create a fake
@@ -138,7 +137,7 @@ func (s *azureStackHCIVirtualMachineService) VMIfExists() (*infrav1.VM, error) {
 		return nil, errors.New("returned incorrect vm interface")
 	}
 
-	klog.Infof("Found vm for machine %s", s.vmScope.Name())
+	s.vmScope.Info("Found vm for machine", s.vmScope.Name())
 
 	return vm, nil
 }

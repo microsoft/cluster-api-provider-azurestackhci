@@ -24,7 +24,6 @@ import (
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/telemetry"
 	"github.com/microsoft/moc-sdk-for-go/services/cloud"
 	"github.com/pkg/errors"
-	"k8s.io/klog/v2"
 )
 
 const (
@@ -71,20 +70,21 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	caphVal := TagValClusterGroup
 	tag[TagKeyClusterGroup] = &caphVal
 
-	klog.V(2).Infof("creating group %s in location %s", groupSpec.Name, groupSpec.Location)
+	logger := s.Scope.GetLogger()
+	logger.Info("creating group", "name", groupSpec.Name, "location", groupSpec.Location)
 	_, err := s.Client.CreateOrUpdate(ctx, groupSpec.Location, groupSpec.Name,
 		&cloud.Group{
 			Name:     &groupSpec.Name,
 			Location: &groupSpec.Location,
 			Tags:     tag,
 		})
-	telemetry.WriteMocOperationLog(s.Scope.GetLogger(), telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.Group,
+	telemetry.WriteMocOperationLog(logger, telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.Group,
 		telemetry.GenerateMocResourceName(groupSpec.Location, groupSpec.Name), nil, err)
 	if err != nil {
 		return err
 	}
 
-	klog.V(2).Infof("successfully created group %s", groupSpec.Name)
+	logger.Info("successfully created group", "name", groupSpec.Name)
 	return err
 }
 
@@ -95,14 +95,15 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	if !ok {
 		return errors.New("Invalid group specification")
 	}
-	klog.V(2).Infof("deleting group %s in location %s", groupSpec.Name, groupSpec.Location)
+	logger := s.Scope.GetLogger()
+	logger.Info("deleting group", "name", groupSpec.Name, "location", groupSpec.Location)
 
 	group, err := s.Client.Get(ctx, groupSpec.Location, groupSpec.Name)
-	telemetry.WriteMocOperationLog(s.Scope.GetLogger(), telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.Group,
+	telemetry.WriteMocOperationLog(logger, telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.Group,
 		telemetry.GenerateMocResourceName(groupSpec.Location, groupSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// ignoring the NotFound error, since it might be already deleted
-		klog.V(2).Infof("group %s not found in location %s", groupSpec.Name, groupSpec.Location)
+		logger.Info("group not found, skipping deletion", "name", groupSpec.Name)
 		return nil
 	} else if err != nil {
 		return err
@@ -120,9 +121,9 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to delete group %s", groupSpec.Name)
 		}
-		klog.V(2).Infof("successfully deleted group %s", groupSpec.Name)
+		logger.Info("successfully deleted group", "name", groupSpec.Name)
 	} else {
-		klog.V(2).Infof("skipping group %s deletion, since it is not created by caph", groupSpec.Name)
+		logger.Info("skipping group deletion, since it is not created by caph", "name", groupSpec.Name)
 	}
 
 	return err
