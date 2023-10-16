@@ -64,8 +64,6 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 	}
 
 	vm, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
-	telemetry.WriteMocOperationLog(s.Scope.GetLogger(), telemetry.Get, s.Scope.GetCustomResourceTypeWithName(), telemetry.VirtualMachine,
-		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), vmSpec.Name), nil, err)
 	if err != nil {
 		return nil, err
 	}
@@ -218,7 +216,7 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 		return errors.Wrapf(err, "failed to delete vm %s in resource group %s", vmSpec.Name, s.Scope.GetResourceGroup())
 	}
 
-	logger.Info("successfully deleted vm", "name", vmSpec.Name)
+	logger.Info("successfully deleted vm", "vm", vmSpec.Name)
 	return err
 }
 

@@ -137,7 +137,7 @@ func (s *azureStackHCIVirtualMachineService) VMIfExists() (*infrav1.VM, error) {
 		return nil, errors.New("returned incorrect vm interface")
 	}
 
-	s.vmScope.Info("Found vm for machine", s.vmScope.Name())
+	s.vmScope.Info("Found vm for machine", "name", s.vmScope.Name())
 
 	return vm, nil
 }
