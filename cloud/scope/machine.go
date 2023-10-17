@@ -141,6 +141,11 @@ func (m *MachineScope) GetVMID() *string {
 	return pointer.StringPtr(parsed.ID())
 }
 
+// GetLogger returns the logger.
+func (m *MachineScope) GetLogger() logr.Logger {
+	return m.Logger
+}
+
 // GetProviderID returns the AzureStackHCIMachine providerID from the spec.
 func (m *MachineScope) GetProviderID() string {
 	if m.AzureStackHCIMachine.Spec.ProviderID != nil {

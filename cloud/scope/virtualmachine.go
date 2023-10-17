@@ -114,6 +114,11 @@ func (m *VirtualMachineScope) GetAuthorizer() auth.Authorizer {
 	return m.Authorizer
 }
 
+// GetLogger returns the logger.
+func (m *VirtualMachineScope) GetLogger() logr.Logger {
+	return m.Logger
+}
+
 // GetCustomResourceTypeWithName return cluster resource string.
 func (m *VirtualMachineScope) GetCustomResourceTypeWithName() string {
 	return fmt.Sprintf("Cluster/%s/%s", m.Namespace(), m.ClusterName())

@@ -24,7 +24,6 @@ import (
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/telemetry"
 	"github.com/microsoft/moc-sdk-for-go/services/storage"
 	"github.com/pkg/errors"
-	"k8s.io/klog/v2"
 )
 
 // Spec specification for disk
@@ -61,19 +60,20 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		return nil
 	}
 
-	klog.V(2).Infof("creating disk %s ", diskSpec.Name)
+	logger := s.Scope.GetLogger()
+	logger.Info("creating disk", "name", diskSpec.Name)
 	_, err := s.Client.CreateOrUpdate(ctx, s.Scope.GetResourceGroup(), "", diskSpec.Name,
 		&storage.VirtualHardDisk{
 			Name:                      &diskSpec.Name,
 			VirtualHardDiskProperties: &storage.VirtualHardDiskProperties{},
 		})
-	telemetry.WriteMocOperationLog(telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.Disk,
+	telemetry.WriteMocOperationLog(logger, telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.Disk,
 		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), diskSpec.Name), nil, err)
 	if err != nil {
 		return err
 	}
 
-	klog.V(2).Infof("successfully created disk %s ", diskSpec.Name)
+	logger.Info("successfully created disk", "name", diskSpec.Name)
 	return err
 }
 
@@ -84,9 +84,10 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	if !ok {
 		return errors.New("Invalid disk specification")
 	}
-	klog.V(2).Infof("deleting disk %s", diskSpec.Name)
+	logger := s.Scope.GetLogger()
+	logger.Info("deleting disk", "name", diskSpec.Name)
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), "", diskSpec.Name)
-	telemetry.WriteMocOperationLog(telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.Disk,
+	telemetry.WriteMocOperationLog(logger, telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.Disk,
 		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), diskSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted
@@ -96,6 +97,6 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 		return errors.Wrapf(err, "failed to delete disk %s in resource group %s", diskSpec.Name, s.Scope.GetResourceGroup())
 	}
 
-	klog.V(2).Infof("successfully deleted disk %s", diskSpec.Name)
+	logger.Info("successfully deleted disk", "name", diskSpec.Name)
 	return err
 }

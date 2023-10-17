@@ -18,6 +18,7 @@ limitations under the License.
 package scope
 
 import (
+	"github.com/go-logr/logr"
 	"github.com/microsoft/moc/pkg/auth"
 )
 
@@ -27,4 +28,5 @@ type ScopeInterface interface {
 	GetCloudAgentFqdn() string
 	GetAuthorizer() auth.Authorizer
 	GetCustomResourceTypeWithName() string
+	GetLogger() logr.Logger
 }

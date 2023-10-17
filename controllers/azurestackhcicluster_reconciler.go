@@ -24,7 +24,6 @@ import (
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/keyvaults"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/virtualnetworks"
 	"github.com/pkg/errors"
-	"k8s.io/klog/v2"
 )
 
 const (
@@ -52,7 +51,7 @@ func newAzureStackHCIClusterReconciler(scope *scope.ClusterScope) *azureStackHCI
 
 // Reconcile reconciles all the services in pre determined order
 func (r *azureStackHCIClusterReconciler) Reconcile() error {
-	klog.V(2).Infof("reconciling cluster %s", r.scope.Name())
+	r.scope.Info("reconciling cluster", "name", r.scope.Name())
 
 	r.createOrUpdateVnetName()
 
@@ -91,7 +90,7 @@ func (r *azureStackHCIClusterReconciler) Reconcile() error {
 
 // Delete reconciles all the services in pre determined order
 func (r *azureStackHCIClusterReconciler) Delete() error {
-	klog.V(2).Infof(" deleting cluster %s", r.scope.Name())
+	r.scope.Info("deleting cluster", "name", r.scope.Name())
 	vaultSpec := &keyvaults.Spec{
 		Name: r.scope.Name(),
 	}

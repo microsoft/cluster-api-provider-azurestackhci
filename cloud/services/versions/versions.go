@@ -20,8 +20,6 @@ package versions
 import (
 	"context"
 	"fmt"
-
-	"k8s.io/klog/v2"
 )
 
 type Spec struct{}
@@ -34,7 +32,7 @@ type VersionPair struct {
 func (s *Service) Get(ctx context.Context) (*VersionPair, error) {
 	version, mocversion, err := s.Client.GetVersion(ctx)
 	if err != nil {
-		klog.Error("Unable to get moc deployment id. ", err)
+		s.Scope.GetLogger().Error(err, "Unable to get moc deployment id")
 		return nil, err
 	}
 	return &VersionPair{
@@ -45,11 +43,11 @@ func (s *Service) Get(ctx context.Context) (*VersionPair, error) {
 }
 
 func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
-	klog.V(2).Infof("Reconciling version is not supported")
+	s.Scope.GetLogger().Info("Reconciling version is not supported")
 	return fmt.Errorf("Reconciling version is not supported")
 }
 
 func (s *Service) Delete(ctx context.Context, spec interface{}) error {
-	klog.V(2).Infof("Deleting version is not supported")
+	s.Scope.GetLogger().Info("Deleting version is not supported")
 	return fmt.Errorf("Deleting version is not supported")
 }

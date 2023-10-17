@@ -24,7 +24,6 @@ import (
 	azhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/moc-sdk-for-go/services/network"
 	"github.com/pkg/errors"
-	"k8s.io/klog/v2"
 )
 
 // Spec input specification for Get/CreateOrUpdate/Delete calls
@@ -65,12 +64,12 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		// vippool already exists, no update supported for now
 		return nil
 	}
-	klog.V(2).Infof("creating a vippool is not supported")
+	s.Scope.GetLogger().Info("creating a vippool is not supported")
 	return fmt.Errorf("creating a vippool is not supported")
 }
 
 // Delete deletes the vip pool with the provided name.
 func (s *Service) Delete(ctx context.Context, spec interface{}) error {
-	klog.V(2).Infof("deleting a vippool is not supported")
+	s.Scope.GetLogger().Info("deleting a vippool is not supported")
 	return fmt.Errorf("deleting a vippool is not supported")
 }

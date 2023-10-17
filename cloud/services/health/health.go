@@ -20,14 +20,12 @@ package health
 import (
 	"context"
 	"fmt"
-
-	"k8s.io/klog/v2"
 )
 
 func (s *Service) GetMocDeploymentId(ctx context.Context) string {
 	deploymentId, err := s.Client.GetDeploymentId(ctx)
 	if err != nil {
-		klog.Error("Unable to get moc deployment id. ", err)
+		s.Scope.GetLogger().Error(err, "Unable to get moc deployment id")
 		return ""
 	}
 	return deploymentId
@@ -35,11 +33,11 @@ func (s *Service) GetMocDeploymentId(ctx context.Context) string {
 }
 
 func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
-	klog.V(2).Infof("Reconciling health is not supported")
+	s.Scope.GetLogger().Info("Reconciling health is not supported")
 	return fmt.Errorf("Reconciling health is not supported")
 }
 
 func (s *Service) Delete(ctx context.Context, spec interface{}) error {
-	klog.V(2).Infof("Deleting health is not supported")
+	s.Scope.GetLogger().Info("Deleting health is not supported")
 	return fmt.Errorf("Deleting health is not supported")
 }
