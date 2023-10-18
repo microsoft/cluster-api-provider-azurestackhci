@@ -24,6 +24,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-logr/logr"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/moc-sdk-for-go/services/security/authentication"
 	"github.com/microsoft/moc/pkg/auth"
@@ -34,9 +35,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
-	"k8s.io/klog/v2"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
 var (
@@ -58,15 +59,16 @@ func GetAuthorizerFromKubernetesCluster(ctx context.Context, cloudFqdn string) (
 	}
 	config.Timeout = 10 * time.Second
 
+	logger := zap.New(zap.UseDevMode(true))
 	c, err := client.New(config, client.Options{Scheme: Scheme})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create a client")
 	}
 
-	return ReconcileAzureStackHCIAccess(ctx, c, cloudFqdn)
+	return ReconcileAzureStackHCIAccess(logger, ctx, c, cloudFqdn)
 }
 
-func ReconcileAzureStackHCIAccess(ctx context.Context, cli client.Client, cloudFqdn string) (auth.Authorizer, error) {
+func ReconcileAzureStackHCIAccess(logger logr.Logger, ctx context.Context, cli client.Client, cloudFqdn string) (auth.Authorizer, error) {
 
 	wssdconfigpath := os.Getenv("WSSD_CONFIG_PATH")
 	if wssdconfigpath == "" {
@@ -76,9 +78,9 @@ func ReconcileAzureStackHCIAccess(ctx context.Context, cli client.Client, cloudF
 	if strings.ToLower(os.Getenv("WSSD_DEBUG_MODE")) != "on" {
 		_, err := os.Stat(wssdconfigpath)
 		if err != nil {
-			return login(ctx, cli, cloudFqdn)
+			return login(logger, ctx, cli, cloudFqdn)
 		}
-		go UpdateLoginConfig(ctx, cli)
+		go UpdateLoginConfig(logger, ctx, cli)
 	}
 	authorizer, err := auth.NewAuthorizerFromEnvironment(cloudFqdn)
 	if err != nil {
@@ -87,28 +89,28 @@ func ReconcileAzureStackHCIAccess(ctx context.Context, cli client.Client, cloudF
 			return nil, errors.Wrap(err, "error: new authorizer failed")
 		}
 		// Login if certificate expired
-		return login(ctx, cli, cloudFqdn)
+		return login(logger, ctx, cli, cloudFqdn)
 	}
 	return authorizer, nil
 }
 
-func UpdateLoginConfig(ctx context.Context, cli client.Client) {
+func UpdateLoginConfig(logger logr.Logger, ctx context.Context, cli client.Client) {
 	secret, err := GetSecret(ctx, cli, AzHCIAccessCreds)
 	if err != nil {
-		klog.Errorf("error: failed to create wssd session, missing login credentials secret %v", err)
+		logger.Error(err, "error: failed to create wssd session, missing login credentials secret")
 		return
 	}
 
 	data, ok := secret.Data[AzHCIAccessTokenFieldName]
 	if !ok {
-		klog.Errorf("error: could not parse kubernetes secret")
+		logger.Error(nil, "could not parse kubernetes secret")
 		return
 	}
 
 	loginconfig := auth.LoginConfig{}
 	err = config.LoadYAMLConfig(string(data), &loginconfig)
 	if err != nil {
-		klog.Errorf("error: failed to create wssd session: parse yaml login config failed")
+		logger.Error(err, "failed to create wssd session: parse yaml login config failed")
 		return
 	}
 
@@ -117,7 +119,7 @@ func UpdateLoginConfig(ctx context.Context, cli client.Client) {
 
 }
 
-func login(ctx context.Context, cli client.Client, cloudFqdn string) (auth.Authorizer, error) {
+func login(logger logr.Logger, ctx context.Context, cli client.Client, cloudFqdn string) (auth.Authorizer, error) {
 	wssdconfigpath := os.Getenv("WSSD_CONFIG_PATH")
 	if wssdconfigpath == "" {
 		return nil, errors.New("ReconcileAzureStackHCIAccess: Environment variable WSSD_CONFIG_PATH is not set")
@@ -130,7 +132,7 @@ func login(ctx context.Context, cli client.Client, cloudFqdn string) (auth.Autho
 			return authorizer, nil
 		}
 	}
-	klog.Infof("AzureStackHCI: Login attempt")
+	logger.Info("AzureStackHCI: Login attempt")
 	secret, err := GetSecret(ctx, cli, AzHCIAccessCreds)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create wssd session, missing login credentials secret")
@@ -159,7 +161,7 @@ func login(ctx context.Context, cli client.Client, cloudFqdn string) (auth.Autho
 	if _, err := os.Stat(wssdconfigpath); err != nil {
 		return nil, errors.Wrapf(err, "Missing wssdconfig %s after login", wssdconfigpath)
 	}
-	klog.Infof("AzureStackHCI: Login successful")
+	logger.Info("AzureStackHCI: Login successful")
 	return auth.NewAuthorizerFromEnvironment(cloudFqdn)
 }
 

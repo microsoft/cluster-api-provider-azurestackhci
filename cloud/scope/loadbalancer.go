@@ -24,12 +24,12 @@ import (
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1"
 	"github.com/microsoft/moc/pkg/diagnostics"
 	"github.com/pkg/errors"
-	"k8s.io/klog/v2/klogr"
 	"k8s.io/utils/pointer"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	capierrors "sigs.k8s.io/cluster-api/errors"
 	"sigs.k8s.io/cluster-api/util/patch"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
 // LoadBalancerScopeParams defines the input parameters used to create a new LoadBalancerScope.
@@ -53,7 +53,7 @@ func NewLoadBalancerScope(params LoadBalancerScopeParams) (*LoadBalancerScope, e
 	}
 
 	if params.Logger == nil {
-		log := klogr.New()
+		log := zap.New(zap.UseDevMode(true))
 		params.Logger = &log
 	}
 

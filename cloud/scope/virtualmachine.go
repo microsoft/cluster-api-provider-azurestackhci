@@ -28,13 +28,13 @@ import (
 	"github.com/microsoft/moc/pkg/auth"
 	"github.com/microsoft/moc/pkg/diagnostics"
 	"github.com/pkg/errors"
-	"k8s.io/klog/v2/klogr"
 	"k8s.io/utils/pointer"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	capierrors "sigs.k8s.io/cluster-api/errors"
 	"sigs.k8s.io/cluster-api/util/conditions"
 	"sigs.k8s.io/cluster-api/util/patch"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
 // MachineScopeParams defines the input parameters used to create a new VirtualMachineScope.
@@ -57,7 +57,7 @@ func NewVirtualMachineScope(params VirtualMachineScopeParams) (*VirtualMachineSc
 	}
 
 	if params.Logger == nil {
-		log := klogr.New()
+		log := zap.New(zap.UseDevMode(true))
 		params.Logger = &log
 	}
 
@@ -67,7 +67,8 @@ func NewVirtualMachineScope(params VirtualMachineScopeParams) (*VirtualMachineSc
 	}
 	params.AzureStackHCIClients.CloudAgentFqdn = agentFqdn
 
-	authorizer, err := azhciauth.ReconcileAzureStackHCIAccess(context.Background(), params.Client, agentFqdn)
+	scopeContext := diagnostics.NewContextWithCorrelationId(context.Background(), params.AzureStackHCIVirtualMachine.GetAnnotations()[infrav1.AzureCorrelationIDAnnotationKey])
+	authorizer, err := azhciauth.ReconcileAzureStackHCIAccess(*params.Logger, scopeContext, params.Client, agentFqdn)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create azurestackhci session")
 	}
@@ -77,7 +78,6 @@ func NewVirtualMachineScope(params VirtualMachineScopeParams) (*VirtualMachineSc
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to init patch helper")
 	}
-	scopeContext := diagnostics.NewContextWithCorrelationId(context.Background(), params.AzureStackHCIVirtualMachine.GetAnnotations()[infrav1.AzureCorrelationIDAnnotationKey])
 	return &VirtualMachineScope{
 		client:                      params.Client,
 		AzureStackHCIVirtualMachine: params.AzureStackHCIVirtualMachine,
