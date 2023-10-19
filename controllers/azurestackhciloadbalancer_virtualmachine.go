@@ -26,6 +26,7 @@ import (
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
+	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/telemetry"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -129,7 +130,16 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileDeleteVirtualMachines(loa
 
 	for _, vm := range vmList {
 		if vm.GetDeletionTimestamp().IsZero() {
-			if err := r.Client.Delete(clusterScope.Context, vm); err != nil {
+			err := r.Client.Delete(clusterScope.Context, vm)
+			telemetry.RecordHybridAKSCRDChange(
+				clusterScope.GetLogger(),
+				clusterScope.GetCustomResourceTypeWithName(),
+				fmt.Sprintf("%s/%s/%s", vm.TypeMeta.Kind, vm.ObjectMeta.Namespace, vm.ObjectMeta.Name),
+				telemetry.Delete,
+				telemetry.CRD,
+				nil,
+				err)
+			if err != nil {
 				if !apierrors.IsNotFound(err) {
 					return errors.Wrapf(err, "failed to delete AzureStackHCIVirtualMachine %s", vm.Name)
 				}
@@ -191,8 +201,19 @@ func (r *AzureStackHCILoadBalancerReconciler) createOrUpdateVirtualMachine(loadB
 
 		return nil
 	}
-
-	if _, err := controllerutil.CreateOrUpdate(clusterScope.Context, r.Client, vm, mutateFn); err != nil {
+	operationResult, err := controllerutil.CreateOrUpdate(clusterScope.Context, r.Client, vm, mutateFn)
+	if telemetry.IsCRDUpdate(operationResult) {
+		operation, resourceType := telemetry.ConvertOperationResult(operationResult)
+		telemetry.RecordHybridAKSCRDChange(
+			loadBalancerScope.GetLogger(),
+			clusterScope.GetCustomResourceTypeWithName(),
+			fmt.Sprintf("%s/%s/%s", vm.TypeMeta.Kind, vm.ObjectMeta.Namespace, vm.ObjectMeta.Name),
+			operation,
+			resourceType,
+			nil,
+			err)
+	}
+	if err != nil {
 		return nil, err
 	}
 
@@ -202,7 +223,16 @@ func (r *AzureStackHCILoadBalancerReconciler) createOrUpdateVirtualMachine(loadB
 // deleteVirtualMachine deletes a virtual machine
 func (r *AzureStackHCILoadBalancerReconciler) deleteVirtualMachine(clusterScope *scope.ClusterScope, vm *infrav1.AzureStackHCIVirtualMachine) error {
 	if vm.GetDeletionTimestamp().IsZero() {
-		if err := r.Client.Delete(clusterScope.Context, vm); err != nil {
+		err := r.Client.Delete(clusterScope.Context, vm)
+		telemetry.RecordHybridAKSCRDChange(
+			clusterScope.GetLogger(),
+			clusterScope.GetCustomResourceTypeWithName(),
+			fmt.Sprintf("%s/%s/%s", vm.TypeMeta.Kind, vm.ObjectMeta.Namespace, vm.ObjectMeta.Name),
+			telemetry.Delete,
+			telemetry.CRD,
+			nil,
+			err)
+		if err != nil {
 			if !apierrors.IsNotFound(err) {
 				return errors.Wrapf(err, "failed to delete AzureStackHCIVirtualMachine %s", vm.Name)
 			}
