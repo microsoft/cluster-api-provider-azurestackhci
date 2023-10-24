@@ -76,9 +76,9 @@ func WriteMocOperationLog(logger logr.Logger, operation Operation, crResourceNam
 		Message:        message,
 	}
 
-	jsonData, err := json.Marshal(oplog)
-	if err != nil {
-		logger.Error(err, "Unable to serialize operation log object.", "resourceName", crResourceName)
+	jsonData, serializeError := json.Marshal(oplog)
+	if serializeError != nil {
+		logger.Error(serializeError, "Unable to serialize operation log object.", "resourceName", crResourceName)
 	} else {
 		logger.Info(string(jsonData))
 	}
@@ -104,9 +104,9 @@ func RecordHybridAKSCRDChange(logger logr.Logger, parentResource string, resourc
 		Message:        errMessage,
 	}
 
-	jsonData, err := json.Marshal(oplog)
-	if err != nil {
-		logger.Error(err, "Unable to serialize operation log object",
+	jsonData, serializeError := json.Marshal(oplog)
+	if serializeError != nil {
+		logger.Error(serializeError, "Unable to serialize operation log object",
 			"timestamp", time.Now().Format(time.RFC3339),
 			"parent_resource", parentResource,
 			"resource", resource,
