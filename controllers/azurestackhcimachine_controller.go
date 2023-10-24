@@ -28,6 +28,7 @@ import (
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
+	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/telemetry"
 	infrav1util "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/util"
 
 	"github.com/pkg/errors"
@@ -312,7 +313,19 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineNormal(machineSc
 		return nil
 	}
 
-	if _, err := controllerutil.CreateOrUpdate(clusterScope.Context, r.Client, vm, mutateFn); err != nil {
+	operationResult, err := controllerutil.CreateOrUpdate(clusterScope.Context, r.Client, vm, mutateFn)
+	if telemetry.IsCRDUpdate(operationResult) {
+		operation, resourceType := telemetry.ConvertOperationResult(operationResult)
+		telemetry.RecordHybridAKSCRDChange(
+			machineScope.GetLogger(),
+			clusterScope.GetCustomResourceTypeWithName(),
+			fmt.Sprintf("%s/%s/%s", vm.TypeMeta.Kind, vm.ObjectMeta.Namespace, vm.ObjectMeta.Name),
+			operation,
+			resourceType,
+			nil,
+			err)
+	}
+	if err != nil {
 		// If CreateOrUpdate throws AlreadyExists, we know that we have encountered an edge case where
 		// Get with the cached client returned NotFound and then Create returned AlreadyExists.
 		//
@@ -339,7 +352,7 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineNormal(machineSc
 		Name:      machineScope.Name(),
 	}
 
-	err := r.Client.Get(clusterScope.Context, key, azureStackHCIVirtualMachine)
+	err = r.Client.Get(clusterScope.Context, key, azureStackHCIVirtualMachine)
 	if err != nil {
 		return nil, err
 	}
@@ -383,7 +396,16 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineDelete(machineSc
 			}
 		}
 		// is this a synchronous call?
-		if err := r.Client.Delete(clusterScope.Context, vm); err != nil {
+		err := r.Client.Delete(clusterScope.Context, vm)
+		telemetry.RecordHybridAKSCRDChange(
+			clusterScope.GetLogger(),
+			clusterScope.GetCustomResourceTypeWithName(),
+			fmt.Sprintf("%s/%s/%s", vm.TypeMeta.Kind, vm.ObjectMeta.Namespace, vm.ObjectMeta.Name),
+			telemetry.Delete,
+			telemetry.CRD,
+			nil,
+			err)
+		if err != nil {
 			if !apierrors.IsNotFound(err) {
 				return errors.Wrapf(err, "failed to delete AzureStackHCIVirtualMachine %s", vmName)
 			}

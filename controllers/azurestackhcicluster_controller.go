@@ -19,12 +19,14 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/go-logr/logr"
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
+	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/telemetry"
 	infrav1util "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/util"
 	mocerrors "github.com/microsoft/moc/pkg/errors"
 	"github.com/pkg/errors"
@@ -248,7 +250,16 @@ func (r *AzureStackHCIClusterReconciler) deleteOrphanedMachines(clusterScope *sc
 				}
 			}
 			clusterScope.Info("Deleting Orphaned Machine", "Name", azhciMachine.Name, "AzureStackHCICluster", clusterScope.AzureStackHCICluster.Name)
-			if err := r.Client.Delete(clusterScope.Context, azhciMachine); err != nil {
+			err := r.Client.Delete(clusterScope.Context, azhciMachine)
+			telemetry.RecordHybridAKSCRDChange(
+				clusterScope.GetLogger(),
+				clusterScope.GetCustomResourceTypeWithName(),
+				fmt.Sprintf("%s/%s/%s", azhciMachine.TypeMeta.Kind, azhciMachine.ObjectMeta.Namespace, azhciMachine.ObjectMeta.Name),
+				telemetry.Delete,
+				telemetry.CRD,
+				nil,
+				err)
+			if err != nil {
 				if !apierrors.IsNotFound(err) {
 					return errors.Wrapf(err, "Failed to delete AzureStackHCIMachine %s", azhciMachine)
 				}
@@ -291,7 +302,19 @@ func (r *AzureStackHCIClusterReconciler) reconcileAzureStackHCILoadBalancer(clus
 		return nil
 	}
 
-	if _, err := controllerutil.CreateOrUpdate(clusterScope.Context, r.Client, azureStackHCILoadBalancer, mutateFn); err != nil {
+	operationResult, err := controllerutil.CreateOrUpdate(clusterScope.Context, r.Client, azureStackHCILoadBalancer, mutateFn)
+	if telemetry.IsCRDUpdate(operationResult) {
+		operation, resourceType := telemetry.ConvertOperationResult(operationResult)
+		telemetry.RecordHybridAKSCRDChange(
+			clusterScope.GetLogger(),
+			clusterScope.GetCustomResourceTypeWithName(),
+			fmt.Sprintf("%s/%s/%s", azureStackHCILoadBalancer.TypeMeta.Kind, azureStackHCILoadBalancer.ObjectMeta.Namespace, azureStackHCILoadBalancer.ObjectMeta.Name),
+			operation,
+			resourceType,
+			nil,
+			err)
+	}
+	if err != nil {
 		if !apierrors.IsAlreadyExists(err) {
 			conditions.MarkFalse(clusterScope.AzureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, infrav1.LoadBalancerProvisioningReason, clusterv1.ConditionSeverityWarning, err.Error())
 			return false, err
@@ -344,7 +367,16 @@ func (r *AzureStackHCIClusterReconciler) reconcileDeleteAzureStackHCILoadBalance
 				return errors.Wrapf(err, "Failed to update AzureStackHCILoadBalancer %s", azureStackHCILoadBalancerName)
 			}
 		}
-		if err := r.Client.Delete(clusterScope.Context, azureStackHCILoadBalancer); err != nil {
+		err := r.Client.Delete(clusterScope.Context, azureStackHCILoadBalancer)
+		telemetry.RecordHybridAKSCRDChange(
+			clusterScope.GetLogger(),
+			clusterScope.GetCustomResourceTypeWithName(),
+			fmt.Sprintf("%s/%s/%s", azureStackHCILoadBalancer.TypeMeta.Kind, azureStackHCILoadBalancer.ObjectMeta.Namespace, azureStackHCILoadBalancer.ObjectMeta.Name),
+			telemetry.Delete,
+			telemetry.CRD,
+			nil,
+			err)
+		if err != nil {
 			if !apierrors.IsNotFound(err) {
 				conditions.MarkFalse(clusterScope.AzureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, clusterv1.DeletionFailedReason, clusterv1.ConditionSeverityWarning, err.Error())
 				return errors.Wrapf(err, "Failed to delete AzureStackHCILoadBalancer %s", azureStackHCILoadBalancerName)
