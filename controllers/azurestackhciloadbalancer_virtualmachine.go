@@ -27,6 +27,7 @@ import (
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/telemetry"
+	infrav1util "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/util"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -130,6 +131,13 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileDeleteVirtualMachines(loa
 
 	for _, vm := range vmList {
 		if vm.GetDeletionTimestamp().IsZero() {
+			// update correlationId before deletion
+			infrav1util.CopyCorrelationId(loadBalancerScope.AzureStackHCILoadBalancer, vm)
+			if err := r.Client.Update(clusterScope.Context, vm); err != nil {
+				if !apierrors.IsNotFound(err) {
+					return errors.Wrapf(err, "failed to update AzureStackHCIVirtualMachine %s", vm.Name)
+				}
+			}
 			err := r.Client.Delete(clusterScope.Context, vm)
 			telemetry.RecordHybridAKSCRDChange(
 				clusterScope.GetLogger(),
@@ -198,6 +206,7 @@ func (r *AzureStackHCILoadBalancerReconciler) createOrUpdateVirtualMachine(loadB
 			return errors.Wrap(err, "failed to get AzureStackHCILoadBalancer image")
 		}
 		image.DeepCopyInto(&vm.Spec.Image)
+		infrav1util.CopyCorrelationId(loadBalancerScope.AzureStackHCILoadBalancer, vm)
 
 		return nil
 	}
@@ -221,8 +230,15 @@ func (r *AzureStackHCILoadBalancerReconciler) createOrUpdateVirtualMachine(loadB
 }
 
 // deleteVirtualMachine deletes a virtual machine
-func (r *AzureStackHCILoadBalancerReconciler) deleteVirtualMachine(clusterScope *scope.ClusterScope, vm *infrav1.AzureStackHCIVirtualMachine) error {
+func (r *AzureStackHCILoadBalancerReconciler) deleteVirtualMachine(lbs *scope.LoadBalancerScope, clusterScope *scope.ClusterScope, vm *infrav1.AzureStackHCIVirtualMachine) error {
 	if vm.GetDeletionTimestamp().IsZero() {
+		// update correlationId before deletion
+		infrav1util.CopyCorrelationId(lbs.AzureStackHCILoadBalancer, vm)
+		if err := r.Client.Update(clusterScope.Context, vm); err != nil {
+			if !apierrors.IsNotFound(err) {
+				return errors.Wrapf(err, "failed to update AzureStackHCIVirtualMachine %s", vm.Name)
+			}
+		}
 		err := r.Client.Delete(clusterScope.Context, vm)
 		telemetry.RecordHybridAKSCRDChange(
 			clusterScope.GetLogger(),
@@ -263,7 +279,7 @@ func (r *AzureStackHCILoadBalancerReconciler) scaleDownVirtualMachines(lbs *scop
 		return err
 	}
 
-	err = r.deleteVirtualMachine(clusterScope, vm)
+	err = r.deleteVirtualMachine(lbs, clusterScope, vm)
 	if err != nil {
 		return errors.Wrapf(err, "failed to scale down loadbalancer VM %s", vm.Name)
 	}
