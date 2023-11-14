@@ -88,8 +88,9 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
-replace github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.2
-
-replace github.com/miekg/dns => github.com/miekg/dns v1.1.25
-
-replace github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
+replace (
+	github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.2
+	github.com/miekg/dns => github.com/miekg/dns v1.1.25	
+	github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
+	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.1.0
+)
