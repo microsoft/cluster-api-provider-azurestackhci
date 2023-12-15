@@ -54,8 +54,26 @@ type AzureStackHCIVirtualMachineReconciler struct {
 func (r *AzureStackHCIVirtualMachineReconciler) SetupWithManager(mgr ctrl.Manager, options controller.Options) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		WithOptions(options).
+		WithLogConstructor(r.ConstructLogger).
 		For(&infrav1.AzureStackHCIVirtualMachine{}).
 		Complete(r)
+}
+
+func (r *AzureStackHCIVirtualMachineReconciler) ConstructLogger(req *reconcile.Request) logr.Logger {
+	log := r.Log.WithName("")
+	if req == nil {
+		return log
+	}
+	log = log.WithValues("azureStackHCIVirtualMachine", req.NamespacedName)
+	cxt := context.Background()
+	azureStackHCIVirtualMachine := &infrav1.AzureStackHCIVirtualMachine{}
+	err := r.Get(cxt, req.NamespacedName, azureStackHCIVirtualMachine)
+	if err != nil {
+		log.Error(err, "failed to get azureStackHCIVirtualMachine")
+		return log
+	}
+	return log.WithValues("operationId", azureStackHCIVirtualMachine.GetAnnotations()[infrav1.AzureOperationIDAnnotationKey],
+		"correlationId", azureStackHCIVirtualMachine.GetAnnotations()[infrav1.AzureCorrelationIDAnnotationKey])
 }
 
 // +kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=azurestackhcivirtualmachines,verbs=get;list;watch;create;update;patch;delete

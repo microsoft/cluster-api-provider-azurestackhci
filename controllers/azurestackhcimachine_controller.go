@@ -60,6 +60,7 @@ type AzureStackHCIMachineReconciler struct {
 func (r *AzureStackHCIMachineReconciler) SetupWithManager(mgr ctrl.Manager, options controller.Options) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		WithOptions(options).
+		WithLogConstructor(r.ConstructLogger).
 		For(&infrav1.AzureStackHCIMachine{}).
 		Watches(
 			&source.Kind{Type: &clusterv1.Machine{}},
@@ -74,6 +75,23 @@ func (r *AzureStackHCIMachineReconciler) SetupWithManager(mgr ctrl.Manager, opti
 			&handler.EnqueueRequestForOwner{OwnerType: &infrav1.AzureStackHCIMachine{}, IsController: false},
 		).
 		Complete(r)
+}
+
+func (r *AzureStackHCIMachineReconciler) ConstructLogger(req *reconcile.Request) logr.Logger {
+	log := r.Log.WithName("")
+	if req == nil {
+		return log
+	}
+	log = log.WithValues("azureStackHCIMachine", req.NamespacedName)
+	cxt := context.Background()
+	azureStackHCIMachine := &infrav1.AzureStackHCIMachine{}
+	err := r.Get(cxt, req.NamespacedName, azureStackHCIMachine)
+	if err != nil {
+		log.Error(err, "failed to get azureStackHCIMachine")
+		return log
+	}
+	return log.WithValues("operationId", azureStackHCIMachine.GetAnnotations()[infrav1.AzureOperationIDAnnotationKey],
+		"correlationId", azureStackHCIMachine.GetAnnotations()[infrav1.AzureCorrelationIDAnnotationKey])
 }
 
 // +kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=azurestackhcimachines,verbs=get;list;watch;create;update;patch;delete
