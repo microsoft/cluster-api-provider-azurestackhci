@@ -55,8 +55,26 @@ type AzureStackHCIClusterReconciler struct {
 func (r *AzureStackHCIClusterReconciler) SetupWithManager(mgr ctrl.Manager, options controller.Options) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		WithOptions(options).
+		WithLogConstructor(r.ConstructLogger).
 		For(&infrav1.AzureStackHCICluster{}).
 		Complete(r)
+}
+
+func (r *AzureStackHCIClusterReconciler) ConstructLogger(req *reconcile.Request) logr.Logger {
+	log := r.Log.WithName("")
+	if req == nil {
+		return log
+	}
+	log = log.WithValues("azureStackHCICluster", req.NamespacedName)
+	cxt := context.Background()
+	azureStackHCICluster := &infrav1.AzureStackHCICluster{}
+	err := r.Get(cxt, req.NamespacedName, azureStackHCICluster)
+	if err != nil {
+		log.Error(err, "failed to get azureStackHCICluster")
+		return log
+	}
+	return log.WithValues("operationId", azureStackHCICluster.GetAnnotations()[infrav1.AzureOperationIDAnnotationKey],
+		"correlationId", azureStackHCICluster.GetAnnotations()[infrav1.AzureCorrelationIDAnnotationKey])
 }
 
 // +kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=azurestackhciclusters,verbs=get;list;watch;create;update;patch;delete

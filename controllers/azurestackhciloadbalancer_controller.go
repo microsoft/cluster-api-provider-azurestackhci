@@ -57,12 +57,30 @@ func (r *AzureStackHCILoadBalancerReconciler) SetupWithManager(mgr ctrl.Manager,
 	// later we will also want to watch the cluster which owns the LB
 	return ctrl.NewControllerManagedBy(mgr).
 		WithOptions(options).
+		WithLogConstructor(r.ConstructLogger).
 		For(&infrav1.AzureStackHCILoadBalancer{}).
 		Watches(
 			&source.Kind{Type: &infrav1.AzureStackHCIVirtualMachine{}},
 			&handler.EnqueueRequestForOwner{OwnerType: &infrav1.AzureStackHCILoadBalancer{}, IsController: false},
 		).
 		Complete(r)
+}
+
+func (r *AzureStackHCILoadBalancerReconciler) ConstructLogger(req *reconcile.Request) logr.Logger {
+	log := r.Log.WithName("")
+	if req == nil {
+		return log
+	}
+	log = log.WithValues("azureStackHCILoadBalancer", req.NamespacedName)
+	cxt := context.Background()
+	azureStackHCILoadBalancer := &infrav1.AzureStackHCILoadBalancer{}
+	err := r.Get(cxt, req.NamespacedName, azureStackHCILoadBalancer)
+	if err != nil {
+		log.Error(err, "failed to get azureStackHCILoadBalancer")
+		return log
+	}
+	return log.WithValues("operationId", azureStackHCILoadBalancer.GetAnnotations()[infrav1.AzureOperationIDAnnotationKey],
+		"correlationId", azureStackHCILoadBalancer.GetAnnotations()[infrav1.AzureCorrelationIDAnnotationKey])
 }
 
 // +kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=azurestackhciloadbalancers,verbs=get;list;watch;create;update;patch;delete
