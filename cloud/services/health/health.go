@@ -25,7 +25,7 @@ import (
 func (s *Service) GetMocDeploymentId(ctx context.Context) string {
 	deploymentId, err := s.Client.GetDeploymentId(ctx)
 	if err != nil {
-		s.Scope.GetLogger().Error(err, "Unable to get moc deployment id")
+		s.Scope.GetLogger().Info("Unable to get moc deployment id")
 		return ""
 	}
 	return deploymentId
