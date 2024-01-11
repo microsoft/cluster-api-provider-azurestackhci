@@ -10,7 +10,7 @@ require (
 	github.com/microsoft/moc-sdk-for-go v0.11.1-alpha.14
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/pflag v1.0.5
-	golang.org/x/crypto v0.14.0
+	golang.org/x/crypto v0.17.0
 	google.golang.org/grpc v1.59.0
 	k8s.io/api v0.26.1
 	k8s.io/apimachinery v0.26.1
@@ -80,8 +80,8 @@ require (
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
 	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/oauth2 v0.12.0 // indirect
-	golang.org/x/sys v0.13.0 // indirect
-	golang.org/x/term v0.13.0 // indirect
+	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/term v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
@@ -110,7 +110,11 @@ replace (
 	github.com/miekg/dns => github.com/miekg/dns v1.1.25
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc => go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.46.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp => go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.44.0
+	golang.org/x/crypto => golang.org/x/crypto v0.17.0
 	golang.org/x/image => golang.org/x/image v0.10.0
 	golang.org/x/net => golang.org/x/net v0.17.0
 	google.golang.org/grpc => google.golang.org/grpc v1.56.3
 )
+
+// Brought in by google.golang.org/grpc bump to 1.56.3, but uses CC-BY-SA-3.0 copyleft license
+exclude github.com/ajstarks/deck/generate v0.0.0-20210309230005-c3f852c02e19
