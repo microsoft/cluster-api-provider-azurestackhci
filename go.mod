@@ -108,6 +108,8 @@ replace (
 	github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
 	github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.2
 	github.com/miekg/dns => github.com/miekg/dns v1.1.25
+	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.9.23
+	github.com/nats-io/nkeys => github.com/nats-io/nkeys v0.4.6
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc => go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.46.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp => go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.44.0
 	golang.org/x/crypto => golang.org/x/crypto v0.17.0
