@@ -48,7 +48,7 @@ jobs:
         inputs:
           version: "1.19.9"
 
-      - script:
+      - script: |-
           # list the files
           ls -la
           cat Makefile
