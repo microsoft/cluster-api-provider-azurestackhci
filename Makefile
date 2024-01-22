@@ -58,6 +58,7 @@ ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 TOOLS_DIR := hack/tools
 TOOLS_BIN_DIR := $(abspath $(TOOLS_DIR)/bin)
 BIN_DIR := bin
+export PATH := $(TOOLS_BIN_DIR):$(PATH)
 
 # set --output-base used for conversion-gen which needs to be different for in GOPATH and outside GOPATH dev
 OUTPUT_BASE := --output-base=$(ROOT_DIR)
