@@ -58,6 +58,7 @@ ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 TOOLS_DIR := hack/tools
 TOOLS_BIN_DIR := $(abspath $(TOOLS_DIR)/bin)
 BIN_DIR := bin
+export PATH := $(TOOLS_BIN_DIR):$(PATH)
 
 # set --output-base used for conversion-gen which needs to be different for in GOPATH and outside GOPATH dev
 OUTPUT_BASE := --output-base=$(ROOT_DIR)
@@ -89,7 +90,7 @@ GOLANGCI_LINT_VER := v1.54.1
 GOLANGCI_LINT_BIN := golangci-lint
 GOLANGCI_LINT := $(TOOLS_BIN_DIR)/$(GOLANGCI_LINT_BIN)-$(GOLANGCI_LINT_VER)
 
-KUSTOMIZE_VER := v4.5.2
+KUSTOMIZE_VER := v5.0.3
 KUSTOMIZE_BIN := kustomize
 KUSTOMIZE := $(TOOLS_BIN_DIR)/$(KUSTOMIZE_BIN)-$(KUSTOMIZE_VER)
 
@@ -166,7 +167,7 @@ help:  ## Display this help
 ## --------------------------------------
 
 .PHONY: test
-test: generate lint fmt modules vet $(SETUP_ENVTEST)
+test: generate lint fmt modules vet $(SETUP_ENVTEST) $(GINKGO) ## Run tests
 	KUBEBUILDER_ASSETS="$(KUBEBUILDER_ASSETS)" \
 	ginkgo -r -v -cover -coverprofile cover.out ./...
 
@@ -223,7 +224,7 @@ $(GOLANGCI_LINT): ## Build golangci-lint from tools folder.
 	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/golangci/golangci-lint/cmd/golangci-lint $(GOLANGCI_LINT_BIN) $(GOLANGCI_LINT_VER)
 
 $(KUSTOMIZE): ## Build kustomize from tools folder.
-	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) sigs.k8s.io/kustomize/kustomize/v4 $(KUSTOMIZE_BIN) $(KUSTOMIZE_VER)
+	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) sigs.k8s.io/kustomize/kustomize/v5 $(KUSTOMIZE_BIN) $(KUSTOMIZE_VER)
 
 $(MOCKGEN): ## Build mockgen from tools folder.
 	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/golang/mock/mockgen $(MOCKGEN_BIN) $(MOCKGEN_VER)
@@ -235,7 +236,7 @@ $(GO_APIDIFF): ## Build go-apidiff.
 	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/joelanford/go-apidiff $(GO_APIDIFF_BIN) $(GO_APIDIFF_VER)
 
 $(GINKGO): ## Build ginkgo.
-	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/onsi/ginkgo/ginkgo $(GINKGO_BIN) $(GINKGO_VER)
+	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/onsi/ginkgo/v2/ginkgo $(GINKGO_BIN) $(GINKGO_VER)
 
 $(KUBECTL): ## Get kubectl
 	mkdir -p $(TOOLS_BIN_DIR)

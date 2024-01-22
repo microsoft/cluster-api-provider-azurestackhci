@@ -13,6 +13,7 @@ jobs:
 
     steps:
       - checkout: self
+
       - task: DownloadBuildArtifacts@0
         inputs:
           buildType: "specific"
@@ -22,12 +23,17 @@ jobs:
           branchName: "refs/heads/master"
           downloadType: "specific"
           downloadPath: "$(System.DefaultWorkingDirectory)"
-
+      
       - task: InstallSSHKey@0
         inputs:
           knownHostsEntry: "$(KNOWN_HOST)"
           sshPublicKey: "$(SSH_PUBLIC_KEY)"
           sshKeySecureFile: "azure-pipelines-ssh-key-new"
+
+      - script: |
+          git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+          go env -w GOPRIVATE="github.com/microsoft"
+        displayName: "Configure git to use SSH" 
 
       - task: DockerInstaller@0
         inputs:
@@ -43,15 +49,17 @@ jobs:
         inputs:
           version: "1.19.9"
 
-      - script:
-          set -e
+      - script: |-
+          set -xe
           make test
         workingDirectory: "$(System.DefaultWorkingDirectory)"
         displayName: "Run Unit Tests"
 
       - script: |-
-          [[ -z "$(git status -s)" ]] || {
-            git diff --color | cat;
+          [[ -z "$(git diff --cached)" ]] || {
+            echo "Changed files:";
+            git diff --cached --name-only;
+            git diff --cached --color | cat;
             echo "Source changes detected after running make. Make sure to build both the product and test code locally (and run unit tests) before pushing changes";
             exit 1;
           }
@@ -62,7 +70,7 @@ jobs:
           set -e
           set -x
           mkdir manifest
-          git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+          
           chmod +x hack/ensure-kustomize.sh
           chmod +x hack/gen-flavors.sh
           chmod +x hack/for-pipeline.sh
