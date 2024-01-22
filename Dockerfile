@@ -18,6 +18,6 @@ FROM  mcr.microsoft.com/cbl-mariner/distroless/debug:2.0
 WORKDIR /
 
 COPY bin/manager ./
-USER nobody
+USER 65532:65532
 
 ENTRYPOINT ["/manager"]
