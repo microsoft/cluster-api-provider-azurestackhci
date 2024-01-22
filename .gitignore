@@ -42,6 +42,8 @@ kubeconfig
 
 # Ignore output manifests
 config/samples
+config/default/manager_image_patch.yaml
+
 manager_image_patch.yaml-e
 
 # Bazel

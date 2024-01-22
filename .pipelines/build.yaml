@@ -22,22 +22,41 @@ jobs:
           branchName: "refs/heads/master"
           downloadType: "specific"
           downloadPath: "$(System.DefaultWorkingDirectory)"
+
       - task: InstallSSHKey@0
         inputs:
           knownHostsEntry: "$(KNOWN_HOST)"
           sshPublicKey: "$(SSH_PUBLIC_KEY)"
           sshKeySecureFile: "azure-pipelines-ssh-key-new"
+
       - task: DockerInstaller@0
         inputs:
           dockerVersion: "17.09.0-ce"
+
       - task: Docker@2
         displayName: Login to ACR
         inputs:
           command: login
           containerRegistry: mocimages-connection
+
       - task: GoTool@0
         inputs:
           version: "1.19.9"
+
+      - script:
+          set -e
+          make test
+        workingDirectory: "$(System.DefaultWorkingDirectory)"
+        displayName: "Run Unit Tests"
+
+      - script:
+          [[ -z "$(git status -s)" ]] || {
+            git diff --color | cat;
+            echo "Source changes detected after running make. Make sure to build both the product and test code locally (and run unit tests) before pushing changes";
+            exit 1;
+          }
+        workingDirectory: "$(System.DefaultWorkingDirectory)"
+        displayName: "Check for uncommitted changes"
 
       - script: |
           set -e

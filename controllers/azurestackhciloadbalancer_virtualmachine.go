@@ -132,7 +132,7 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileDeleteVirtualMachines(loa
 	for _, vm := range vmList {
 		if vm.GetDeletionTimestamp().IsZero() {
 			// update correlationId before deletion
-			infrav1util.CopyCorrelationId(loadBalancerScope.AzureStackHCILoadBalancer, vm)
+			infrav1util.CopyCorrelationID(loadBalancerScope.AzureStackHCILoadBalancer, vm)
 			if err := r.Client.Update(clusterScope.Context, vm); err != nil {
 				if !apierrors.IsNotFound(err) {
 					return errors.Wrapf(err, "failed to update AzureStackHCIVirtualMachine %s", vm.Name)
@@ -206,7 +206,7 @@ func (r *AzureStackHCILoadBalancerReconciler) createOrUpdateVirtualMachine(loadB
 			return errors.Wrap(err, "failed to get AzureStackHCILoadBalancer image")
 		}
 		image.DeepCopyInto(&vm.Spec.Image)
-		infrav1util.CopyCorrelationId(loadBalancerScope.AzureStackHCILoadBalancer, vm)
+		infrav1util.CopyCorrelationID(loadBalancerScope.AzureStackHCILoadBalancer, vm)
 
 		return nil
 	}
@@ -233,7 +233,7 @@ func (r *AzureStackHCILoadBalancerReconciler) createOrUpdateVirtualMachine(loadB
 func (r *AzureStackHCILoadBalancerReconciler) deleteVirtualMachine(lbs *scope.LoadBalancerScope, clusterScope *scope.ClusterScope, vm *infrav1.AzureStackHCIVirtualMachine) error {
 	if vm.GetDeletionTimestamp().IsZero() {
 		// update correlationId before deletion
-		infrav1util.CopyCorrelationId(lbs.AzureStackHCILoadBalancer, vm)
+		infrav1util.CopyCorrelationID(lbs.AzureStackHCILoadBalancer, vm)
 		if err := r.Client.Update(clusterScope.Context, vm); err != nil {
 			if !apierrors.IsNotFound(err) {
 				return errors.Wrapf(err, "failed to update AzureStackHCIVirtualMachine %s", vm.Name)

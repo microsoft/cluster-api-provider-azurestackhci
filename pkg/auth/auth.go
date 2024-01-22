@@ -65,10 +65,10 @@ func GetAuthorizerFromKubernetesCluster(ctx context.Context, cloudFqdn string) (
 		return nil, errors.Wrap(err, "failed to create a client")
 	}
 
-	return ReconcileAzureStackHCIAccess(logger, ctx, c, cloudFqdn)
+	return ReconcileAzureStackHCIAccess(ctx, logger, c, cloudFqdn)
 }
 
-func ReconcileAzureStackHCIAccess(logger logr.Logger, ctx context.Context, cli client.Client, cloudFqdn string) (auth.Authorizer, error) {
+func ReconcileAzureStackHCIAccess(ctx context.Context, logger logr.Logger, cli client.Client, cloudFqdn string) (auth.Authorizer, error) {
 
 	wssdconfigpath := os.Getenv("WSSD_CONFIG_PATH")
 	if wssdconfigpath == "" {
@@ -78,9 +78,9 @@ func ReconcileAzureStackHCIAccess(logger logr.Logger, ctx context.Context, cli c
 	if strings.ToLower(os.Getenv("WSSD_DEBUG_MODE")) != "on" {
 		_, err := os.Stat(wssdconfigpath)
 		if err != nil {
-			return login(logger, ctx, cli, cloudFqdn)
+			return login(ctx, logger, cli, cloudFqdn)
 		}
-		go UpdateLoginConfig(logger, ctx, cli)
+		go UpdateLoginConfig(ctx, logger, cli)
 	}
 	authorizer, err := auth.NewAuthorizerFromEnvironment(cloudFqdn)
 	if err != nil {
@@ -89,12 +89,12 @@ func ReconcileAzureStackHCIAccess(logger logr.Logger, ctx context.Context, cli c
 			return nil, errors.Wrap(err, "error: new authorizer failed")
 		}
 		// Login if certificate expired
-		return login(logger, ctx, cli, cloudFqdn)
+		return login(ctx, logger, cli, cloudFqdn)
 	}
 	return authorizer, nil
 }
 
-func UpdateLoginConfig(logger logr.Logger, ctx context.Context, cli client.Client) {
+func UpdateLoginConfig(ctx context.Context, logger logr.Logger, cli client.Client) {
 	secret, err := GetSecret(ctx, cli, AzHCIAccessCreds)
 	if err != nil {
 		logger.Error(err, "error: failed to create wssd session, missing login credentials secret")
@@ -119,7 +119,7 @@ func UpdateLoginConfig(logger logr.Logger, ctx context.Context, cli client.Clien
 
 }
 
-func login(logger logr.Logger, ctx context.Context, cli client.Client, cloudFqdn string) (auth.Authorizer, error) {
+func login(ctx context.Context, logger logr.Logger, cli client.Client, cloudFqdn string) (auth.Authorizer, error) {
 	wssdconfigpath := os.Getenv("WSSD_CONFIG_PATH")
 	if wssdconfigpath == "" {
 		return nil, errors.New("ReconcileAzureStackHCIAccess: Environment variable WSSD_CONFIG_PATH is not set")

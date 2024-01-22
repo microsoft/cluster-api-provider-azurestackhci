@@ -59,6 +59,7 @@ const (
 	LatestVersion = "latest"
 )
 
+// nolint: golint
 const (
 	// Role is used to distinguish api server lb from other lbs.
 	// used by SDN integration

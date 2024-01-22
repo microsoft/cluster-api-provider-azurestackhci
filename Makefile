@@ -66,8 +66,6 @@ OUTPUT_BASE := --output-base=$(ROOT_DIR)
 CAPI_VERSION := v1.4.2
 
 # Binaries.
-KUBE_APISERVER=$(TOOLS_BIN_DIR)/kube-apiserver
-ETCD=$(TOOLS_BIN_DIR)/etcd
 GO_INSTALL = ./scripts/go_install.sh
 
 # Binaries.
@@ -87,7 +85,7 @@ ENVSUBST_VER := v2.0.0-20210730161058-179042472c46
 ENVSUBST_BIN := envsubst
 ENVSUBST := $(TOOLS_BIN_DIR)/$(ENVSUBST_BIN)-$(ENVSUBST_VER)
 
-GOLANGCI_LINT_VER := v1.48.0
+GOLANGCI_LINT_VER := v1.54.1
 GOLANGCI_LINT_BIN := golangci-lint
 GOLANGCI_LINT := $(TOOLS_BIN_DIR)/$(GOLANGCI_LINT_BIN)-$(GOLANGCI_LINT_VER)
 
@@ -107,13 +105,27 @@ GO_APIDIFF_VER := v0.6.0
 GO_APIDIFF_BIN := go-apidiff
 GO_APIDIFF := $(TOOLS_BIN_DIR)/$(GO_APIDIFF_BIN)
 
-GINKGO_VER := v2.9.7
+GINKGO_VER := v2.9.2
 GINKGO_BIN := ginkgo
 GINKGO := $(TOOLS_BIN_DIR)/$(GINKGO_BIN)-$(GINKGO_VER)
 
-KUBECTL_VER := v1.25.11
+KUBECTL_VER := v1.26.6
 KUBECTL_BIN := kubectl
 KUBECTL := $(TOOLS_BIN_DIR)/$(KUBECTL_BIN)-$(KUBECTL_VER)
+
+# ENVTEST is used for running controller tests.
+SETUP_ENVTEST_VER := 116a1b831fffe7ccc3c8145306c3e1a3b1b14ffa # Note: this matches the commit ID of the dependent controller-runtime module.
+SETUP_ENVTEST_BIN := setup-envtest
+SETUP_ENVTEST := $(abspath $(TOOLS_BIN_DIR)/$(SETUP_ENVTEST_BIN)-$(SETUP_ENVTEST_VER))
+
+#
+# Kubebuilder 
+#
+export KUBEBUILDER_ENVTEST_KUBERNETES_VERSION ?= 1.26.0
+export KUBEBUILDER_CONTROLPLANE_START_TIMEOUT ?= 60s
+export KUBEBUILDER_CONTROLPLANE_STOP_TIMEOUT ?= 60s
+
+KUBEBUILDER_ASSETS ?= $(shell $(SETUP_ENVTEST) use --use-env -p path $(KUBEBUILDER_ENVTEST_KUBERNETES_VERSION))
 
 # Version
 MAJOR_VER ?= 1
@@ -153,27 +165,10 @@ help:  ## Display this help
 ## Testing
 ## --------------------------------------
 
-test: export TEST_ASSET_KUBECTL = $(ROOT_DIR)/$(KUBECTL)
-test: export TEST_ASSET_KUBE_APISERVER = $(ROOT_DIR)/$(KUBE_APISERVER)
-test: export TEST_ASSET_ETCD = $(ROOT_DIR)/$(ETCD)
-
 .PHONY: test
-test: $(KUBECTL) $(KUBE_APISERVER) $(ETCD) generate lint ## Run tests
-	go test ./...
-
-
-.PHONY: test-integration
-test-integration: ## Run integration tests
-	go test -v -tags=integration ./test/integration/...
-
-.PHONY: test-e2e
-test-e2e: ## Run e2e tests
-	PULL_POLICY=IfNotPresent $(MAKE) docker-build
-	MANAGER_IMAGE=$(CONTROLLER_IMG)-$(ARCH):$(TAG) \
-	go test ./test/e2e -v -tags=e2e -ginkgo.v -ginkgo.trace -count=1 -timeout=90m
-
-$(KUBE_APISERVER) $(ETCD): ## install test asset kube-apiserver, etcd
-	source ./scripts/fetch_ext_bins.sh && fetch_tools
+test: generate lint fmt modules vet $(SETUP_ENVTEST)
+	KUBEBUILDER_ASSETS="$(KUBEBUILDER_ASSETS)" \
+	ginkgo -r -v -cover -coverprofile cover.out ./...
 
 ## --------------------------------------
 ## Binaries
@@ -182,8 +177,9 @@ $(KUBE_APISERVER) $(ETCD): ## install test asset kube-apiserver, etcd
 .PHONY: binaries
 binaries: manager ## Builds and installs all binaries
 
-.PHONY: manager
-manager: ## Build manager binary.
+ ## Build manager binary.
+.PHONY: manager 
+manager: generate lint fmt modules vet ## Build manager binary.
 	CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o bin/manager cmd/manager/main.go
 
 ## --------------------------------------
@@ -203,6 +199,7 @@ $(CLUSTERCTL_BIN): $(CLUSTERCTL)
 $(CONTROLLER_GEN): ## Build controller-gen from tools folder.
 	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) sigs.k8s.io/controller-tools/cmd/controller-gen $(CONTROLLER_GEN_BIN) $(CONTROLLER_GEN_VER)
 
+
 $(CONVERSION_GEN): ## Build conversion-gen.
 	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) k8s.io/code-generator/cmd/conversion-gen $(CONVERSION_GEN_BIN) $(CONVERSION_GEN_VER)
 
@@ -211,6 +208,16 @@ $(ENVSUBST): ## Build envsubst from tools folder.
 
 .PHONY: $(ENVSUBST_BIN)
 $(ENVSUBST_BIN): $(ENVSUBST)
+
+.PHONY: $(SETUP_ENVTEST_BIN)
+$(SETUP_ENVTEST_BIN): $(SETUP_ENVTEST) ## Build a local copy of setup-envtest.
+
+.PHONY: setup-envtest
+setup-envtest: $(SETUP_ENVTEST) ## Set up envtest (download kubebuilder assets)
+	@echo KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS)
+
+.PHONY: mockgen
+mockgen: $(MOCKGEN) ## Generate mocks using mockgen.
 
 $(GOLANGCI_LINT): ## Build golangci-lint from tools folder.
 	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/golangci/golangci-lint/cmd/golangci-lint $(GOLANGCI_LINT_BIN) $(GOLANGCI_LINT_VER)
@@ -240,6 +247,10 @@ $(KUBECTL): ## Get kubectl
 .PHONY: $(KUBECTL_BIN)
 $(KUBECTL_BIN): $(KUBECTL)
 
+$(SETUP_ENVTEST): # Build setup-envtest.
+	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) sigs.k8s.io/controller-runtime/tools/setup-envtest $(SETUP_ENVTEST_BIN) $(SETUP_ENVTEST_VER)
+	@echo "🛠  setup-envtest installed to $(TOOLS_BIN_DIR)/$(ENVTEST_BIN)"
+
 ## --------------------------------------
 ## Linting
 ## --------------------------------------
@@ -260,6 +271,15 @@ modules: ## Runs go mod to ensure proper vendoring.
 	go mod tidy
 	cd $(TOOLS_DIR); go mod tidy
 
+# Run go fmt against code
+.PHONY: fmt
+fmt: 
+	go fmt ./... 
+
+# Run go vet against code
+vet:
+	go vet ./...
+
 .PHONY: generate
 generate: ## Generate code
 	$(MAKE) generate-go
@@ -270,19 +290,13 @@ generate: ## Generate code
 generate-go: $(CONTROLLER_GEN) $(MOCKGEN) $(CONVERSION_GEN) ## Runs Go related generate targets
 	go generate ./...
 	$(CONTROLLER_GEN) \
-		paths=./api/... \
+		paths=./api/v1beta1 \
 		object:headerFile=./hack/boilerplate/boilerplate.generatego.txt
-
-	$(CONVERSION_GEN) \
-		--input-dirs=./api/v1alpha3 \
-		--input-dirs=./api/v1alpha4 \
-		--output-file-base=zz_generated.conversion $(OUTPUT_BASE) \
-		--go-header-file=./hack/boilerplate/boilerplate.generatego.txt
 	
 .PHONY: generate-manifests
 generate-manifests: $(CONTROLLER_GEN) ## Generate manifests e.g. CRD, RBAC etc.
 	$(CONTROLLER_GEN) \
-		paths=./api/... \
+		paths=./api/v1beta1 \
 		crd:crdVersions=v1 \
 		rbac:roleName=manager-role \
 		output:crd:dir=$(CRD_ROOT) \

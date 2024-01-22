@@ -84,7 +84,7 @@ func NewClusterScope(params ClusterScopeParams) (*ClusterScope, error) {
 		Context:              scopeContext,
 	}
 
-	authorizer, err := azhciauth.ReconcileAzureStackHCIAccess(*params.Logger, scope.Context, scope.Client, agentFqdn)
+	authorizer, err := azhciauth.ReconcileAzureStackHCIAccess(scope.Context, *params.Logger, scope.Client, agentFqdn)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating azurestackhci services. can not authenticate to azurestackhci")
 	}

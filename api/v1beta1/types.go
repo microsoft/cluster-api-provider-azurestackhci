@@ -106,12 +106,14 @@ func (s Subnets) ToMap() map[string]*SubnetSpec {
 
 type IPAllocationMethod int32
 
+// nolint: golint
 const (
 	IPAllocationMethod_Invalid IPAllocationMethod = 0
 	IPAllocationMethod_Dynamic IPAllocationMethod = 1
 	IPAllocationMethod_Static  IPAllocationMethod = 2
 )
 
+// nolint: golint
 type IpConfigurationSpec struct {
 	Name string `json:"name,omitempty"`
 	// +optional
@@ -128,6 +130,8 @@ type IpConfigurationSpec struct {
 	// +optional
 	Gateway string `json:"gateway,omitempty"`
 }
+
+// nolint: golint
 type IpConfigurations []*IpConfigurationSpec
 
 type NetworkInterfaceSpec struct {

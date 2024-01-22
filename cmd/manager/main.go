@@ -20,6 +20,8 @@ package main
 import (
 	"flag"
 	"net/http"
+
+	//nolint:gosec
 	_ "net/http/pprof"
 	"os"
 	"time"
@@ -162,6 +164,7 @@ func main() {
 	if profilerAddress != "" {
 		setupLog.Info("Profiler listening for requests", "profiler-address", profilerAddress)
 		go func() {
+			//nolint:gosec
 			setupLog.Error(http.ListenAndServe(profilerAddress, nil), "listen and serve error")
 		}()
 	}

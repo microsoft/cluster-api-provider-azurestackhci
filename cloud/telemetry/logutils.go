@@ -122,7 +122,7 @@ func GenerateMocResourceName(nameSegments ...string) string {
 }
 
 type MocInfoLog struct {
-	MocDeploymentId       string `json:"moc_deployment_id"`
+	MocDeploymentID       string `json:"moc_deployment_id"`
 	WssdCloudAgentVersion string `json:"wssd_cloud_agent_version"`
 	MocVersion            string `json:"moc_version"`
 }
@@ -131,7 +131,7 @@ var healthService *health.Service
 var versionsService *versions.Service
 
 func WriteMocInfoLog(ctx context.Context, scope scope.ScopeInterface) {
-	deploymentId := getHealthService(scope).GetMocDeploymentId(ctx)
+	deploymentID := getHealthService(scope).GetMocDeploymentID(ctx)
 	wssdCloudAgentVersion := ""
 	mocVersion := ""
 
@@ -145,7 +145,7 @@ func WriteMocInfoLog(ctx context.Context, scope scope.ScopeInterface) {
 	}
 
 	infoLog := MocInfoLog{
-		MocDeploymentId:       deploymentId,
+		MocDeploymentID:       deploymentID,
 		WssdCloudAgentVersion: wssdCloudAgentVersion,
 		MocVersion:            mocVersion,
 	}
@@ -158,7 +158,7 @@ func WriteMocInfoLog(ctx context.Context, scope scope.ScopeInterface) {
 }
 
 func getHealthService(scope scope.ScopeInterface) *health.Service {
-	// if healthService instance is created, directy return instance
+	// if healthService instance is created, directly return instance
 	if healthService != nil {
 		return healthService
 	}

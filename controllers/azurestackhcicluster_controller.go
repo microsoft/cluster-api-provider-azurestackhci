@@ -261,10 +261,10 @@ func (r *AzureStackHCIClusterReconciler) deleteOrphanedMachines(clusterScope *sc
 		}
 		if machine == nil {
 			// update correlation id before deletion
-			infrav1util.CopyCorrelationId(clusterScope.AzureStackHCICluster, azhciMachine)
+			infrav1util.CopyCorrelationID(clusterScope.AzureStackHCICluster, azhciMachine)
 			if err := r.Client.Update(clusterScope.Context, azhciMachine); err != nil {
 				if !apierrors.IsNotFound(err) {
-					return errors.Wrapf(err, "Failed to update AzureStackHCIMachine %s", azhciMachine)
+					return errors.Wrapf(err, "Failed to update AzureStackHCIMachine %s", azhciMachine.Name)
 				}
 			}
 			clusterScope.Info("Deleting Orphaned Machine", "Name", azhciMachine.Name, "AzureStackHCICluster", clusterScope.AzureStackHCICluster.Name)
@@ -279,7 +279,7 @@ func (r *AzureStackHCIClusterReconciler) deleteOrphanedMachines(clusterScope *sc
 				err)
 			if err != nil {
 				if !apierrors.IsNotFound(err) {
-					return errors.Wrapf(err, "Failed to delete AzureStackHCIMachine %s", azhciMachine)
+					return errors.Wrapf(err, "Failed to delete AzureStackHCIMachine %s", azhciMachine.Name)
 				}
 			}
 		}
@@ -316,7 +316,7 @@ func (r *AzureStackHCIClusterReconciler) reconcileAzureStackHCILoadBalancer(clus
 		azureStackHCILoadBalancer.Spec.SSHPublicKey = clusterScope.AzureStackHCILoadBalancer().SSHPublicKey
 		azureStackHCILoadBalancer.Spec.VMSize = clusterScope.AzureStackHCILoadBalancer().VMSize
 		azureStackHCILoadBalancer.Spec.Replicas = clusterScope.AzureStackHCILoadBalancer().Replicas
-		infrav1util.CopyCorrelationId(clusterScope.AzureStackHCICluster, azureStackHCILoadBalancer)
+		infrav1util.CopyCorrelationID(clusterScope.AzureStackHCICluster, azureStackHCILoadBalancer)
 		return nil
 	}
 
@@ -378,7 +378,7 @@ func (r *AzureStackHCIClusterReconciler) reconcileDeleteAzureStackHCILoadBalance
 	} else if azureStackHCILoadBalancer.GetDeletionTimestamp().IsZero() {
 		// If the AzureStackHCILoadBalancer is not already marked for deletion, delete it
 		// Update correlation id before deletion
-		infrav1util.CopyCorrelationId(clusterScope.AzureStackHCICluster, azureStackHCILoadBalancer)
+		infrav1util.CopyCorrelationID(clusterScope.AzureStackHCICluster, azureStackHCILoadBalancer)
 		if err := r.Client.Update(clusterScope.Context, azureStackHCILoadBalancer); err != nil {
 			if !apierrors.IsNotFound(err) {
 				conditions.MarkFalse(clusterScope.AzureStackHCICluster, infrav1.NetworkInfrastructureReadyCondition, clusterv1.DeletionFailedReason, clusterv1.ConditionSeverityWarning, err.Error())

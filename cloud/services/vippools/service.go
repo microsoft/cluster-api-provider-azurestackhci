@@ -20,8 +20,8 @@ package vippools
 import (
 	azhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
-	"github.com/microsoft/moc/pkg/auth"
 	"github.com/microsoft/moc-sdk-for-go/services/network/vippool"
+	"github.com/microsoft/moc/pkg/auth"
 )
 
 var _ azhci.Service = (*Service)(nil)

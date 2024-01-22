@@ -23,6 +23,7 @@ import (
 )
 
 // ScopeInterface allows multiple scope types to be used for cloud services
+// nolint: golint
 type ScopeInterface interface {
 	GetResourceGroup() string
 	GetCloudAgentFqdn() string

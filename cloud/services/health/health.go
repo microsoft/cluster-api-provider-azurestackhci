@@ -22,13 +22,13 @@ import (
 	"fmt"
 )
 
-func (s *Service) GetMocDeploymentId(ctx context.Context) string {
-	deploymentId, err := s.Client.GetDeploymentId(ctx)
+func (s *Service) GetMocDeploymentID(ctx context.Context) string {
+	deploymentID, err := s.Client.GetDeploymentId(ctx)
 	if err != nil {
 		s.Scope.GetLogger().Error(err, "Unable to get moc deployment id")
 		return ""
 	}
-	return deploymentId
+	return deploymentID
 
 }
 
