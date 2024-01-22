@@ -49,9 +49,6 @@ jobs:
           version: "1.19.9"
 
       - script: |-
-          # list the files
-          ls -la
-          cat Makefile
           set -xe
           make test
         workingDirectory: "$(System.DefaultWorkingDirectory)"

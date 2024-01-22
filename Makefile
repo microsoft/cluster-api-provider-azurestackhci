@@ -167,7 +167,7 @@ help:  ## Display this help
 ## --------------------------------------
 
 .PHONY: test
-test: generate lint fmt modules vet $(SETUP_ENVTEST)
+test: generate lint fmt modules vet $(SETUP_ENVTEST) $(GINKGO) ## Run tests
 	KUBEBUILDER_ASSETS="$(KUBEBUILDER_ASSETS)" \
 	ginkgo -r -v -cover -coverprofile cover.out ./...
 
@@ -236,7 +236,7 @@ $(GO_APIDIFF): ## Build go-apidiff.
 	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/joelanford/go-apidiff $(GO_APIDIFF_BIN) $(GO_APIDIFF_VER)
 
 $(GINKGO): ## Build ginkgo.
-	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/onsi/ginkgo/ginkgo $(GINKGO_BIN) $(GINKGO_VER)
+	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/onsi/ginkgo/v2/ginkgo $(GINKGO_BIN) $(GINKGO_VER)
 
 $(KUBECTL): ## Get kubectl
 	mkdir -p $(TOOLS_BIN_DIR)
