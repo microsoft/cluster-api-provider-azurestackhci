@@ -13,6 +13,16 @@ jobs:
 
     steps:
       - checkout: self
+
+      - task: DownloadBuildArtifacts@0
+        inputs:
+          buildType: "specific"
+          project: "6c1b3fd3-1ce0-4cf5-b1ba-b11dfbc70d09"
+          pipeline: "143287"
+          buildVersionToDownload: "latestFromBranch"
+          branchName: "refs/heads/master"
+          downloadType: "specific"
+          downloadPath: "$(System.DefaultWorkingDirectory)"
       
       - task: InstallSSHKey@0
         inputs:
@@ -46,10 +56,10 @@ jobs:
         displayName: "Run Unit Tests"
 
       - script: |-
-          [[ -z "$(git status -s)" ]] || {
+          [[ -z "$(git diff --cached)" ]] || {
             echo "Changed files:";
-            git status -s;
-            git diff --color | cat;
+            git diff --cached --name-only;
+            git diff --cached --color | cat;
             echo "Source changes detected after running make. Make sure to build both the product and test code locally (and run unit tests) before pushing changes";
             exit 1;
           }
