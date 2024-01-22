@@ -3,4 +3,3 @@ trigger:
 
 jobs:
 - template: .pipelines/build.yaml
-- template: .pipelines/static.yaml
