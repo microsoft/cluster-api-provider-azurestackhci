@@ -56,6 +56,8 @@ jobs:
 
       - script: |-
           [[ -z "$(git status -s)" ]] || {
+            echo "Changed files:";
+            git status -s;
             git diff --color | cat;
             echo "Source changes detected after running make. Make sure to build both the product and test code locally (and run unit tests) before pushing changes";
             exit 1;
