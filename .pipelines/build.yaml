@@ -29,6 +29,11 @@ jobs:
           sshPublicKey: "$(SSH_PUBLIC_KEY)"
           sshKeySecureFile: "azure-pipelines-ssh-key-new"
 
+      - script: |
+          git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+          go env -w GOPRIVATE="github.com/microsoft"
+        displayName: "Configure git to use SSH" 
+
       - task: DockerInstaller@0
         inputs:
           dockerVersion: "17.09.0-ce"
@@ -44,7 +49,7 @@ jobs:
           version: "1.19.9"
 
       - script:
-          set -e
+          set -xe
           make test
         workingDirectory: "$(System.DefaultWorkingDirectory)"
         displayName: "Run Unit Tests"
@@ -62,7 +67,7 @@ jobs:
           set -e
           set -x
           mkdir manifest
-          git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+          
           chmod +x hack/ensure-kustomize.sh
           chmod +x hack/gen-flavors.sh
           chmod +x hack/for-pipeline.sh
