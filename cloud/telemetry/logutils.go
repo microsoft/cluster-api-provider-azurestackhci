@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
-	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/health"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/versions"
 	mocerrors "github.com/microsoft/moc/pkg/errors"
 	ctrlutil "sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -122,16 +121,14 @@ func GenerateMocResourceName(nameSegments ...string) string {
 }
 
 type MocInfoLog struct {
-	MocDeploymentID       string `json:"moc_deployment_id"`
-	WssdCloudAgentVersion string `json:"wssd_cloud_agent_version"`
-	MocVersion            string `json:"moc_version"`
+	MocDeploymentID       string `json:"moc_deployment_id,omitempty"`
+	WssdCloudAgentVersion string `json:"wssd_cloud_agent_version,omitempty"`
+	MocVersion            string `json:"moc_version,omitempty"`
 }
 
-var healthService *health.Service
 var versionsService *versions.Service
 
 func WriteMocInfoLog(ctx context.Context, scope scope.ScopeInterface) {
-	deploymentID := getHealthService(scope).GetMocDeploymentID(ctx)
 	wssdCloudAgentVersion := ""
 	mocVersion := ""
 
@@ -145,7 +142,6 @@ func WriteMocInfoLog(ctx context.Context, scope scope.ScopeInterface) {
 	}
 
 	infoLog := MocInfoLog{
-		MocDeploymentID:       deploymentID,
 		WssdCloudAgentVersion: wssdCloudAgentVersion,
 		MocVersion:            mocVersion,
 	}
@@ -155,16 +151,6 @@ func WriteMocInfoLog(ctx context.Context, scope scope.ScopeInterface) {
 	} else {
 		logger.Info(string(jsonData))
 	}
-}
-
-func getHealthService(scope scope.ScopeInterface) *health.Service {
-	// if healthService instance is created, directly return instance
-	if healthService != nil {
-		return healthService
-	}
-
-	healthService = health.NewService(scope)
-	return healthService
 }
 
 func getVersionsService(scope scope.ScopeInterface) *versions.Service {
