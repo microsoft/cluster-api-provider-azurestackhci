@@ -402,6 +402,7 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineDelete(machineSc
 	if err := r.Client.Get(clusterScope.Context, vmName, vm); err != nil {
 		// If the error is other than NotFound, return with error
 		if !apierrors.IsNotFound(err) {
+			machineScope.Error(err, "failed to get AzureStackHCIVirtualMachine", "vm", vmName)
 			return reconcile.Result{}, errors.Wrapf(err, "failed to get AzureStackHCIVirtualMachine %s", vmName)
 		}
 		// If the VM resource is not found, no need to reconcile again
@@ -411,6 +412,7 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineDelete(machineSc
 	// If the VM resource exists and has a deletion timestamp, it means a deletion has been requested.
 	// In this case, requeue the request after a delay to check again later if the deletion has been completed.
 	if !vm.DeletionTimestamp.IsZero() {
+		machineScope.Info("Waiting for AzureStackHCIVirtualMachine deletion to complete", "vm", vm.Name)
 		return reconcile.Result{RequeueAfter: 15 * time.Second}, nil
 	}
 
@@ -431,6 +433,7 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineDelete(machineSc
 		nil,
 		err)
 	if err != nil && !apierrors.IsNotFound(err) {
+		machineScope.Error(err, "failed to delete AzureStackHCIVirtualMachine", "vm", vmName)
 		return reconcile.Result{}, errors.Wrapf(err, "failed to delete AzureStackHCIVirtualMachine %s", vmName)
 	}
 

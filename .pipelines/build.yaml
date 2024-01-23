@@ -29,11 +29,12 @@ jobs:
           knownHostsEntry: "$(KNOWN_HOST)"
           sshPublicKey: "$(SSH_PUBLIC_KEY)"
           sshKeySecureFile: "azure-pipelines-ssh-key-new"
+        displayName: "Install SSH Key🔑"
 
       - script: |
           git config --global url.ssh://git@github.com/.insteadOf https://github.com/
           go env -w GOPRIVATE="github.com/microsoft"
-        displayName: "Configure git to use SSH" 
+        displayName: "Configure git to use SSH ⚙️" 
 
       - task: DockerInstaller@0
         inputs:
@@ -48,12 +49,13 @@ jobs:
       - task: GoTool@0
         inputs:
           version: "1.19.9"
+        displayName: "Install Go"
 
       - script: |-
           set -xe
           make test
         workingDirectory: "$(System.DefaultWorkingDirectory)"
-        displayName: "Run Unit Tests"
+        displayName: "Run Unit Tests🧪"
 
       - script: |-
           [[ -z "$(git diff --cached)" ]] || {
@@ -108,7 +110,7 @@ jobs:
           mkdir -p out/
           cp deployment/cloud-operator.yaml out/cloud-operator.yaml
         workingDirectory: "$(System.DefaultWorkingDirectory)"
-        displayName: "Build CAPH"
+        displayName: "Build CAPH🚀"
 
       - task: AzureArtifacts.manifest-generator-task.manifest-generator-task.ManifestGeneratorTask@0
         displayName: "SBOM Generation"
