@@ -66,6 +66,8 @@ const (
 	LoadBalancerMachineReconciliationFailedReason = "MachineReconciliationFailed"
 	// LoadBalancerAddressUnavailableReason used when waiting for loadbalancer to have an address.
 	LoadBalancerAddressUnavailableReason = "AddressUnavailable"
+	// LoadBalancerVIPOutOfRangeReason used when provided Load Balancer VIP is out of the  vip address range.
+	LoadBalancerVIPOutOfRangeReason = "LoadBalancerVIPOutOfRange"
 	// LoadBalancerNoReplicasReadyReason used when no replicas are in a ready state.
 	LoadBalancerNoReplicasReadyReason = "NoReplicasReady"
 

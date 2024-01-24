@@ -20,6 +20,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"net"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -27,9 +28,11 @@ import (
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/loadbalancers"
+	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/virtualnetworks"
 	infrav1util "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/util"
 	"github.com/microsoft/moc-sdk-for-go/services/network"
 	mocerrors "github.com/microsoft/moc/pkg/errors"
+	mocnet "github.com/microsoft/moc/pkg/net"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -223,6 +226,13 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileNormal(lbs *scope.LoadBal
 		}
 	}
 
+	err = r.reconcileLoadBalancerVIP(lbs, clusterScope)
+	if err != nil {
+		r.Recorder.Eventf(lbs.AzureStackHCILoadBalancer, corev1.EventTypeWarning, "FailureReconcileLBVIP", errors.Wrapf(err, "Failed to reconcile Load Balancer VIP").Error())
+		conditions.MarkFalse(lbs.AzureStackHCILoadBalancer, infrav1.LoadBalancerInfrastructureReadyCondition, infrav1.LoadBalancerVIPOutOfRangeReason, clusterv1.ConditionSeverityError, err.Error())
+		return reconcile.Result{}, err
+	}
+
 	// When a SDN integration is present, LB replica count will be 0 as the loadbalancing is handled by SDN.
 	// So fail only if the configured replica count is not 0.
 	if lbs.GetReplicas() != 0 && lbs.GetReadyReplicas() < 1 {
@@ -369,4 +379,40 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileStatus(lbs *scope.LoadBal
 	}
 
 	lbs.SetPhase(infrav1.AzureStackHCILoadBalancerPhaseProvisioned)
+}
+
+func (r *AzureStackHCILoadBalancerReconciler) reconcileLoadBalancerVIP(lbs *scope.LoadBalancerScope, clusterScope *scope.ClusterScope) error {
+
+	lbs.Info("Attempting to get vnet for loadbalancer vip", "name", lbs.AzureStackHCILoadBalancer.Name)
+	vnetSpec := &virtualnetworks.Spec{
+		Name: clusterScope.AzureStackHCICluster.Spec.NetworkSpec.Vnet.Name,
+		Group: clusterScope.AzureStackHCICluster.Spec.NetworkSpec.Vnet.Group,
+	}
+	vnetInterface, err := virtualnetworks.NewService(clusterScope).Get(clusterScope.Context, vnetSpec)
+	if err != nil {
+		return err
+	}
+
+	vnet, ok := vnetInterface.(network.VirtualNetwork)
+	if !ok {
+		return errors.New("error getting virtualnetwork service")
+	}
+
+	lbVIP := net.ParseIP(lbs.Address())
+
+	for _, subnet := range *vnet.Subnets {
+		for _, ippool := range subnet.IPPools {
+
+			if (ippool.Type == network.VIPPOOL) {
+				startVIP := net.ParseIP(ippool.Start)
+				endVIP := net.ParseIP(ippool.End)
+
+				if (mocnet.RangeContains(startVIP, endVIP, lbVIP))	{
+					return nil
+				}
+			}
+		}
+	}
+
+	return errors.Errorf("Load Balancer VIP out of VIP Pool range.")// LB VIP: %s Start: %s End: %s", controlPlaneHost, ippool.Start, ippool.End)
 }
