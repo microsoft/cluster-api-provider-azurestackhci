@@ -68,7 +68,7 @@ func NewVirtualMachineScope(params VirtualMachineScopeParams) (*VirtualMachineSc
 	params.AzureStackHCIClients.CloudAgentFqdn = agentFqdn
 
 	scopeContext := diagnostics.NewContextWithCorrelationId(context.Background(), params.AzureStackHCIVirtualMachine.GetAnnotations()[infrav1.AzureCorrelationIDAnnotationKey])
-	authorizer, err := azhciauth.ReconcileAzureStackHCIAccess(*params.Logger, scopeContext, params.Client, agentFqdn)
+	authorizer, err := azhciauth.ReconcileAzureStackHCIAccess(scopeContext, *params.Logger, params.Client, agentFqdn)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create azurestackhci session")
 	}

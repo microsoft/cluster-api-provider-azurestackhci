@@ -42,7 +42,7 @@ kubeconfig
 
 # Ignore output manifests
 config/samples
-manager_image_patch.yaml-e
+config/default/manager_image_patch.yaml
 
 # Bazel
 bazel-*
@@ -53,9 +53,11 @@ bazel-*
 # e2e output
 test/e2e/junit.e2e_suite.*.xml
 test/e2e/logs/*
+test/mocks/gomock*
+
 
 # generated template yamls
 templates/cluster-template*.yaml
 
 # Hack files
-/hack/config/manager_image_patch.yaml
+/hack/config/manager_image_patch_template.yaml

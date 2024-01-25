@@ -58,7 +58,7 @@ func GetReconcileID(ctx context.Context) types.UID {
 	return reconcileID
 }
 
-func CopyCorrelationId(source, target client.Object) {
+func CopyCorrelationID(source, target client.Object) {
 	sourceAnnotations := source.GetAnnotations()
 	if len(sourceAnnotations) == 0 {
 		return

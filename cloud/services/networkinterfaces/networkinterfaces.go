@@ -104,7 +104,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		logger.Info("Adding ipconfigurations to nic ", "len", len(nicSpec.IPConfigurations), "name", nicSpec.Name)
 		for _, ipconfig := range nicSpec.IPConfigurations {
 
-			networkIpConfig := network.InterfaceIPConfiguration{
+			networkIPConfig := network.InterfaceIPConfiguration{
 				Name: &ipconfig.Name,
 				InterfaceIPConfigurationPropertiesFormat: &network.InterfaceIPConfigurationPropertiesFormat{
 					Primary: &ipconfig.Primary,
@@ -115,18 +115,18 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			}
 
 			if ipconfig.Primary {
-				networkIpConfig.LoadBalancerBackendAddressPools = &backendAddressPools
+				networkIPConfig.LoadBalancerBackendAddressPools = &backendAddressPools
 			}
 
-			*networkInterface.IPConfigurations = append(*networkInterface.IPConfigurations, networkIpConfig)
+			*networkInterface.IPConfigurations = append(*networkInterface.IPConfigurations, networkIPConfig)
 		}
 	} else {
-		networkIpConfig := network.InterfaceIPConfiguration{
+		networkIPConfig := network.InterfaceIPConfiguration{
 			Name:                                     to.StringPtr("pipConfig"),
 			InterfaceIPConfigurationPropertiesFormat: nicConfig,
 		}
 
-		*networkInterface.IPConfigurations = append(*networkInterface.IPConfigurations, networkIpConfig)
+		*networkInterface.IPConfigurations = append(*networkInterface.IPConfigurations, networkIPConfig)
 	}
 
 	_, err := s.Client.CreateOrUpdate(ctx,

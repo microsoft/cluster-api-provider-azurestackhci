@@ -326,7 +326,7 @@ func GenerateRandomString(n int) (string, error) {
 
 // generateComputerName returns a unique OS computer name which is expected to be valid on any
 // operating system. To satisfy Windows requirements, we generate a length-restricted name. The
-// generated computer name has the following format: <prefix><os_identifer><random chars>
+// generated computer name has the following format: <prefix><os_identifier><random chars>
 func generateComputerName(os infrav1.OSType) (string, error) {
 	computerName := computerNamePrefix
 

@@ -70,12 +70,12 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		Name: to.StringPtr(lbSpec.Name),
 		LoadBalancerPropertiesFormat: &network.LoadBalancerPropertiesFormat{
 			BackendAddressPools: &[]network.BackendAddressPool{
-				network.BackendAddressPool{
+				{
 					Name: to.StringPtr(lbSpec.BackendPoolName),
 				},
 			},
 			FrontendIPConfigurations: &[]network.FrontendIPConfiguration{
-				network.FrontendIPConfiguration{
+				{
 					FrontendIPConfigurationPropertiesFormat: &network.FrontendIPConfigurationPropertiesFormat{
 						Subnet: &network.Subnet{
 							ID: to.StringPtr(lbSpec.VnetName),
@@ -84,7 +84,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 				},
 			},
 			LoadBalancingRules: &[]network.LoadBalancingRule{
-				network.LoadBalancingRule{
+				{
 					LoadBalancingRulePropertiesFormat: &network.LoadBalancingRulePropertiesFormat{
 						Protocol:     network.TransportProtocolTCP,
 						FrontendPort: to.Int32Ptr(lbSpec.FrontendPort),

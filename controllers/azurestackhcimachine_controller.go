@@ -326,7 +326,7 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineNormal(machineSc
 
 		machineScope.AzureStackHCIMachine.Spec.NetworkInterfaces.DeepCopyInto(&vm.Spec.NetworkInterfaces)
 
-		infrav1util.CopyCorrelationId(machineScope.AzureStackHCIMachine, vm)
+		infrav1util.CopyCorrelationID(machineScope.AzureStackHCIMachine, vm)
 
 		return nil
 	}
@@ -381,8 +381,9 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineNormal(machineSc
 func (r *AzureStackHCIMachineReconciler) reconcileDelete(machineScope *scope.MachineScope, clusterScope *scope.ClusterScope) (reconcile.Result, error) {
 	machineScope.Info("Handling deleted AzureStackHCIMachine", "MachineName", machineScope.AzureStackHCIMachine.Name)
 
-	if err := r.reconcileVirtualMachineDelete(machineScope, clusterScope); err != nil {
-		return reconcile.Result{}, err
+	result, err := r.reconcileVirtualMachineDelete(machineScope, clusterScope)
+	if err != nil || result.RequeueAfter > 0 {
+		return result, err
 	}
 
 	controllerutil.RemoveFinalizer(machineScope.AzureStackHCIMachine, infrav1.MachineFinalizer)
@@ -390,47 +391,54 @@ func (r *AzureStackHCIMachineReconciler) reconcileDelete(machineScope *scope.Mac
 	return reconcile.Result{}, nil
 }
 
-func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineDelete(machineScope *scope.MachineScope, clusterScope *scope.ClusterScope) error {
-	// use Get to find VM
+func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineDelete(machineScope *scope.MachineScope, clusterScope *scope.ClusterScope) (reconcile.Result, error) {
+	// Use Get to find the VM
 	vm := &infrav1.AzureStackHCIVirtualMachine{}
 	vmName := apitypes.NamespacedName{
 		Namespace: clusterScope.Namespace(),
 		Name:      machineScope.Name(),
 	}
 
-	// Use Delete to delete it
 	if err := r.Client.Get(clusterScope.Context, vmName, vm); err != nil {
-		// if the VM resource is not found, it was already deleted
-		// otherwise return the error
+		// If the error is other than NotFound, return with error
 		if !apierrors.IsNotFound(err) {
-			return errors.Wrapf(err, "failed to get AzureStackHCIVirtualMachine %s", vmName)
+			machineScope.Error(err, "failed to get AzureStackHCIVirtualMachine", "vm", vmName)
+			return reconcile.Result{}, errors.Wrapf(err, "failed to get AzureStackHCIVirtualMachine %s", vmName)
 		}
-	} else if vm.GetDeletionTimestamp().IsZero() {
-		// this means the VM resource was found and has not been deleted
-		infrav1util.CopyCorrelationId(machineScope.AzureStackHCIMachine, vm)
-		if err := r.Client.Update(clusterScope.Context, vm); err != nil {
-			if !apierrors.IsNotFound(err) {
-				return errors.Wrapf(err, "failed to update AzureStackHCIVirtualMachine %s", vmName)
-			}
-		}
-		// is this a synchronous call?
-		err := r.Client.Delete(clusterScope.Context, vm)
-		telemetry.RecordHybridAKSCRDChange(
-			clusterScope.GetLogger(),
-			clusterScope.GetCustomResourceTypeWithName(),
-			fmt.Sprintf("%s/%s/%s", vm.TypeMeta.Kind, vm.ObjectMeta.Namespace, vm.ObjectMeta.Name),
-			telemetry.Delete,
-			telemetry.CRD,
-			nil,
-			err)
-		if err != nil {
-			if !apierrors.IsNotFound(err) {
-				return errors.Wrapf(err, "failed to delete AzureStackHCIVirtualMachine %s", vmName)
-			}
-		}
+		// If the VM resource is not found, no need to reconcile again
+		return reconcile.Result{}, nil
 	}
 
-	return nil
+	// If the VM resource exists and has a deletion timestamp, it means a deletion has been requested.
+	// In this case, requeue the request after a delay to check again later if the deletion has been completed.
+	if !vm.DeletionTimestamp.IsZero() {
+		machineScope.Info("Waiting for AzureStackHCIVirtualMachine deletion to complete", "vm", vm.Name)
+		return reconcile.Result{RequeueAfter: 15 * time.Second}, nil
+	}
+
+	// If the VM resource exists and does not have a deletion timestamp, proceed with the deletion process.
+	infrav1util.CopyCorrelationID(machineScope.AzureStackHCIMachine, vm)
+	if err := r.Client.Update(clusterScope.Context, vm); err != nil {
+		return reconcile.Result{}, errors.Wrapf(err, "failed to update AzureStackHCIVirtualMachine %s", vmName)
+	}
+
+	// Delete the VM resource
+	err := r.Client.Delete(clusterScope.Context, vm)
+	telemetry.RecordHybridAKSCRDChange(
+		clusterScope.GetLogger(),
+		clusterScope.GetCustomResourceTypeWithName(),
+		fmt.Sprintf("%s/%s/%s", vm.TypeMeta.Kind, vm.ObjectMeta.Namespace, vm.ObjectMeta.Name),
+		telemetry.Delete,
+		telemetry.CRD,
+		nil,
+		err)
+	if err != nil && !apierrors.IsNotFound(err) {
+		machineScope.Error(err, "failed to delete AzureStackHCIVirtualMachine", "vm", vmName)
+		return reconcile.Result{}, errors.Wrapf(err, "failed to delete AzureStackHCIVirtualMachine %s", vmName)
+	}
+
+	// Requeue the reconciliation after a delay to check if the deletion has been completed
+	return reconcile.Result{RequeueAfter: 15 * time.Second}, nil
 }
 
 // validateUpdate checks that no immutable fields have been updated and
