@@ -1,3 +1,3 @@
 variables:
   Codeql.Enabled: true
-  Codeql.Language: go
+  Codeql.Language: go,python
