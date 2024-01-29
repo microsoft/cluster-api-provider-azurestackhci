@@ -414,5 +414,5 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileLoadBalancerVIP(lbs *scop
 		}
 	}
 
-	return errors.Errorf("Load Balancer VIP out of VIP Pool range.")// LB VIP: %s Start: %s End: %s", controlPlaneHost, ippool.Start, ippool.End)
+	return errors.Errorf("Load Balancer VIP out of VIP Pool range.")
 }
