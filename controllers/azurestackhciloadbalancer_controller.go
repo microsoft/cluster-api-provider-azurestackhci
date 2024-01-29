@@ -385,7 +385,7 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileLoadBalancerVIP(lbs *scop
 
 	lbs.Info("Attempting to get vnet for loadbalancer vip", "name", lbs.AzureStackHCILoadBalancer.Name)
 	vnetSpec := &virtualnetworks.Spec{
-		Name: clusterScope.AzureStackHCICluster.Spec.NetworkSpec.Vnet.Name,
+		Name:  clusterScope.AzureStackHCICluster.Spec.NetworkSpec.Vnet.Name,
 		Group: clusterScope.AzureStackHCICluster.Spec.NetworkSpec.Vnet.Group,
 	}
 	vnetInterface, err := virtualnetworks.NewService(clusterScope).Get(clusterScope.Context, vnetSpec)
@@ -403,11 +403,11 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileLoadBalancerVIP(lbs *scop
 	for _, subnet := range *vnet.Subnets {
 		for _, ippool := range subnet.IPPools {
 
-			if (ippool.Type == network.VIPPOOL) {
+			if ippool.Type == network.VIPPOOL {
 				startVIP := net.ParseIP(ippool.Start)
 				endVIP := net.ParseIP(ippool.End)
 
-				if (mocnet.RangeContains(startVIP, endVIP, lbVIP))	{
+				if mocnet.RangeContains(startVIP, endVIP, lbVIP) {
 					return nil
 				}
 			}
