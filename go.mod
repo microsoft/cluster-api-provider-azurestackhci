@@ -1,6 +1,6 @@
 module github.com/microsoft/cluster-api-provider-azurestackhci
 
-go 1.19
+go 1.20
 
 require (
 	github.com/Azure/go-autorest/autorest/to v0.4.0
