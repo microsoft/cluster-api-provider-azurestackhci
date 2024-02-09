@@ -47,7 +47,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 // AzureStackHCIMachineReconciler reconciles a AzureStackHCIMachine object
@@ -63,16 +62,16 @@ func (r *AzureStackHCIMachineReconciler) SetupWithManager(mgr ctrl.Manager, opti
 		WithLogConstructor(r.ConstructLogger).
 		For(&infrav1.AzureStackHCIMachine{}).
 		Watches(
-			&source.Kind{Type: &clusterv1.Machine{}},
+			&clusterv1.Machine{},
 			handler.EnqueueRequestsFromMapFunc(util.MachineToInfrastructureMapFunc(infrav1.GroupVersion.WithKind("AzureStackHCIMachine"))),
 		).
 		Watches(
-			&source.Kind{Type: &infrav1.AzureStackHCICluster{}},
+			&infrav1.AzureStackHCICluster{},
 			handler.EnqueueRequestsFromMapFunc(r.AzureStackHCIClusterToAzureStackHCIMachines),
 		).
 		Watches(
-			&source.Kind{Type: &infrav1.AzureStackHCIVirtualMachine{}},
-			&handler.EnqueueRequestForOwner{OwnerType: &infrav1.AzureStackHCIMachine{}, IsController: false},
+			&infrav1.AzureStackHCIVirtualMachine{},
+			handler.EnqueueRequestForOwner(mgr.GetScheme(), mgr.GetRESTMapper(), &infrav1.AzureStackHCIMachine{}),
 		).
 		Complete(r)
 }
@@ -450,7 +449,7 @@ func (r *AzureStackHCIMachineReconciler) validateUpdate(spec *infrav1.AzureStack
 
 // AzureStackHCIClusterToAzureStackHCIMachines is a handler.ToRequestsFunc to be used to enqueue requests for reconciliation
 // of AzureStackHCIMachines.
-func (r *AzureStackHCIMachineReconciler) AzureStackHCIClusterToAzureStackHCIMachines(o client.Object) []ctrl.Request {
+func (r *AzureStackHCIMachineReconciler) AzureStackHCIClusterToAzureStackHCIMachines(ctx context.Context, o client.Object) []ctrl.Request {
 	result := []ctrl.Request{}
 
 	c, ok := o.(*infrav1.AzureStackHCICluster)
@@ -460,7 +459,7 @@ func (r *AzureStackHCIMachineReconciler) AzureStackHCIClusterToAzureStackHCIMach
 	}
 	log := r.Log.WithValues("AzureStackHCICluster", c.Name, "Namespace", c.Namespace)
 
-	cluster, err := util.GetOwnerCluster(context.TODO(), r.Client, c.ObjectMeta)
+	cluster, err := util.GetOwnerCluster(ctx, r.Client, c.ObjectMeta)
 	switch {
 	case apierrors.IsNotFound(err) || cluster == nil:
 		return result
@@ -471,7 +470,7 @@ func (r *AzureStackHCIMachineReconciler) AzureStackHCIClusterToAzureStackHCIMach
 
 	labels := map[string]string{clusterv1.ClusterNameLabel: cluster.Name}
 	machineList := &clusterv1.MachineList{}
-	if err := r.List(context.TODO(), machineList, client.InNamespace(c.Namespace), client.MatchingLabels(labels)); err != nil {
+	if err := r.List(ctx, machineList, client.InNamespace(c.Namespace), client.MatchingLabels(labels)); err != nil {
 		log.Error(err, "failed to list Machines")
 		return nil
 	}
