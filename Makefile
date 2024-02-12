@@ -64,7 +64,7 @@ export PATH := $(TOOLS_BIN_DIR):$(PATH)
 OUTPUT_BASE := --output-base=$(ROOT_DIR)
 
 # the current cluster API version
-CAPI_VERSION := v1.5.2
+CAPI_VERSION := v1.5.3
 
 # Binaries.
 GO_INSTALL = ./scripts/go_install.sh
