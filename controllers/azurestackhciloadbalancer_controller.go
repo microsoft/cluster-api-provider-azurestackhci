@@ -43,7 +43,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 // AzureStackHCILoadBalancerReconciler reconciles a AzureStackHCILoadBalancer object
@@ -60,8 +59,8 @@ func (r *AzureStackHCILoadBalancerReconciler) SetupWithManager(mgr ctrl.Manager,
 		WithLogConstructor(r.ConstructLogger).
 		For(&infrav1.AzureStackHCILoadBalancer{}).
 		Watches(
-			&source.Kind{Type: &infrav1.AzureStackHCIVirtualMachine{}},
-			&handler.EnqueueRequestForOwner{OwnerType: &infrav1.AzureStackHCILoadBalancer{}, IsController: false},
+			&infrav1.AzureStackHCIVirtualMachine{},
+			handler.EnqueueRequestForOwner(mgr.GetScheme(), mgr.GetRESTMapper(), &infrav1.AzureStackHCILoadBalancer{}),
 		).
 		Complete(r)
 }
@@ -110,7 +109,7 @@ func (r *AzureStackHCILoadBalancerReconciler) Reconcile(ctx context.Context, req
 	}
 	if cluster == nil {
 		logger.Info("AzureStackHCICluster Controller has not set OwnerRef on AzureStackHCILoadBalancer")
-		return reconcile.Result{}, fmt.Errorf("Expected Cluster OwnerRef is missing from AzureStackHCILoadBalancer %s", req.Name)
+		return reconcile.Result{}, fmt.Errorf("expected Cluster OwnerRef is missing from AzureStackHCILoadBalancer %s", req.Name)
 	}
 
 	logger = logger.WithValues("cluster", cluster.Name)
