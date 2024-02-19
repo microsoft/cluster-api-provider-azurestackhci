@@ -30,7 +30,7 @@ import (
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/telemetry"
 	infrav1util "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/util"
-
+	"github.com/microsoft/moc/pkg/providerid"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -232,7 +232,7 @@ func (r *AzureStackHCIMachineReconciler) reconcileNormal(machineScope *scope.Mac
 	}
 
 	// Make sure Spec.ProviderID is always set.
-	machineScope.SetProviderID(fmt.Sprintf("moc://%s", vm.Name))
+	machineScope.SetProviderID(providerid.FormatProviderID(providerid.HostType(vm.Spec.HostType), vm.Name))
 
 	// TODO(vincepri): Remove this annotation when clusterctl is no longer relevant.
 	machineScope.SetAnnotation("cluster-api-provider-azurestackhci", "true")
@@ -313,7 +313,7 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineNormal(machineSc
 			return errors.Wrap(err, "failed to get VM image")
 		}
 		image.DeepCopyInto(&vm.Spec.Image)
-
+		vm.Spec.HostType = machineScope.AzureStackHCIMachine.Spec.HostType
 		vm.Spec.VMSize = machineScope.AzureStackHCIMachine.Spec.VMSize
 		machineScope.AzureStackHCIMachine.Spec.AvailabilityZone.DeepCopyInto(&vm.Spec.AvailabilityZone)
 		machineScope.AzureStackHCIMachine.Spec.OSDisk.DeepCopyInto(&vm.Spec.OSDisk)
