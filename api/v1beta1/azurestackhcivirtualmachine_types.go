@@ -55,6 +55,8 @@ type AzureStackHCIVirtualMachineSpec struct {
 
 	// +optional
 	NetworkInterfaces NetworkInterfaces `json:"networkInterfaces,omitempty"`
+	// +optional
+	HostType HostType `json:"hostType,omitempty"`
 }
 
 // AzureStackHCIVirtualMachineStatus defines the observed state of AzureStackHCIVirtualMachine

@@ -32,3 +32,13 @@ func SDKToVM(v compute.VirtualMachine) (*infrav1.VM, error) {
 	}
 	return vm, nil
 }
+
+// BareMetalMachineConvertToCAPH converts an SDK BareMetalMachine to the provider VM type.
+func BareMetalMachineConvertToCAPH(v compute.BareMetalMachine) (*infrav1.VM, error) {
+	vm := &infrav1.VM{
+		ID:    to.String(v.ID),
+		Name:  to.String(v.Name),
+		State: infrav1.VMStateSucceeded, // Hard-coded for now until we expose provisioning state
+	}
+	return vm, nil
+}

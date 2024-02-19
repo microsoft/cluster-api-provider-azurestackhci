@@ -20,16 +20,18 @@ package virtualmachines
 import (
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
-	"github.com/microsoft/moc/pkg/auth"
+	"github.com/microsoft/moc-sdk-for-go/services/compute/baremetalmachine"
 	"github.com/microsoft/moc-sdk-for-go/services/compute/virtualmachine"
+	"github.com/microsoft/moc/pkg/auth"
 )
 
 var _ azurestackhci.Service = (*Service)(nil)
 
 // Service provides operations on virtual machines.
 type Service struct {
-	Client virtualmachine.VirtualMachineClient
-	Scope  scope.ScopeInterface
+	Client          virtualmachine.VirtualMachineClient
+	BareMetalClient baremetalmachine.BareMetalMachineClient
+	Scope           scope.ScopeInterface
 }
 
 // getVirtualMachinesClient creates a new virtual machines client.
@@ -38,10 +40,16 @@ func getVirtualMachinesClient(cloudAgentFqdn string, authorizer auth.Authorizer)
 	return *vmClient
 }
 
+func getBareMetalMachinesClient(cloudAgentFqdn string, authorizer auth.Authorizer) baremetalmachine.BareMetalMachineClient {
+	bareMetalClient, _ := baremetalmachine.NewBareMetalMachineClient(cloudAgentFqdn, authorizer)
+	return *bareMetalClient
+}
+
 // NewService creates a new virtual machines service.
 func NewService(scope scope.ScopeInterface) *Service {
 	return &Service{
-		Client: getVirtualMachinesClient(scope.GetCloudAgentFqdn(), scope.GetAuthorizer()),
-		Scope:  scope,
+		Client:          getVirtualMachinesClient(scope.GetCloudAgentFqdn(), scope.GetAuthorizer()),
+		BareMetalClient: getBareMetalMachinesClient(scope.GetCloudAgentFqdn(), scope.GetAuthorizer()),
+		Scope:           scope,
 	}
 }

@@ -261,3 +261,15 @@ const (
 	AzureOperationIDAnnotationKey        = "management.azure.com/operationId"
 	AzureCorrelationIDAnnotationKey      = "management.azure.com/correlationId"
 )
+
+// HostType specifies what type of machine a node should be deployed on.
+type HostType string
+
+const (
+	// HostTypeVM specifies that the node should be deployed on a virtual machine.
+	// Default value.
+	HostTypeVM = HostType("vm")
+
+	// HostTypeBareMetal specifies that the node should be deployed on a bare metal machine.
+	HostTypeBareMetal = HostType("baremetal")
+)
