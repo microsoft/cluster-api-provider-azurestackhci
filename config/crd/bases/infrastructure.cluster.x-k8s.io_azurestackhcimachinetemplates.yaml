@@ -61,6 +61,10 @@ spec:
                           id:
                             type: string
                         type: object
+                      hostType:
+                        description: HostType specifies what type of machine a node
+                          should be deployed on.
+                        type: string
                       image:
                         description: 'Image defines information about the image to
                           use for VM creation. There are three ways to specify an

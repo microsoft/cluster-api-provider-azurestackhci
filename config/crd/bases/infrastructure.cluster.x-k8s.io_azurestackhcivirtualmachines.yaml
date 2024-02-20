@@ -57,6 +57,10 @@ spec:
                 type: string
               clusterName:
                 type: string
+              hostType:
+                description: HostType specifies what type of machine a node should
+                  be deployed on.
+                type: string
               identity:
                 description: VMIdentity defines the identity of the virtual machine,
                   if configured.
