@@ -67,6 +67,11 @@ const (
 	LBRoleAksHciApiServer = "AKSHCI_APISERVER"
 )
 
+const (
+	// ControlPlaneNodeGroup will be used to create availability set for control plane machines.
+	ControlPlaneNodeGroup = "control-plane"
+)
+
 // SupportedAvailabilityZoneLocations is a slice of the locations where Availability Zones are supported.
 // This is used to validate whether a virtual machine should leverage an Availability Zone.
 // Based on the Availability Zones listed in https://docs.microsoft.com/en-us/azure/availability-zones/az-overview
@@ -190,4 +195,12 @@ func GetDefaultImage(osType infrav1.OSType, k8sVersion string) (*infrav1.Image, 
 	}
 
 	return defaultImage, nil
+}
+
+// GenerateAvailabilitySetName generates the name of a availability set based on the cluster name and the node group.
+// node group identifies the set of nodes that belong to this availability set:
+// For control plane nodes, this will be `control-plane`.
+// For worker nodes, this will be the machine deployment name.
+func GenerateAvailabilitySetName(clusterName, nodeGroup string) string {
+	return fmt.Sprintf("%s_%s-as", clusterName, nodeGroup)
 }

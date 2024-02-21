@@ -24,6 +24,7 @@ import (
 
 	"github.com/go-logr/logr"
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1"
+	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	azhciauth "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/auth"
 	"github.com/microsoft/moc/pkg/auth"
 	"github.com/microsoft/moc/pkg/diagnostics"
@@ -31,6 +32,7 @@ import (
 	"k8s.io/utils/pointer"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	capierrors "sigs.k8s.io/cluster-api/errors"
+	"sigs.k8s.io/cluster-api/util"
 	"sigs.k8s.io/cluster-api/util/conditions"
 	"sigs.k8s.io/cluster-api/util/patch"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -43,6 +45,7 @@ type VirtualMachineScopeParams struct {
 	Client                      client.Client
 	Logger                      *logr.Logger
 	AzureStackHCIVirtualMachine *infrav1.AzureStackHCIVirtualMachine
+	Machine                     *clusterv1.Machine
 }
 
 // NewMachineScope creates a new VirtualMachineScope from the supplied parameters.
@@ -54,6 +57,10 @@ func NewVirtualMachineScope(params VirtualMachineScopeParams) (*VirtualMachineSc
 
 	if params.AzureStackHCIVirtualMachine == nil {
 		return nil, errors.New("azurestackhci virtual machine is required when creating a VirtualMachineScope")
+	}
+
+	if params.Machine == nil {
+		return nil, errors.New("machine is required when creating a VirtualMachineScope")
 	}
 
 	if params.Logger == nil {
@@ -81,6 +88,7 @@ func NewVirtualMachineScope(params VirtualMachineScopeParams) (*VirtualMachineSc
 	return &VirtualMachineScope{
 		client:                      params.Client,
 		AzureStackHCIVirtualMachine: params.AzureStackHCIVirtualMachine,
+		Machine:                     params.Machine,
 		AzureStackHCIClients:        params.AzureStackHCIClients,
 		Logger:                      *params.Logger,
 		patchHelper:                 helper,
@@ -97,6 +105,7 @@ type VirtualMachineScope struct {
 
 	AzureStackHCIClients
 	AzureStackHCIVirtualMachine *infrav1.AzureStackHCIVirtualMachine
+	Machine                     *clusterv1.Machine
 }
 
 // GetResourceGroup allows VirtualMachineScope to fulfill ScopeInterface and thus to be used by the cloud services.
@@ -237,4 +246,22 @@ func (m *VirtualMachineScope) AzureStackHCILoadBalancerVM() bool {
 // BackendPoolNames returns the backend pool name for the virtual machine
 func (m *VirtualMachineScope) BackendPoolNames() []string {
 	return m.AzureStackHCIVirtualMachine.Spec.BackendPoolNames
+}
+
+func (m *VirtualMachineScope) AvailabilitySetName() string {
+	if util.IsControlPlaneMachine(m.Machine) {
+		return azurestackhci.GenerateAvailabilitySetName(m.ClusterName(), azurestackhci.ControlPlaneNodeGroup)
+	}
+
+	// get machine deployment name from labels for machines that maybe part of a machine deployment.
+	if mdName, ok := m.Machine.Labels[clusterv1.MachineDeploymentNameLabel]; ok {
+		return azurestackhci.GenerateAvailabilitySetName(m.ClusterName(), mdName)
+	}
+
+	// if machine deployment name label is not available, use machine set name.
+	if msName, ok := m.Machine.Labels[clusterv1.MachineSetNameLabel]; ok {
+		return azurestackhci.GenerateAvailabilitySetName(m.ClusterName(), msName)
+	}
+
+	return ""
 }

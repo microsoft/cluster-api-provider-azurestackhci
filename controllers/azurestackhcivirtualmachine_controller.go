@@ -32,6 +32,7 @@ import (
 	"k8s.io/client-go/tools/record"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	capierrors "sigs.k8s.io/cluster-api/errors"
+	"sigs.k8s.io/cluster-api/util"
 	"sigs.k8s.io/cluster-api/util/conditions"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -96,11 +97,23 @@ func (r *AzureStackHCIVirtualMachineReconciler) Reconcile(ctx context.Context, r
 
 	logger = logger.WithValues("operationId", azureStackHCIVirtualMachine.GetAnnotations()[infrav1.AzureOperationIDAnnotationKey], "correlationId", azureStackHCIVirtualMachine.GetAnnotations()[infrav1.AzureCorrelationIDAnnotationKey])
 
+	machine, err := util.GetOwnerMachine(ctx, r.Client, azureStackHCIVirtualMachine.ObjectMeta)
+	if err != nil {
+		return reconcile.Result{}, err
+	}
+	if machine == nil {
+		logger.Info("Machine Controller has not yet set OwnerRef")
+		return reconcile.Result{}, nil
+	}
+
+	logger = logger.WithValues("machine", machine.Name)
+
 	// Create the machine scope
 	virtualMachineScope, err := scope.NewVirtualMachineScope(scope.VirtualMachineScopeParams{
 		Logger:                      &logger,
 		Client:                      r.Client,
 		AzureStackHCIVirtualMachine: azureStackHCIVirtualMachine,
+		Machine:                     machine,
 	})
 	if err != nil {
 		r.Recorder.Eventf(azureStackHCIVirtualMachine, corev1.EventTypeWarning, "FailureCreateVMScope", errors.Wrapf(err, "failed to create VM scope").Error())

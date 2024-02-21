@@ -23,6 +23,7 @@ import (
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
+	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/availabilitysets"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/disks"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/networkinterfaces"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/virtualmachines"
@@ -37,6 +38,7 @@ type azureStackHCIVirtualMachineService struct {
 	networkInterfacesSvc azurestackhci.Service
 	virtualMachinesSvc   azurestackhci.GetterService
 	disksSvc             azurestackhci.GetterService
+	availabilitySetSvc   azurestackhci.GetterService
 }
 
 // newAzureStackHCIMachineService populates all the services based on input scope
@@ -46,6 +48,7 @@ func newAzureStackHCIVirtualMachineService(vmScope *scope.VirtualMachineScope) *
 		networkInterfacesSvc: networkinterfaces.NewService(vmScope),
 		virtualMachinesSvc:   virtualmachines.NewService(vmScope),
 		disksSvc:             disks.NewService(vmScope),
+		availabilitySetSvc:   availabilitysets.NewService(vmScope),
 	}
 }
 
@@ -69,6 +72,16 @@ func (s *azureStackHCIVirtualMachineService) Create() (*infrav1.VM, error) {
 
 			ipconfigs = append(ipconfigs, ipconfig)
 		}
+	}
+
+	availabilitysetSpec := &availabilitysets.Spec{
+		Name:     s.vmScope.AvailabilitySetName(),
+		Location: s.vmScope.Location(),
+	}
+
+	err := s.availabilitySetSvc.Reconcile(s.vmScope.Context, availabilitysetSpec.Name)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Unable to create availability set %s", availabilitysetSpec.Name)
 	}
 
 	nicErr := s.reconcileNetworkInterface(nicName, ipconfigs)
@@ -112,6 +125,15 @@ func (s *azureStackHCIVirtualMachineService) Delete() error {
 	err = s.disksSvc.Delete(s.vmScope.Context, diskSpec)
 	if err != nil {
 		return errors.Wrapf(err, "Unable to delete os disk of machine %s", s.vmScope.Name())
+	}
+
+	availabilitysetSpec := &availabilitysets.Spec{
+		Name: s.vmScope.AvailabilitySetName(),
+	}
+
+	err = s.availabilitySetSvc.Delete(s.vmScope.Context, availabilitysetSpec.Name)
+	if err != nil {
+		return errors.Wrapf(err, "Unable to delete os availability set %s", s.vmScope.Name())
 	}
 
 	return nil
@@ -199,6 +221,20 @@ func (s *azureStackHCIVirtualMachineService) createVirtualMachine(nicName string
 		Name: s.vmScope.Name(),
 	}
 
+	availabilitysetSpec := &availabilitysets.Spec{
+		Name: s.vmScope.AvailabilitySetName(),
+	}
+
+	_, err = s.availabilitySetSvc.Get(s.vmScope.Context, availabilitysetSpec.Name)
+	if err != nil {
+		if !azurestackhci.ResourceNotFound(err) {
+			return nil, errors.Wrapf(err, "Unable to find availability set %s", availabilitysetSpec.Name)
+		} else {
+			// Empty Availability Set name if it is not created.
+			availabilitysetSpec.Name = ""
+		}
+	}
+
 	vmInterface, err := s.virtualMachinesSvc.Get(s.vmScope.Context, vmSpec)
 	if err != nil && vmInterface == nil {
 		var vmZone string
@@ -229,16 +265,17 @@ func (s *azureStackHCIVirtualMachineService) createVirtualMachine(nicName string
 		s.vmScope.Info("VM type is:", "vmType", vmType)
 
 		vmSpec = &virtualmachines.Spec{
-			Name:             s.vmScope.Name(),
-			NICName:          nicName,
-			SSHKeyData:       decodedKeys,
-			Size:             s.vmScope.AzureStackHCIVirtualMachine.Spec.VMSize,
-			OSDisk:           s.vmScope.AzureStackHCIVirtualMachine.Spec.OSDisk,
-			Image:            s.vmScope.AzureStackHCIVirtualMachine.Spec.Image,
-			CustomData:       *s.vmScope.AzureStackHCIVirtualMachine.Spec.BootstrapData,
-			Zone:             vmZone,
-			VMType:           vmType,
-			StorageContainer: s.vmScope.StorageContainer(),
+			Name:                s.vmScope.Name(),
+			NICName:             nicName,
+			SSHKeyData:          decodedKeys,
+			Size:                s.vmScope.AzureStackHCIVirtualMachine.Spec.VMSize,
+			OSDisk:              s.vmScope.AzureStackHCIVirtualMachine.Spec.OSDisk,
+			Image:               s.vmScope.AzureStackHCIVirtualMachine.Spec.Image,
+			CustomData:          *s.vmScope.AzureStackHCIVirtualMachine.Spec.BootstrapData,
+			Zone:                vmZone,
+			VMType:              vmType,
+			StorageContainer:    s.vmScope.StorageContainer(),
+			AvailabilitySetName: availabilitysetSpec.Name,
 		}
 
 		err = s.virtualMachinesSvc.Reconcile(s.vmScope.Context, vmSpec)
