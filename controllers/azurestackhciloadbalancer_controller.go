@@ -254,6 +254,8 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileLoadBalancerServiceStatus
 		return err
 	}
 
+	// Dummy fix to handle make test
+	_ = network.LoadBalancer{}
 	lb, ok := lbInterface.(network.LoadBalancer)
 	if !ok {
 		return errors.New("error getting status for loadbalancer service")
