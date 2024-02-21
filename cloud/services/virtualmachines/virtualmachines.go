@@ -44,16 +44,17 @@ const (
 
 // Spec input specification for Get/CreateOrUpdate/Delete calls
 type Spec struct {
-	Name             string
-	NICName          string
-	SSHKeyData       []string
-	Size             string
-	Zone             string
-	Image            infrav1.Image
-	OSDisk           infrav1.OSDisk
-	CustomData       string
-	VMType           compute.VMType
-	StorageContainer string
+	Name                string
+	NICName             string
+	SSHKeyData          []string
+	Size                string
+	Zone                string
+	Image               infrav1.Image
+	OSDisk              infrav1.OSDisk
+	CustomData          string
+	VMType              compute.VMType
+	StorageContainer    string
+	AvailabilitySetName string
 }
 
 // Get provides information about a virtual machine.
@@ -163,6 +164,10 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			VmType: vmSpec.VMType,
 			HardwareProfile: &compute.HardwareProfile{
 				VMSize: compute.VirtualMachineSizeTypes(vmSpec.Size),
+			},
+			AvailabilitySetProfile: &compute.CloudSubResource{
+				Name:      to.StringPtr(vmSpec.AvailabilitySetName),
+				GroupName: to.StringPtr(s.Scope.GetResourceGroup()),
 			},
 		},
 	}

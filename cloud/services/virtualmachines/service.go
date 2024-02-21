@@ -28,7 +28,7 @@ var _ azurestackhci.Service = (*Service)(nil)
 
 // Service provides operations on virtual machines.
 type Service struct {
-	Client virtualmachine.VirtualMachineClient
+	Client virtualmachine.VirtualMachineMockClient
 	Scope  scope.ScopeInterface
 }
 
@@ -38,10 +38,15 @@ func getVirtualMachinesClient(cloudAgentFqdn string, authorizer auth.Authorizer)
 	return *vmClient
 }
 
+func getVirtualMachinesMockClient(cloudAgentFqdn string, authorizer auth.Authorizer) virtualmachine.VirtualMachineMockClient {
+	vmClient, _ := virtualmachine.NewVirtualMachineMockClient(cloudAgentFqdn, authorizer)
+	return *vmClient
+}
+
 // NewService creates a new virtual machines service.
 func NewService(scope scope.ScopeInterface) *Service {
 	return &Service{
-		Client: getVirtualMachinesClient(scope.GetCloudAgentFqdn(), scope.GetAuthorizer()),
+		Client: getVirtualMachinesMockClient(scope.GetCloudAgentFqdn(), scope.GetAuthorizer()),
 		Scope:  scope,
 	}
 }
