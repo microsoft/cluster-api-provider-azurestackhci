@@ -8,6 +8,7 @@ require (
 	github.com/go-logr/logr v1.2.4
 	github.com/golang/mock v1.6.0
 	github.com/microsoft/moc v0.14.0
+	github.com/microsoft/moc-sdk-for-go v0.11.1-alpha.14
 	github.com/onsi/ginkgo/v2 v2.11.0
 	github.com/onsi/gomega v1.27.8
 	github.com/pkg/errors v0.9.1
@@ -22,8 +23,6 @@ require (
 	sigs.k8s.io/cluster-api v1.5.3
 	sigs.k8s.io/controller-runtime v0.15.3
 )
-
-require github.com/microsoft/moc-sdk-for-go v0.0.0-00010101000000-000000000000
 
 require (
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
@@ -113,7 +112,8 @@ replace (
 	github.com/elazarl/goproxy => github.com/elazarl/goproxy v0.0.0-20230731152917-f99041a5c027
 	github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
 	github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.2
-	github.com/microsoft/moc-sdk-for-go => github.com/bgriddaluru/liwon-moc-sdk-for-go v1.0.1
+	github.com/microsoft/moc => github.com/bgriddaluru/liwon-moc v1.0.0
+	github.com/microsoft/moc-sdk-for-go => github.com/bgriddaluru/liwon-moc-sdk-for-go v1.0.3
 	github.com/miekg/dns => github.com/miekg/dns v1.1.25
 	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.9.23
 	github.com/nats-io/nkeys => github.com/nats-io/nkeys v0.4.6

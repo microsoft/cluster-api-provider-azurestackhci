@@ -33,10 +33,12 @@ type Service struct {
 }
 
 // getVirtualMachinesClient creates a new virtual machines client.
+/*
 func getVirtualMachinesClient(cloudAgentFqdn string, authorizer auth.Authorizer) virtualmachine.VirtualMachineClient {
 	vmClient, _ := virtualmachine.NewVirtualMachineClient(cloudAgentFqdn, authorizer)
 	return *vmClient
 }
+*/
 
 func getVirtualMachinesMockClient(cloudAgentFqdn string, authorizer auth.Authorizer) virtualmachine.VirtualMachineMockClient {
 	vmClient, _ := virtualmachine.NewVirtualMachineMockClient(cloudAgentFqdn, authorizer)

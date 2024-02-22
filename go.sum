@@ -1188,8 +1188,10 @@ github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+Ce
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
-github.com/bgriddaluru/liwon-moc-sdk-for-go v1.0.1 h1:OeeyoTLX0322TcTSngnAlk98TrOl0QQJUP1Xd94UM5I=
-github.com/bgriddaluru/liwon-moc-sdk-for-go v1.0.1/go.mod h1:uyJL9N/inC02lEVjlsONGnQqae2mTXm46Ob5Yh4riLM=
+github.com/bgriddaluru/liwon-moc v1.0.0 h1:zDuXyzO+nsRhgnxQUQoAL7Oamt06PNsuKLNDZbIzxSc=
+github.com/bgriddaluru/liwon-moc v1.0.0/go.mod h1:lfUpLrZ0vo7e+r1E02SgkQD4O0h4BApUlKLqA4Kl1Ec=
+github.com/bgriddaluru/liwon-moc-sdk-for-go v1.0.3 h1:igYpAVkUuhxei11Q5xxFq2OYpyJj63sW+TB3bhFRriQ=
+github.com/bgriddaluru/liwon-moc-sdk-for-go v1.0.3/go.mod h1:uyJL9N/inC02lEVjlsONGnQqae2mTXm46Ob5Yh4riLM=
 github.com/blang/semver v3.5.1+incompatible h1:cQNTCjp13qL8KC3Nbxr/y2Bqb63oX6wdnnjpJbkM4JQ=
 github.com/blang/semver v3.5.1+incompatible/go.mod h1:kRBLl5iJ+tD4TcOOxsy/0fnwebNt5EWlYSAyrTnjyyk=
 github.com/blang/semver/v4 v4.0.0 h1:1PFHFE6yCCTv8C1TeyNNarDzntLi7wMI5i/pzqYIsAM=
@@ -1539,8 +1541,6 @@ github.com/mattn/go-sqlite3 v1.14.15/go.mod h1:2eHXhiwb8IkHr+BDWZGa96P6+rkvnG63S
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
 github.com/matttproud/golang_protobuf_extensions v1.0.4 h1:mmDVorXM7PCGKw94cs5zkfA9PSy5pEvNWRP0ET0TIVo=
 github.com/matttproud/golang_protobuf_extensions v1.0.4/go.mod h1:BSXmuO+STAnVfrANrmjBb36TMTDstsz7MSK+HVaYKv4=
-github.com/microsoft/moc v0.14.0 h1:ri5M/5TEfX0Jizl/MpOnWJbx3pPOsrFDOD4r0kLuNrk=
-github.com/microsoft/moc v0.14.0/go.mod h1:lfUpLrZ0vo7e+r1E02SgkQD4O0h4BApUlKLqA4Kl1Ec=
 github.com/miekg/dns v1.1.25/go.mod h1:bPDLeHnStXmXAq1m/Ch/hvfNHr14JKNPMBo3VZKjuso=
 github.com/minio/asm2plan9s v0.0.0-20200509001527-cdd76441f9d8/go.mod h1:mC1jAcsrzbxHt8iiaC+zU4b1ylILSosueou12R++wfY=
 github.com/minio/c2goasm v0.0.0-20190812172519-36a3d3bbc4f3/go.mod h1:RagcQ7I8IeTMnF8JTXieKnO4Z6JCsikNEzj0DwauVzE=

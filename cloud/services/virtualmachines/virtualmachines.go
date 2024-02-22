@@ -95,8 +95,6 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		return err
 	}
 
-	// Dummy fix to handle make test
-	_ = network.Interface{}
 	nic, ok := nicInterface.(network.Interface)
 	if !ok {
 		return errors.New("error getting network interface")

@@ -229,10 +229,8 @@ func (s *azureStackHCIVirtualMachineService) createVirtualMachine(nicName string
 	if err != nil {
 		if !azurestackhci.ResourceNotFound(err) {
 			return nil, errors.Wrapf(err, "Unable to find availability set %s", availabilitysetSpec.Name)
-		} else {
-			// Empty Availability Set name if it is not created.
-			availabilitysetSpec.Name = ""
 		}
+		availabilitysetSpec.Name = ""
 	}
 
 	vmInterface, err := s.virtualMachinesSvc.Get(s.vmScope.Context, vmSpec)
