@@ -70,9 +70,9 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	}
 
 	// Availability Set is not supported on 1 Node cluster
-	if nodeCount == 1 {
-		return nil
-	}
+	//if nodeCount == 1 {
+	//	return nil
+	//}
 
 	logger := s.Scope.GetLogger()
 	existingSet, err := s.Get(ctx, spec)
