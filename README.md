@@ -8,7 +8,7 @@ Kubernetes-native declarative infrastructure for Azure Stack HCI.
 
 ## What is the Cluster API Provider Azure Stack HCI
 
-The [Cluster API][cluster_api] brings declarative, Kubernetes-style APIs to cluster creation, configuration and management.
+The [Cluster API][cluster_api] brings declarative, Kubernetes-style APIs to cluster creation, configuration and management.  Cluster API Provider for Azure Stack HCI(CAPH) is an implementation of Cluster API for Azure Stack HCI.
 
 The API itself is shared across multiple cloud providers allowing for true Azure Stack HCI
 hybrid deployments of Kubernetes.
@@ -23,21 +23,30 @@ Check out the [Cluster API Quick Start][quickstart] to create your first Kuberne
 
 This provider's versions are compatible with the following versions of Cluster API:
 
-|  | Cluster API `v1alpha1` (`v0.1.x`) | Cluster API `v1alpha2` (`v0.2.x`) | Cluster API `v1alpha3` (`v0.3.x`) |
+|  | Cluster API `v1beta1` (`v1.2`) | Cluster API `v1beta1` (`v1.4`) |  Cluster API `v1beta1` (`v1.5`) |
 |---|---|---|---|
-|AzureStackHCI Provider `v0.2.x` |  | ✓ |  |
-|AzureStackHCI Provider `v0.3.x` |  |  | ✓ |
+| CAPH v1beta1 (`v1.1.8`)  | ✓ | X  | X | 
+| CAPH v1beta1 (`v1.1.9`)  | ✓ | X  | X |
+| CAPH v1beta1 (`v1.1.10`) | X  | ✓ | X |
+| CAPH v1beta1 (`v1.1.11`) | X  | ✓ | X |
+| CAPH v1beta1 (`v1.1.12`) | X  | ✓ | X |
+| CAPH v1beta1 (`v1.1.13`) | X  | ✓ | X |
+| CAPH v1beta1 (`v1.1.14`) | X  | ✓ | ✓ |
+  
 
-This provider's versions are able to install and manage the following versions of Kubernetes:
+This provider's versions are able to install and manage the following versions of Kubernetes:  
+| | k8s 1.24 | k8s 1.25 | k8s 1.26 | k8s 1.27 |
+|---|---|---|---|---|
+| CAPH v1beta1 (`v1.1.8`) | ✓ | ✓ | ✓ | X |
+| CAPH v1beta1 (`v1.1.9`) | ✓ | ✓ | ✓ | X |
+| CAPH v1beta1 (`v1.1.10`) | ✓ | ✓ | ✓ | X |
+| CAPH v1beta1 (`v1.1.11`) | ✓ | ✓ | ✓ | X |
+| CAPH v1beta1 (`v1.1.12`) | ✓ | ✓ | ✓ | X |
+| CAPH v1beta1 (`v1.1.13`) | X | ✓ | ✓ |  ✓ |
+| CAPH v1beta1 (`v1.1.14`) | X | ✓ | ✓ | ✓ |
 
-|  | AzureStackHCI Provider `v0.2.x` | AzureStackHCI Provider `v0.3.x`
-|---|---|---|
-| Kubernetes 1.16 | ✓ | ✓ |
-| Kubernetes 1.17 | ✓ | ✓ |
-| Kubernetes 1.18 | ✓ | ✓ |
 
-
-Each version of Cluster API for Azure Stack HCI will attempt to support at least two Kubernetes versions e.g., Cluster API for Azure Stack HCI `v0.2` may support Kubernetes 1.14 and Kubernetes 1.15.
+Each version of Cluster API Provider for Azure Stack HCI will attempt to support at least two Kubernetes versions e.g., Cluster API for Azure Stack HCI `v1.1.13` supports Kubernetes 1.25, 1.26 and 1.27.
 
 **NOTE:** As the versioning for this project is tied to the versioning of Cluster API, future modifications to this policy may be made to more closely align with other providers in the Cluster API ecosystem.
 
