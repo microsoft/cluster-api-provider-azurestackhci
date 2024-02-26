@@ -21,9 +21,9 @@ import (
 	"context"
 
 	"github.com/Azure/go-autorest/autorest/to"
-	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/telemetry"
 	"github.com/microsoft/moc-sdk-for-go/services/compute"
+	mocErrors "github.com/microsoft/moc/pkg/errors"
 	"github.com/pkg/errors"
 )
 
@@ -38,14 +38,17 @@ type Spec struct {
 }
 
 func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error) {
+	logger := s.Scope.GetLogger()
 	availabilitysetSpec, ok := spec.(*Spec)
 	if !ok {
-		return compute.AvailabilitySet{}, errors.New("Invalid Availibility Set Specification")
+		return compute.AvailabilitySet{}, errors.New("invalid availibility set specification")
 	}
 	availabilityset, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), availabilitysetSpec.Name)
-	if err != nil && azurestackhci.ResourceNotFound(err) {
-		return nil, errors.Wrapf(err, "Availability Set %s not found", availabilitysetSpec.Name)
-	} else if err != nil {
+	if err != nil {
+		if isResourceNotFound(err) {
+			logger.Info("availability doesn't exists", "name", availabilitysetSpec.Name)
+			return nil, nil
+		}
 		return nil, err
 	}
 	return (*availabilityset)[0], nil
@@ -55,7 +58,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	telemetry.WriteMocInfoLog(ctx, s.Scope)
 	availabilitysetSpec, ok := spec.(*Spec)
 	if !ok {
-		return errors.New("Invalid Availibility Set Specification")
+		return errors.New("invalid availibility set specification")
 	}
 
 	// TODO: nodeCount is failing with error "Authentication failed. Roles not found for [GET] operation"
@@ -81,11 +84,11 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
 	logger := s.Scope.GetLogger()
 	existingSet, err := s.Get(ctx, spec)
-	if err != nil && !azurestackhci.ResourceNotFound(err) {
+	if err != nil && !isResourceNotFound(err) {
 		return err
 	}
 	if existingSet != nil {
-		logger.Info("Availability Set exists", "name", availabilitysetSpec.Name)
+		logger.Info("availability set exists", "name", availabilitysetSpec.Name)
 		return nil
 	}
 
@@ -105,7 +108,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		return errors.Wrapf(err, "cannot create availability set %s", availabilitysetSpec.Name)
 	}
 
-	logger.Info("successfully availability set", "name", availabilitysetSpec.Name)
+	logger.Info("successfully created availability set", "name", availabilitysetSpec.Name)
 	return err
 }
 
@@ -120,19 +123,14 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	logger.Info("deleting availability set", "name", availabilitysetSpec.Name)
 
 	existingSet, err := s.Get(ctx, spec)
-	// TODO: error for NotFound is not matching ResourceNotFound. Skip for testing
-	/*
-		if err != nil {
-
-			if azurestackhci.ResourceNotFound(err) {
-				// Already deleted or not created
-				logger.Info("availability set not found", availabilitysetSpec.Name)
-				return nil
-			}
-			return err
-
+	if err != nil {
+		if isResourceNotFound(err) {
+			// Already deleted or not created
+			logger.Info("availability set not found", availabilitysetSpec.Name)
+			return nil
 		}
-	*/
+		return err
+	}
 	if err != nil || existingSet == nil {
 		return nil
 	}
@@ -147,7 +145,7 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 		telemetry.WriteMocOperationLog(s.Scope.GetLogger(), telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.VirtualMachine,
 			telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), availabilitysetSpec.Name), nil, err)
 		if err != nil {
-			if !azurestackhci.ResourceNotFound(err) {
+			if !isResourceNotFound(err) {
 				return errors.Wrapf(err, "error in deleting availability set %s", availabilitysetSpec.Name)
 			}
 		}
@@ -175,4 +173,9 @@ func (s *Service) GetNodeCount(ctx context.Context, location string) (int, error
 	}
 
 	return len(*nodes), nil
+}
+
+func isResourceNotFound(err error) bool {
+	// TODO: Replace with azurestackhci.ResourceNotFound once mock client is replaced
+	return err == mocErrors.NotFound
 }
