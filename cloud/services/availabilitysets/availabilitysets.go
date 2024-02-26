@@ -58,23 +58,25 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		return errors.New("Invalid Availibility Set Specification")
 	}
 
-	nodeCount, err := s.GetNodeCount(ctx, availabilitysetSpec.Location)
-
-	if err != nil {
-		return errors.Wrapf(err, "Error getting node count")
-	}
-
-	// TODO: Confirm if node resources are created
-	if nodeCount == 0 {
-		return errors.New("Node count is zero")
-	}
-
-	// Availability Set is not supported on 1 Node cluster
-	// TODO: uncomment when mock client is removed
+	// TODO: nodeCount is failing with error "Authentication failed. Roles not found for [GET] operation"
 	/*
-		if nodeCount == 1 {
-			return nil
+		nodeCount, err := s.GetNodeCount(ctx, availabilitysetSpec.Location)
+
+		if err != nil {
+			return errors.Wrapf(err, "Error getting node count")
 		}
+
+		// TODO: Confirm if node resources are created
+		if nodeCount == 0 {
+			return errors.New("Node count is zero")
+		}
+
+		// Availability Set is not supported on 1 Node cluster
+		// TODO: uncomment when mock client is removed
+
+			if nodeCount == 1 {
+				return nil
+			}
 	*/
 
 	logger := s.Scope.GetLogger()
