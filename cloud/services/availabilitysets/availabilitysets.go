@@ -70,9 +70,12 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	}
 
 	// Availability Set is not supported on 1 Node cluster
-	if nodeCount == 1 {
-		return nil
-	}
+	// TODO: uncomment when mock client is removed
+	/*
+		if nodeCount == 1 {
+			return nil
+		}
+	*/
 
 	logger := s.Scope.GetLogger()
 	existingSet, err := s.Get(ctx, spec)

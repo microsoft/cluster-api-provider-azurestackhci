@@ -79,7 +79,8 @@ func (s *azureStackHCIVirtualMachineService) Create() (*infrav1.VM, error) {
 		Location: s.vmScope.Location(),
 	}
 
-	err := s.availabilitySetSvc.Reconcile(s.vmScope.Context, availabilitysetSpec.Name)
+	s.vmScope.Info("Creating availability set %s", "name", availabilitysetSpec.Name)
+	err := s.availabilitySetSvc.Reconcile(s.vmScope.Context, availabilitysetSpec)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Unable to create availability set %s", availabilitysetSpec.Name)
 	}
@@ -131,7 +132,8 @@ func (s *azureStackHCIVirtualMachineService) Delete() error {
 		Name: s.vmScope.AvailabilitySetName(),
 	}
 
-	err = s.availabilitySetSvc.Delete(s.vmScope.Context, availabilitysetSpec.Name)
+	s.vmScope.Info("Deleting availability set %s", "name", availabilitysetSpec.Name)
+	err = s.availabilitySetSvc.Delete(s.vmScope.Context, availabilitysetSpec)
 	if err != nil {
 		return errors.Wrapf(err, "Unable to delete os availability set %s", s.vmScope.Name())
 	}
@@ -225,7 +227,8 @@ func (s *azureStackHCIVirtualMachineService) createVirtualMachine(nicName string
 		Name: s.vmScope.AvailabilitySetName(),
 	}
 
-	_, err = s.availabilitySetSvc.Get(s.vmScope.Context, availabilitysetSpec.Name)
+	s.vmScope.Info("Getting availability set %s", "name", availabilitysetSpec.Name)
+	_, err = s.availabilitySetSvc.Get(s.vmScope.Context, availabilitysetSpec)
 	if err != nil {
 		if !azurestackhci.ResourceNotFound(err) {
 			return nil, errors.Wrapf(err, "Unable to find availability set %s", availabilitysetSpec.Name)
