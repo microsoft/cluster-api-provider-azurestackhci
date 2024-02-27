@@ -87,7 +87,8 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
 	logger := s.Scope.GetLogger()
 	existingSet, err := s.Get(ctx, spec)
-	if err != nil && !isResourceNotFound(err) {
+	if err != nil {
+		logger.Info("error in getting availability set", "name", availabilitysetSpec.Name)
 		return err
 	}
 	if existingSet != nil {
@@ -127,14 +128,12 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 
 	existingSet, err := s.Get(ctx, spec)
 	if err != nil {
-		if isResourceNotFound(err) {
-			// Already deleted or not created
-			logger.Info("availability set not found", availabilitysetSpec.Name)
-			return nil
-		}
+		logger.Info("error in getting availability set", "name", availabilitysetSpec.Name)
 		return err
 	}
-	if err != nil || existingSet == nil {
+
+	if existingSet == nil {
+		logger.Info("availability set not found", "name", availabilitysetSpec.Name)
 		return nil
 	}
 
@@ -148,9 +147,8 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 		telemetry.WriteMocOperationLog(s.Scope.GetLogger(), telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.VirtualMachine,
 			telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), availabilitysetSpec.Name), nil, err)
 		if err != nil {
-			if !isResourceNotFound(err) {
-				return errors.Wrapf(err, "error in deleting availability set %s", availabilitysetSpec.Name)
-			}
+			logger.Info("error in deleting availability set", "name", availabilitysetSpec.Name)
+			return err
 		}
 		logger.Info("successfully deleted availability set", "name", availabilitysetSpec.Name)
 	} else {
