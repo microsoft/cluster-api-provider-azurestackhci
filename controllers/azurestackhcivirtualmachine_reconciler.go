@@ -79,7 +79,7 @@ func (s *azureStackHCIVirtualMachineService) Create() (*infrav1.VM, error) {
 		Location: s.vmScope.Location(),
 	}
 
-	s.vmScope.Info("Creating availability set %s", "name", availabilitysetSpec.Name)
+	s.vmScope.Info("creating availability set %s", "name", availabilitysetSpec.Name)
 	err := s.availabilitySetSvc.Reconcile(s.vmScope.Context, availabilitysetSpec)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Unable to create availability set %s", availabilitysetSpec.Name)

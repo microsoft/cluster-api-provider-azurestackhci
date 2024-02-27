@@ -113,7 +113,7 @@ replace (
 	github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
 	github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.2
 	github.com/microsoft/moc => github.com/bgriddaluru/liwon-moc v1.0.0
-	github.com/microsoft/moc-sdk-for-go => github.com/bgriddaluru/liwon-moc-sdk-for-go v1.0.3
+	github.com/microsoft/moc-sdk-for-go => github.com/bgriddaluru/liwon-moc-sdk-for-go v1.0.6
 	github.com/miekg/dns => github.com/miekg/dns v1.1.25
 	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.9.23
 	github.com/nats-io/nkeys => github.com/nats-io/nkeys v0.4.6
