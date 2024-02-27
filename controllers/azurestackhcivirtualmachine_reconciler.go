@@ -28,7 +28,6 @@ import (
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/networkinterfaces"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/virtualmachines"
 	sdk_compute "github.com/microsoft/moc-sdk-for-go/services/compute"
-	"github.com/microsoft/moc/rpc/cloudagent/compute"
 	"github.com/pkg/errors"
 )
 
@@ -237,7 +236,7 @@ func (s *azureStackHCIVirtualMachineService) createVirtualMachine(nicName string
 	if exisistingset == nil {
 		availabilitysetSpec.Name = ""
 	} else {
-		avset := exisistingset.(compute.AvailabilitySet)
+		avset := exisistingset.(sdk_compute.AvailabilitySet)
 		s.vmScope.Info("using availability set", "name", avset.Name)
 	}
 
