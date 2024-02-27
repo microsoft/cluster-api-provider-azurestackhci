@@ -70,6 +70,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	nodeCount, err := s.GetNodeCount(ctx, availabilitysetSpec.Location)
 
 	if err != nil {
+		logger.Error(err, "error in getting node count")
 		logger.Info("error in getting node count", "name", availabilitysetSpec.Name)
 	} else {
 		logger.Info("successful node count get ", "count", nodeCount)
