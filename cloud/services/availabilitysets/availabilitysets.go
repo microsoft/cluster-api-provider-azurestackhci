@@ -63,14 +63,19 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	if !ok {
 		return errors.New("invalid availibility set specification")
 	}
+	logger := s.Scope.GetLogger()
 
 	// TODO: nodeCount is failing with error "Authentication failed. Roles not found for [GET] operation"
-	/*
-		nodeCount, err := s.GetNodeCount(ctx, availabilitysetSpec.Location)
 
-		if err != nil {
-			return errors.Wrapf(err, "Error getting node count")
-		}
+	nodeCount, err := s.GetNodeCount(ctx, availabilitysetSpec.Location)
+
+	if err != nil {
+		logger.Info("error in getting node count", "name", availabilitysetSpec.Name)
+	} else {
+		logger.Info("successful node count get ", "count", nodeCount)
+	}
+
+	/*
 
 		// TODO: Confirm if node resources are created
 		if nodeCount == 0 {
@@ -85,7 +90,6 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			}
 	*/
 
-	logger := s.Scope.GetLogger()
 	existingSet, err := s.Get(ctx, spec)
 	if err != nil {
 		logger.Info("error in getting availability set", "name", availabilitysetSpec.Name)
