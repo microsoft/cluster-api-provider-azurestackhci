@@ -28,6 +28,7 @@ import (
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/networkinterfaces"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/virtualmachines"
 	sdk_compute "github.com/microsoft/moc-sdk-for-go/services/compute"
+	"github.com/microsoft/moc/rpc/cloudagent/compute"
 	"github.com/pkg/errors"
 )
 
@@ -79,7 +80,7 @@ func (s *azureStackHCIVirtualMachineService) Create() (*infrav1.VM, error) {
 		Location: s.vmScope.Location(),
 	}
 
-	s.vmScope.Info("creating availability set %s", "name", availabilitysetSpec.Name)
+	s.vmScope.Info("creating availability set", "name", availabilitysetSpec.Name)
 	err := s.availabilitySetSvc.Reconcile(s.vmScope.Context, availabilitysetSpec)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Unable to create availability set %s", availabilitysetSpec.Name)
@@ -132,7 +133,7 @@ func (s *azureStackHCIVirtualMachineService) Delete() error {
 		Name: s.vmScope.AvailabilitySetName(),
 	}
 
-	s.vmScope.Info("Deleting availability set %s", "name", availabilitysetSpec.Name)
+	s.vmScope.Info("Deleting availability set", "name", availabilitysetSpec.Name)
 	err = s.availabilitySetSvc.Delete(s.vmScope.Context, availabilitysetSpec)
 	if err != nil {
 		return errors.Wrapf(err, "Unable to delete os availability set %s", s.vmScope.Name())
@@ -236,7 +237,8 @@ func (s *azureStackHCIVirtualMachineService) createVirtualMachine(nicName string
 	if exisistingset == nil {
 		availabilitysetSpec.Name = ""
 	} else {
-		s.vmScope.Info("using availability set", "name", availabilitysetSpec.Name)
+		avset := exisistingset.(compute.AvailabilitySet)
+		s.vmScope.Info("using availability set", "name", avset.Name)
 	}
 
 	vmInterface, err := s.virtualMachinesSvc.Get(s.vmScope.Context, vmSpec)

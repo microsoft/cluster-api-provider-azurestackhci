@@ -39,16 +39,19 @@ type Spec struct {
 
 func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error) {
 	logger := s.Scope.GetLogger()
+
 	availabilitysetSpec, ok := spec.(*Spec)
 	if !ok {
 		return compute.AvailabilitySet{}, errors.New("invalid availibility set specification")
 	}
+	logger.Info("attempting to get availability set", "name", availabilitysetSpec.Name)
 	availabilityset, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), availabilitysetSpec.Name)
 	if err != nil {
 		if isResourceNotFound(err) {
-			logger.Info("availability doesn't exists", "name", availabilitysetSpec.Name)
+			logger.Info("availability set doesn't exists", "name", availabilitysetSpec.Name)
 			return nil, nil
 		}
+		logger.Info("Error in finding availability set", "name", availabilitysetSpec.Name)
 		return nil, err
 	}
 	return (*availabilityset)[0], nil
