@@ -34,7 +34,7 @@ type Service struct {
 	Scope      scope.ScopeInterface
 }
 
-// getDisksClient creates a new availability set client.
+// getAvailabilitySetsClient creates a new availability set client.
 /*
 func getAvailabilitySetsClient(cloudAgentFqdn string, authorizer auth.Authorizer) availabilityset.AvailabilitySetClient {
 	availabilitysetClient, _ := availabilityset.NewAvailabilitySetClient(cloudAgentFqdn, authorizer)
@@ -42,7 +42,7 @@ func getAvailabilitySetsClient(cloudAgentFqdn string, authorizer auth.Authorizer
 }
 */
 
-// getDisksClient creates a new availability set mock client.
+// getAvailabilitySetsMockClient creates a new availability set mock client.
 func getAvailabilitySetsMockClient(cloudAgentFqdn string, authorizer auth.Authorizer) availabilityset.AvailabilitySetClient {
 	availabilitysetClient, _ := availabilityset.NewAvailabilitySetMockClient(cloudAgentFqdn, authorizer)
 	return *availabilitysetClient
