@@ -82,7 +82,7 @@ require (
 	go.uber.org/multierr v1.9.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
-	golang.org/x/net v0.19.0 // indirect
+	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/oauth2 v0.15.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/term v0.15.0 // indirect
@@ -112,8 +112,8 @@ replace (
 	github.com/elazarl/goproxy => github.com/elazarl/goproxy v0.0.0-20230731152917-f99041a5c027
 	github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
 	github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.2
-	github.com/microsoft/moc => github.com/bgriddaluru/liwon-moc v1.0.0
-	github.com/microsoft/moc-sdk-for-go => github.com/bgriddaluru/liwon-moc-sdk-for-go v1.0.7
+	github.com/microsoft/moc => github.com/jocardeMSFT/moc v0.14.1-0.20240226200714-320b2672b9e5
+	github.com/microsoft/moc-sdk-for-go => github.com/bgriddaluru/liwon-moc-sdk-for-go v1.1.0
 	github.com/miekg/dns => github.com/miekg/dns v1.1.25
 	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.9.23
 	github.com/nats-io/nkeys => github.com/nats-io/nkeys v0.4.6

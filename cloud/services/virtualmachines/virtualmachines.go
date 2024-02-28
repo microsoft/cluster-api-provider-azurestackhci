@@ -166,7 +166,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			HardwareProfile: &compute.HardwareProfile{
 				VMSize: compute.VirtualMachineSizeTypes(vmSpec.Size),
 			},
-			AvailabilitySetProfile: &compute.CloudSubResource{
+			AvailabilitySetProfile: &compute.AvailabilitySetReference{
 				Name:      to.StringPtr(vmSpec.AvailabilitySetName),
 				GroupName: to.StringPtr(s.Scope.GetResourceGroup()),
 			},

@@ -35,16 +35,8 @@ type Service struct {
 }
 
 // getAvailabilitySetsClient creates a new availability set client.
-/*
 func getAvailabilitySetsClient(cloudAgentFqdn string, authorizer auth.Authorizer) availabilityset.AvailabilitySetClient {
 	availabilitysetClient, _ := availabilityset.NewAvailabilitySetClient(cloudAgentFqdn, authorizer)
-	return *availabilitysetClient
-}
-*/
-
-// getAvailabilitySetsMockClient creates a new availability set mock client.
-func getAvailabilitySetsMockClient(cloudAgentFqdn string, authorizer auth.Authorizer) availabilityset.AvailabilitySetClient {
-	availabilitysetClient, _ := availabilityset.NewAvailabilitySetMockClient(cloudAgentFqdn, authorizer)
 	return *availabilitysetClient
 }
 
@@ -57,7 +49,7 @@ func getNodeClient(cloudAgentFqdn string, authorizer auth.Authorizer) node.NodeC
 func NewService(scope scope.ScopeInterface) *Service {
 	return &Service{
 		// TODO: Replace with getAvailabilitySetsClient
-		Client:     getAvailabilitySetsMockClient(scope.GetCloudAgentFqdn(), scope.GetAuthorizer()),
+		Client:     getAvailabilitySetsClient(scope.GetCloudAgentFqdn(), scope.GetAuthorizer()),
 		NodeClient: getNodeClient(scope.GetCloudAgentFqdn(), scope.GetAuthorizer()),
 		Scope:      scope,
 	}
