@@ -46,6 +46,7 @@ type VirtualMachineScopeParams struct {
 	Logger                      *logr.Logger
 	AzureStackHCIVirtualMachine *infrav1.AzureStackHCIVirtualMachine
 	Machine                     *clusterv1.Machine
+	AzureStackHCICluster        *infrav1.AzureStackHCICluster
 }
 
 // NewMachineScope creates a new VirtualMachineScope from the supplied parameters.
@@ -61,6 +62,10 @@ func NewVirtualMachineScope(params VirtualMachineScopeParams) (*VirtualMachineSc
 
 	if params.Machine == nil {
 		return nil, errors.New("machine is required when creating a VirtualMachineScope")
+	}
+
+	if params.AzureStackHCICluster == nil {
+		return nil, errors.New("azurestackhci cluster is required when creating a VirtualMachineScope")
 	}
 
 	if params.Logger == nil {
@@ -89,6 +94,7 @@ func NewVirtualMachineScope(params VirtualMachineScopeParams) (*VirtualMachineSc
 		client:                      params.Client,
 		AzureStackHCIVirtualMachine: params.AzureStackHCIVirtualMachine,
 		Machine:                     params.Machine,
+		AzureStackHCICluster:        params.AzureStackHCICluster,
 		AzureStackHCIClients:        params.AzureStackHCIClients,
 		Logger:                      *params.Logger,
 		patchHelper:                 helper,
@@ -106,6 +112,7 @@ type VirtualMachineScope struct {
 	AzureStackHCIClients
 	AzureStackHCIVirtualMachine *infrav1.AzureStackHCIVirtualMachine
 	Machine                     *clusterv1.Machine
+	AzureStackHCICluster        *infrav1.AzureStackHCICluster
 }
 
 // GetResourceGroup allows VirtualMachineScope to fulfill ScopeInterface and thus to be used by the cloud services.
@@ -264,4 +271,8 @@ func (m *VirtualMachineScope) AvailabilitySetName() string {
 	}
 
 	return ""
+}
+
+func (m *VirtualMachineScope) ClusterLocation() string {
+	return m.AzureStackHCICluster.Spec.Location
 }

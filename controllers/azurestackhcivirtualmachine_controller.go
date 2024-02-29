@@ -106,6 +106,28 @@ func (r *AzureStackHCIVirtualMachineReconciler) Reconcile(ctx context.Context, r
 		return reconcile.Result{}, nil
 	}
 
+	// Fetch the Cluster.
+	cluster, err := util.GetClusterFromMetadata(ctx, r.Client, machine.ObjectMeta)
+	if err != nil {
+		logger.Info("Machine is missing cluster label or cluster does not exist")
+		return reconcile.Result{}, nil
+	}
+
+	logger = logger.WithValues("cluster", cluster.Name)
+
+	azureStackHCICluster := &infrav1.AzureStackHCICluster{}
+
+	azureStackHCIClusterName := client.ObjectKey{
+		Namespace: machine.Namespace,
+		Name:      cluster.Spec.InfrastructureRef.Name,
+	}
+	if err := r.Client.Get(ctx, azureStackHCIClusterName, azureStackHCICluster); err != nil {
+		logger.Info("AzureStackHCICluster is not available yet")
+		return reconcile.Result{}, nil
+	}
+
+	logger = logger.WithValues("azureStackHCICluster", azureStackHCICluster.Name)
+
 	logger = logger.WithValues("machine", machine.Name)
 
 	// Create the machine scope
@@ -114,6 +136,7 @@ func (r *AzureStackHCIVirtualMachineReconciler) Reconcile(ctx context.Context, r
 		Client:                      r.Client,
 		AzureStackHCIVirtualMachine: azureStackHCIVirtualMachine,
 		Machine:                     machine,
+		AzureStackHCICluster:        azureStackHCICluster,
 	})
 	if err != nil {
 		r.Recorder.Eventf(azureStackHCIVirtualMachine, corev1.EventTypeWarning, "FailureCreateVMScope", errors.Wrapf(err, "failed to create VM scope").Error())

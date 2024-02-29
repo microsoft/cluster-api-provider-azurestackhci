@@ -65,8 +65,6 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	}
 	logger := s.Scope.GetLogger()
 
-	// TODO: nodeCount is failing with error "Authentication failed. Roles not found for [GET] operation"
-
 	nodeCount, err := s.GetNodeCount(ctx, availabilitysetSpec.Location)
 
 	if err != nil {
@@ -165,9 +163,6 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 
 func (s *Service) GetNodeCount(ctx context.Context, location string) (int, error) {
 	logger := s.Scope.GetLogger()
-	// TODO: Location is not populated in AzureStackHCIVirtualMachine CR. It needs to be popualted correctly or fetched from AzureStackHCICluster CR.
-	//       Remove hard-coded value once above issue is resolved.
-	location = "MocLocation"
 	nodes, err := s.NodeClient.Get(ctx, location, "")
 	if err != nil {
 		return 0, err
