@@ -21,9 +21,9 @@ import (
 	"context"
 
 	"github.com/Azure/go-autorest/autorest/to"
+	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/telemetry"
 	"github.com/microsoft/moc-sdk-for-go/services/compute"
-	mocErrors "github.com/microsoft/moc/pkg/errors"
 	"github.com/pkg/errors"
 )
 
@@ -178,5 +178,6 @@ func (s *Service) GetNodeCount(ctx context.Context, location string) (int, error
 
 func isResourceNotFound(err error) bool {
 	// TODO: Replace with azurestackhci.ResourceNotFound once mock client is replaced
-	return err == mocErrors.NotFound
+	// return err == mocErrors.NotFound
+	return azurestackhci.ResourceNotFound(err)
 }
