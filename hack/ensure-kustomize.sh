@@ -19,7 +19,7 @@ set -o nounset
 set -o pipefail
 
 GOPATH_BIN="$(go env GOPATH)/bin/"
-MINIMUM_KUSTOMIZE_VERSION=3.8.2
+MINIMUM_KUSTOMIZE_VERSION=v5.0.1
 
 # Ensure the kustomize tool exists and is a viable version, or installs it
 verify_kustomize_version() {
@@ -32,8 +32,11 @@ verify_kustomize_version() {
       if ! [ -d "${GOPATH_BIN}" ]; then
         mkdir -p "${GOPATH_BIN}"
       fi
-      curl -sLov "${GOPATH_BIN}/kustomize" https://github.com/kubernetes-sigs/kustomize/releases/download/v${MINIMUM_KUSTOMIZE_VERSION}/kustomize_${MINIMUM_KUSTOMIZE_VERSION}_linux_amd64 2>&1
+      curl -sLo "${GOPATH_BIN}/kustomize.tar.gz" https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/${MINIMUM_KUSTOMIZE_VERSION}/kustomize_${MINIMUM_KUSTOMIZE_VERSION}_linux_amd64.tar.gz -v
+      tar -xvf "${GOPATH_BIN}/kustomize.tar.gz" -C "${GOPATH_BIN}/"
       chmod +x "${GOPATH_BIN}/kustomize"
+      cp -v "${GOPATH_BIN}/kustomize" /usr/local/bin/kustomize
+      which kustomize
     else
       echo "Missing required binary in path: kustomize"
       return 2
@@ -53,4 +56,3 @@ EOF
 }
 
 verify_kustomize_version
-
