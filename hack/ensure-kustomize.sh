@@ -32,7 +32,7 @@ verify_kustomize_version() {
       if ! [ -d "${GOPATH_BIN}" ]; then
         mkdir -p "${GOPATH_BIN}"
       fi
-      curl -sLov "${GOPATH_BIN}/kustomize" https://github.com/kubernetes-sigs/kustomize/releases/download/v${MINIMUM_KUSTOMIZE_VERSION}/kustomize_${MINIMUM_KUSTOMIZE_VERSION}_linux_amd64
+      curl -sLov "${GOPATH_BIN}/kustomize" https://github.com/kubernetes-sigs/kustomize/releases/download/v${MINIMUM_KUSTOMIZE_VERSION}/kustomize_${MINIMUM_KUSTOMIZE_VERSION}_linux_amd64 2>&1
       chmod +x "${GOPATH_BIN}/kustomize"
     else
       echo "Missing required binary in path: kustomize"
