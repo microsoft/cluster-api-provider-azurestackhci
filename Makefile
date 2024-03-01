@@ -53,7 +53,7 @@ ifeq ($(GOARCH),)
 GOARCH := amd64
 endif
 
-# Directories.
+# Directories
 ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 TOOLS_DIR := hack/tools
 TOOLS_BIN_DIR := $(abspath $(TOOLS_DIR)/bin)
