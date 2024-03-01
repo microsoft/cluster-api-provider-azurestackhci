@@ -66,7 +66,7 @@ OUTPUT_BASE := --output-base=$(ROOT_DIR)
 # the current cluster API version
 CAPI_VERSION := v1.5.3
 
-# Binaries.
+# Binaries
 GO_INSTALL = ./scripts/go_install.sh
 
 # Binaries.
