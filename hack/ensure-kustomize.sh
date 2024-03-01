@@ -53,3 +53,4 @@ EOF
 }
 
 verify_kustomize_version
+
