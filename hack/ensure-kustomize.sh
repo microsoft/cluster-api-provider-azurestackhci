@@ -24,6 +24,7 @@ MINIMUM_KUSTOMIZE_VERSION=3.8.2
 # Ensure the kustomize tool exists and is a viable version, or installs it
 verify_kustomize_version() {
 
+  which curl
   # If kustomize is not available on the path, get it
   if ! [ -x "$(command -v kustomize)" ]; then
     if [[ "${OSTYPE}" == "linux-gnu" ]]; then
@@ -31,7 +32,7 @@ verify_kustomize_version() {
       if ! [ -d "${GOPATH_BIN}" ]; then
         mkdir -p "${GOPATH_BIN}"
       fi
-      curl -sLo "${GOPATH_BIN}/kustomize" https://github.com/kubernetes-sigs/kustomize/releases/download/v${MINIMUM_KUSTOMIZE_VERSION}/kustomize_${MINIMUM_KUSTOMIZE_VERSION}_linux_amd64
+      curl -sLov "${GOPATH_BIN}/kustomize" https://github.com/kubernetes-sigs/kustomize/releases/download/v${MINIMUM_KUSTOMIZE_VERSION}/kustomize_${MINIMUM_KUSTOMIZE_VERSION}_linux_amd64
       chmod +x "${GOPATH_BIN}/kustomize"
     else
       echo "Missing required binary in path: kustomize"
