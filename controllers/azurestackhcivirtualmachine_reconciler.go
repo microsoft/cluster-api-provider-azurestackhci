@@ -80,10 +80,9 @@ func (s *azureStackHCIVirtualMachineService) Create() (*infrav1.VM, error) {
 		Location: s.vmScope.ClusterLocation(),
 	}
 
-	s.vmScope.Info("creating availability set", "name", availabilitysetSpec.Name, "location", availabilitysetSpec.Location)
 	err := s.availabilitySetSvc.Reconcile(s.vmScope.Context, availabilitysetSpec)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Unable to create availability set %s", availabilitysetSpec.Name)
+		return nil, errors.Wrapf(err, "failed to create availability set %s", availabilitysetSpec.Name)
 	}
 
 	nicErr := s.reconcileNetworkInterface(nicName, ipconfigs)
@@ -133,10 +132,9 @@ func (s *azureStackHCIVirtualMachineService) Delete() error {
 		Name: s.vmScope.AvailabilitySetName(),
 	}
 
-	s.vmScope.Info("Deleting availability set", "name", availabilitysetSpec.Name)
 	err = s.availabilitySetSvc.Delete(s.vmScope.Context, availabilitysetSpec)
 	if err != nil {
-		return errors.Wrapf(err, "Unable to delete os availability set %s", s.vmScope.Name())
+		return errors.Wrapf(err, "Unable to delete availability set %s", s.vmScope.Name())
 	}
 
 	return nil
@@ -228,7 +226,6 @@ func (s *azureStackHCIVirtualMachineService) createVirtualMachine(nicName string
 		Name: s.vmScope.AvailabilitySetName(),
 	}
 
-	s.vmScope.Info("getting availability set", "name", availabilitysetSpec.Name)
 	exisistingset, err := s.availabilitySetSvc.Get(s.vmScope.Context, availabilitysetSpec)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error getting availability set")

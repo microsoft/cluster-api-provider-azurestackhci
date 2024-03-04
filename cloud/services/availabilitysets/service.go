@@ -48,7 +48,6 @@ func getNodeClient(cloudAgentFqdn string, authorizer auth.Authorizer) node.NodeC
 // NewService creates a new availability set service.
 func NewService(scope scope.ScopeInterface) *Service {
 	return &Service{
-		// TODO: Replace with getAvailabilitySetsClient
 		Client:     getAvailabilitySetsClient(scope.GetCloudAgentFqdn(), scope.GetAuthorizer()),
 		NodeClient: getNodeClient(scope.GetCloudAgentFqdn(), scope.GetAuthorizer()),
 		Scope:      scope,

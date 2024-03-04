@@ -44,16 +44,18 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 	if !ok {
 		return compute.AvailabilitySet{}, errors.New("invalid availibility set specification")
 	}
-	logger.Info("attempting to get availability set", "name", availabilitysetSpec.Name)
+	logger.Info("finding availability set", "name", availabilitysetSpec.Name)
 	availabilityset, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), availabilitysetSpec.Name)
 	if err != nil {
-		if isResourceNotFound(err) {
+		if azurestackhci.ResourceNotFound(err) {
 			logger.Info("availability set doesn't exists", "name", availabilitysetSpec.Name)
 			return nil, nil
 		}
 		logger.Info("Error in finding availability set", "name", availabilitysetSpec.Name)
 		return nil, err
 	}
+	logger.Info("successfully found availability set", "name", availabilitysetSpec.Name)
+
 	return (*availabilityset)[0], nil
 }
 
@@ -65,29 +67,24 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	}
 	logger := s.Scope.GetLogger()
 
+	logger.Info("creating availability set", "name", availabilitysetSpec.Name, "location", availabilitysetSpec.Location)
+
 	nodeCount, err := s.GetNodeCount(ctx, availabilitysetSpec.Location)
 
 	if err != nil {
 		logger.Error(err, "error in getting node count")
-		logger.Info("error in getting node count", "name", availabilitysetSpec.Name)
-	} else {
-		logger.Info("successful node count get ", "count", nodeCount)
+		return err
 	}
 
-	/*
+	if nodeCount == 0 {
+		return errors.New("Node count is zero")
+	}
 
-		// TODO: Confirm if node resources are created
-		if nodeCount == 0 {
-			return errors.New("Node count is zero")
-		}
-
-		// Availability Set is not supported on 1 Node cluster
-		// TODO: uncomment when mock client is removed
-
-			if nodeCount == 1 {
-				return nil
-			}
-	*/
+	// Availability set is not supported on 1 node.
+	if nodeCount == 1 {
+		logger.Info("availability set is not supported on 1 node")
+		return nil
+	}
 
 	existingSet, err := s.Get(ctx, spec)
 	if err != nil {
@@ -98,8 +95,6 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		logger.Info("availability set exists", "name", availabilitysetSpec.Name)
 		return nil
 	}
-
-	logger.Info("creating availability set", "name", availabilitysetSpec.Name)
 
 	newAvailbilitySet := compute.AvailabilitySet{
 		Name:                     to.StringPtr(availabilitysetSpec.Name),
@@ -174,10 +169,4 @@ func (s *Service) GetNodeCount(ctx context.Context, location string) (int, error
 	}
 
 	return len(*nodes), nil
-}
-
-func isResourceNotFound(err error) bool {
-	// TODO: Replace with azurestackhci.ResourceNotFound once mock client is replaced
-	// return err == mocErrors.NotFound
-	return azurestackhci.ResourceNotFound(err)
 }
