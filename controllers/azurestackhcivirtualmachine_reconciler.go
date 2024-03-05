@@ -82,7 +82,7 @@ func (s *azureStackHCIVirtualMachineService) Create() (*infrav1.VM, error) {
 
 	err := s.availabilitySetSvc.Reconcile(s.vmScope.Context, availabilitysetSpec)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to create availability set %s", availabilitysetSpec.Name)
+		s.vmScope.Error(err, "failed to create availability set", "name", availabilitysetSpec.Name)
 	}
 
 	nicErr := s.reconcileNetworkInterface(nicName, ipconfigs)
