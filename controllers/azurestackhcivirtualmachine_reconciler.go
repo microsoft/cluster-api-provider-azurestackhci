@@ -165,6 +165,11 @@ func (s *azureStackHCIVirtualMachineService) reconcileDisk(disk infrav1.OSDisk) 
 }
 
 func (s *azureStackHCIVirtualMachineService) reconcileNetworkInterface(nicName string, ipconfigs networkinterfaces.IPConfigurations) error {
+	// ignore nic creation for baremetal host
+	if s.vmScope.AzureStackHCIVirtualMachine.Spec.HostType == infrav1.HostTypeBareMetal {
+		return nil
+	}
+
 	networkInterfaceSpec := &networkinterfaces.Spec{
 		Name:             nicName,
 		VnetName:         s.vmScope.VnetName(),
