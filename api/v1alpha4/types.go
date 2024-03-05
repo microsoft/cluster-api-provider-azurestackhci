@@ -224,15 +224,3 @@ const (
 	ValueReady                           = "true"
 	AnnotationControlPlaneReady          = "azurestackhci.cluster.sigs.k8s.io/control-plane-ready"
 )
-
-// HostType specifies what type of machine a node should be deployed on.
-type HostType string
-
-const (
-	// HostTypeVM specifies that the node should be deployed on a virtual machine.
-	// Default value.
-	HostTypeVM = HostType("vm")
-
-	// HostTypeBareMetal specifies that the node should be deployed on a bare metal machine.
-	HostTypeBareMetal = HostType("baremetal")
-)

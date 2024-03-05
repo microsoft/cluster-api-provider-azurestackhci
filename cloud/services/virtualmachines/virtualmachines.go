@@ -265,7 +265,7 @@ func (s *Service) createOrUpdateBareMetal(ctx context.Context, virtualMachine *c
 		return nil, errors.Wrap(err, "Failed to create baremetal machine.")
 	}
 
-	klog.V(2).Infof("Successfully created baremetal machine %s ", bareMetalMachine.Name)
+	//	klog.V(2).Infof("Successfully created baremetal machine %s ", bareMetalMachine.Name)
 	return bareMetalMachine, nil
 }
 

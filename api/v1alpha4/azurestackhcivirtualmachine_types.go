@@ -49,8 +49,6 @@ type AzureStackHCIVirtualMachineSpec struct {
 	BackendPoolNames []string `json:"backendPoolNames,omitempty"`
 
 	AdditionalSSHKeys []string `json:"additionalSSHKeys,omitempty"`
-	// +optional
-	HostType HostType `json:"hostType,omitempty"`
 }
 
 // AzureStackHCIVirtualMachineStatus defines the observed state of AzureStackHCIVirtualMachine

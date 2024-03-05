@@ -32,8 +32,6 @@ type AzureStackHCILoadBalancerSpec struct {
 	SSHPublicKey string `json:"sshPublicKey"`
 	Image        Image  `json:"image"`
 	VMSize       string `json:"vmSize"`
-	// +optional
-	HostType HostType `json:"hostType,omitempty"`
 	// Number of desired loadbalancer machines. Defaults to 1.
 	// This is a pointer to distinguish between explicit zero and not specified.
 	// +optional
