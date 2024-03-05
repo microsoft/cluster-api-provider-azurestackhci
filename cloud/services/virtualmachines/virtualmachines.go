@@ -108,16 +108,22 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	}
 
 	logger := s.Scope.GetLogger()
-	logger.Info("getting nic", "nic", vmSpec.NICName)
-	nicInterface, err := networkinterfaces.NewService(s.Scope).Get(ctx, &networkinterfaces.Spec{Name: vmSpec.NICName})
-	if err != nil {
-		return err
+	nicStr := ""
+
+	// ignore for baremetal
+	if vmSpec.HostType != infrav1.HostTypeBareMetal {
+		logger.Info("getting nic", "nic", vmSpec.NICName)
+		nicInterface, err := networkinterfaces.NewService(s.Scope).Get(ctx, &networkinterfaces.Spec{Name: vmSpec.NICName})
+		if err != nil {
+			return err
+		}
+		nic, ok := nicInterface.(network.Interface)
+		if !ok {
+			return errors.New("error getting network interface")
+		}
+		logger.Info("got nic", "nic", vmSpec.NICName)
+		nicStr = *nic.Name
 	}
-	nic, ok := nicInterface.(network.Interface)
-	if !ok {
-		return errors.New("error getting network interface")
-	}
-	logger.Info("got nic", "nic", vmSpec.NICName)
 
 	logger.Info("creating vm",
 		"Name", vmSpec.Name,
@@ -176,7 +182,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			NetworkProfile: &compute.NetworkProfile{
 				NetworkInterfaces: &[]compute.NetworkInterfaceReference{
 					{
-						ID: nic.Name,
+						ID: &nicStr,
 					},
 				},
 			},
