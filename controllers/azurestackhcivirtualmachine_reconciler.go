@@ -80,9 +80,9 @@ func (s *azureStackHCIVirtualMachineService) Create() (*infrav1.VM, error) {
 		Location: s.vmScope.ClusterLocation(),
 	}
 
-	err := s.availabilitySetSvc.Reconcile(s.vmScope.Context, availabilitysetSpec)
-	if err != nil {
-		s.vmScope.Error(err, "failed to create availability set", "name", availabilitysetSpec.Name)
+	avSeterr := s.availabilitySetSvc.Reconcile(s.vmScope.Context, availabilitysetSpec)
+	if avSeterr != nil {
+		return nil, errors.Wrapf(avSeterr, "failed to create avset %s for machine %s", availabilitysetSpec.Name, s.vmScope.Name())
 	}
 
 	nicErr := s.reconcileNetworkInterface(nicName, ipconfigs)
