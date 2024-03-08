@@ -87,7 +87,8 @@ func (s *azureStackHCIVirtualMachineService) Create() (*infrav1.VM, error) {
 // Delete reconciles all the services in pre determined order
 func (s *azureStackHCIVirtualMachineService) Delete() error {
 	vmSpec := &virtualmachines.Spec{
-		Name: s.vmScope.Name(),
+		Name:     s.vmScope.Name(),
+		HostType: s.vmScope.AzureStackHCIVirtualMachine.Spec.HostType,
 	}
 
 	err := s.virtualMachinesSvc.Delete(s.vmScope.Context, vmSpec)
@@ -120,7 +121,8 @@ func (s *azureStackHCIVirtualMachineService) Delete() error {
 func (s *azureStackHCIVirtualMachineService) VMIfExists() (*infrav1.VM, error) {
 
 	vmSpec := &virtualmachines.Spec{
-		Name: s.vmScope.Name(),
+		Name:     s.vmScope.Name(),
+		HostType: s.vmScope.AzureStackHCIVirtualMachine.Spec.HostType,
 	}
 	vmInterface, err := s.virtualMachinesSvc.Get(s.vmScope.Context, vmSpec)
 
@@ -163,6 +165,11 @@ func (s *azureStackHCIVirtualMachineService) reconcileDisk(disk infrav1.OSDisk) 
 }
 
 func (s *azureStackHCIVirtualMachineService) reconcileNetworkInterface(nicName string, ipconfigs networkinterfaces.IPConfigurations) error {
+	// ignore nic creation for baremetal host
+	if s.vmScope.AzureStackHCIVirtualMachine.Spec.HostType == infrav1.HostTypeBareMetal {
+		return nil
+	}
+
 	networkInterfaceSpec := &networkinterfaces.Spec{
 		Name:             nicName,
 		VnetName:         s.vmScope.VnetName(),
@@ -196,7 +203,8 @@ func (s *azureStackHCIVirtualMachineService) createVirtualMachine(nicName string
 	}
 
 	vmSpec := &virtualmachines.Spec{
-		Name: s.vmScope.Name(),
+		Name:     s.vmScope.Name(),
+		HostType: s.vmScope.AzureStackHCIVirtualMachine.Spec.HostType,
 	}
 
 	vmInterface, err := s.virtualMachinesSvc.Get(s.vmScope.Context, vmSpec)
@@ -239,6 +247,7 @@ func (s *azureStackHCIVirtualMachineService) createVirtualMachine(nicName string
 			Zone:             vmZone,
 			VMType:           vmType,
 			StorageContainer: s.vmScope.StorageContainer(),
+			HostType:         s.vmScope.AzureStackHCIVirtualMachine.Spec.HostType,
 		}
 
 		err = s.virtualMachinesSvc.Reconcile(s.vmScope.Context, vmSpec)
