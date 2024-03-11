@@ -53,9 +53,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 		return network.Interface{}, errors.New("invalid network interface specification")
 	}
 	nic, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), nicSpec.Name)
-	if err != nil && azurestackhci.ResourceNotFound(err) {
-		return nil, errors.Wrapf(err, "network interface %s not found", nicSpec.Name)
-	} else if err != nil {
+	if err != nil {
 		return nil, err
 	}
 	return (*nic)[0], nil
