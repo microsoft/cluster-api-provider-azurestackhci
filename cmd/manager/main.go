@@ -26,8 +26,6 @@ import (
 	"os"
 	"time"
 
-	infrav1alpha3 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha3"
-	infrav1alpha4 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1alpha4"
 	infrav1beta1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1"
 
 	// +kubebuilder:scaffold:imports
@@ -58,8 +56,6 @@ func init() {
 
 	_ = clientgoscheme.AddToScheme(scheme)
 	_ = clusterv1.AddToScheme(scheme)
-	_ = infrav1alpha3.AddToScheme(scheme)
-	_ = infrav1alpha4.AddToScheme(scheme)
 	_ = infrav1beta1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
