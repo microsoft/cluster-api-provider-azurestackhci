@@ -28,8 +28,7 @@ import (
 )
 
 const (
-	FaultDomainCount = 2
-	AffinityType     = "weak"
+	AffinityType = "weak"
 )
 
 type Spec struct {
@@ -99,7 +98,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	newAvailbilitySet := compute.AvailabilitySet{
 		Name:                     to.StringPtr(availabilitysetSpec.Name),
 		Type:                     to.StringPtr(AffinityType),
-		PlatformFaultDomainCount: to.Int32Ptr(int32(FaultDomainCount)),
+		PlatformFaultDomainCount: to.Int32Ptr(int32(nodeCount)),
 	}
 
 	_, err = s.Client.Create(ctx, s.Scope.GetResourceGroup(), availabilitysetSpec.Name, &newAvailbilitySet)
