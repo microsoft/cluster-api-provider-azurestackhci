@@ -68,6 +68,14 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
 	logger.Info("creating availability set", "name", availabilitysetSpec.Name, "location", availabilitysetSpec.Location)
 
+	if availabilitysetSpec.Name == "" {
+		return errors.New("invalid avalability set name")
+	}
+
+	if availabilitysetSpec.Location == "" {
+		return errors.New("invalid avalability set location")
+	}
+
 	nodeCount, err := s.GetNodeCount(ctx, availabilitysetSpec.Location)
 
 	if err != nil {
