@@ -90,7 +90,7 @@ func (s *azureStackHCIVirtualMachineService) Create() (*infrav1.VM, error) {
 		return nil, errors.Wrapf(nicErr, "failed to create nic %s for machine %s", nicName, s.vmScope.Name())
 	}
 
-	vm, vmErr := s.createVirtualMachine(nicName)
+	vm, vmErr := s.createVirtualMachine(nicName, availabilitysetSpec.Name)
 	if vmErr != nil {
 		return nil, errors.Wrapf(vmErr, "failed to create vm %s ", s.vmScope.Name())
 	}
@@ -201,7 +201,7 @@ func (s *azureStackHCIVirtualMachineService) reconcileNetworkInterface(nicName s
 	return err
 }
 
-func (s *azureStackHCIVirtualMachineService) createVirtualMachine(nicName string) (*infrav1.VM, error) {
+func (s *azureStackHCIVirtualMachineService) createVirtualMachine(nicName string, availabilitysetName string) (*infrav1.VM, error) {
 	var vm *infrav1.VM
 	decodedKeys := []string{}
 	decoded, err := base64.StdEncoding.DecodeString(s.vmScope.AzureStackHCIVirtualMachine.Spec.SSHPublicKey)
@@ -220,22 +220,6 @@ func (s *azureStackHCIVirtualMachineService) createVirtualMachine(nicName string
 
 	vmSpec := &virtualmachines.Spec{
 		Name: s.vmScope.Name(),
-	}
-
-	availabilitysetSpec := &availabilitysets.Spec{
-		Name: s.vmScope.AvailabilitySetName(),
-	}
-
-	exisistingset, err := s.availabilitySetSvc.Get(s.vmScope.Context, availabilitysetSpec)
-	if err != nil {
-		return nil, errors.Wrapf(err, "error getting availability set")
-
-	}
-	if exisistingset == nil {
-		availabilitysetSpec.Name = ""
-	} else {
-		avset := exisistingset.(sdk_compute.AvailabilitySet)
-		s.vmScope.Info("using availability set", "name", avset.Name)
 	}
 
 	vmInterface, err := s.virtualMachinesSvc.Get(s.vmScope.Context, vmSpec)
@@ -278,7 +262,7 @@ func (s *azureStackHCIVirtualMachineService) createVirtualMachine(nicName string
 			Zone:                vmZone,
 			VMType:              vmType,
 			StorageContainer:    s.vmScope.StorageContainer(),
-			AvailabilitySetName: availabilitysetSpec.Name,
+			AvailabilitySetName: availabilitysetName,
 		}
 
 		err = s.virtualMachinesSvc.Reconcile(s.vmScope.Context, vmSpec)
