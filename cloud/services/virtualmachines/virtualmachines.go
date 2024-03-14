@@ -166,11 +166,14 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			HardwareProfile: &compute.HardwareProfile{
 				VMSize: compute.VirtualMachineSizeTypes(vmSpec.Size),
 			},
-			AvailabilitySetProfile: &compute.AvailabilitySetReference{
-				Name:      to.StringPtr(vmSpec.AvailabilitySetName),
-				GroupName: to.StringPtr(s.Scope.GetResourceGroup()),
-			},
 		},
+	}
+
+	if vmSpec.AvailabilitySetName != "" {
+		virtualMachine.VirtualMachineProperties.AvailabilitySetProfile = &compute.AvailabilitySetReference{
+			Name:      to.StringPtr(vmSpec.AvailabilitySetName),
+			GroupName: to.StringPtr(s.Scope.GetResourceGroup()),
+		}
 	}
 
 	if vmSpec.Image.OSType == infrav1.OSTypeWindows || vmSpec.Image.OSType == infrav1.OSTypeWindows2022 {

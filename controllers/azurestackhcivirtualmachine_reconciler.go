@@ -85,6 +85,14 @@ func (s *azureStackHCIVirtualMachineService) Create() (*infrav1.VM, error) {
 		return nil, errors.Wrapf(avSeterr, "failed to create avset %s for machine %s", availabilitysetSpec.Name, s.vmScope.Name())
 	}
 
+	avset, err := s.availabilitySetSvc.Get(s.vmScope.Context, availabilitysetSpec)
+	if err != nil {
+		return nil, errors.Wrapf(avSeterr, "failed to get avset %s for machine %s", availabilitysetSpec.Name, s.vmScope.Name())
+	}
+	if avset == nil {
+		availabilitysetSpec.Name = ""
+	}
+
 	nicErr := s.reconcileNetworkInterface(nicName, ipconfigs)
 	if nicErr != nil {
 		return nil, errors.Wrapf(nicErr, "failed to create nic %s for machine %s", nicName, s.vmScope.Name())
