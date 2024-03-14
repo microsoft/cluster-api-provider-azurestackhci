@@ -109,11 +109,9 @@ func (r *AzureStackHCIVirtualMachineReconciler) Reconcile(ctx context.Context, r
 	// Fetch the Cluster.
 	cluster, err := util.GetClusterFromMetadata(ctx, r.Client, machine.ObjectMeta)
 	if err != nil {
-		logger.Info("Machine is missing cluster label or cluster does not exist")
+		logger.Info("Machine is missing cluster label or could not get cluster for machine", "name", machine.Name)
 		return reconcile.Result{}, nil
 	}
-
-	logger = logger.WithValues("cluster", cluster.Name)
 
 	azureStackHCICluster := &infrav1.AzureStackHCICluster{}
 
