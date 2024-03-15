@@ -59,6 +59,9 @@ type AzureStackHCIMachineSpec struct {
 
 	// +optional
 	NetworkInterfaces NetworkInterfaces `json:"networkInterfaces,omitempty"`
+
+	// +optional
+	AvailabilitySetName string `json:"availabilitySetName"`
 }
 
 // AzureStackHCIMachineStatus defines the observed state of AzureStackHCIMachine
