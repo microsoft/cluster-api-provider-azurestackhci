@@ -49,9 +49,6 @@ type AzureStackHCIClusterSpec struct {
 
 	// Management is true when the cluster is a Management Cluster.
 	Management bool `json:"management,omitempty"`
-
-	// +optional
-	AvailabilitySetName string `json:"availabilitySetName,omitempty"`
 }
 
 // AzureStackHCIClusterStatus defines the observed state of AzureStackHCICluster
