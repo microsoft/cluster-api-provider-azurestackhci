@@ -20,6 +20,7 @@ package nodes
 import (
 	"context"
 	"errors"
+	"fmt"
 )
 
 type Spec struct {
@@ -48,9 +49,11 @@ func (s *Service) GetCount(ctx context.Context, spec interface{}) (int, error) {
 }
 
 func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
-	return nil
+	s.Scope.GetLogger().Info("Reconciling nodes is not supported")
+	return fmt.Errorf("Reconciling nodes is not supported")
 }
 
 func (s *Service) Delete(ctx context.Context, spec interface{}) error {
-	return nil
+	s.Scope.GetLogger().Info("Deleting nodes is not supported")
+	return fmt.Errorf("Deleting nodes is not supported")
 }
