@@ -19,6 +19,7 @@ package availabilitysets
 
 import (
 	"context"
+	"sync"
 
 	"github.com/Azure/go-autorest/autorest/to"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
@@ -35,6 +36,8 @@ type Spec struct {
 	Name     string
 	Location string
 }
+
+var mut sync.Mutex
 
 func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error) {
 	logger := s.Scope.GetLogger()
@@ -93,6 +96,9 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		return nil
 	}
 
+	mut.Lock()
+	defer mut.Unlock()
+
 	existingSet, err := s.Get(ctx, spec)
 	if err != nil {
 		logger.Info("error in getting availability set", "name", availabilitysetSpec.Name)
@@ -130,6 +136,9 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 
 	logger := s.Scope.GetLogger()
 	logger.Info("deleting availability set", "name", availabilitysetSpec.Name)
+
+	mut.Lock()
+	defer mut.Unlock()
 
 	existingSet, err := s.Get(ctx, spec)
 	if err != nil {
