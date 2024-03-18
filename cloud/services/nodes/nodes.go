@@ -31,7 +31,7 @@ func (s *Service) GetCount(ctx context.Context, spec interface{}) (int, error) {
 
 	nodeSpec, ok := spec.(*Spec)
 	if !ok {
-		return 0, errors.New("invalid availibility set specification")
+		return 0, errors.New("invalid node specification")
 	}
 
 	nodes, err := s.Client.Get(ctx, nodeSpec.Location, "")
