@@ -23,6 +23,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/to"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
+	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/nodes"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/telemetry"
 	"github.com/microsoft/moc-sdk-for-go/services/compute"
 	"github.com/pkg/errors"
@@ -79,7 +80,12 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		return errors.New("invalid avalability set location")
 	}
 
-	nodeCount, err := s.GetNodeCount(ctx, availabilitysetSpec.Location)
+	nodeSvc := nodes.NewService(s.Scope)
+	nodeSpec := nodes.Spec{
+		Location: availabilitysetSpec.Location,
+	}
+
+	nodeCount, err := nodeSvc.GetCount(ctx, nodeSpec)
 
 	if err != nil {
 		logger.Error(err, "error in getting node count")
@@ -170,19 +176,4 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	}
 
 	return nil
-}
-
-func (s *Service) GetNodeCount(ctx context.Context, location string) (int, error) {
-	logger := s.Scope.GetLogger()
-	nodes, err := s.NodeClient.Get(ctx, location, "")
-	if err != nil {
-		return 0, err
-	}
-
-	if nodes == nil {
-		logger.Info("Empty node resources")
-		return 0, nil
-	}
-
-	return len(*nodes), nil
 }
