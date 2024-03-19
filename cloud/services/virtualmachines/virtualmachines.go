@@ -107,6 +107,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		"Image", vmSpec.Image,
 		"OSDisk", vmSpec.OSDisk,
 		"VMType", vmSpec.VMType,
+		"AvailabilitySetName", vmSpec.AvailabilitySetName,
 	)
 
 	sshKeyData := vmSpec.SSHKeyData
