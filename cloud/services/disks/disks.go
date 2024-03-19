@@ -39,9 +39,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 		return storage.VirtualHardDisk{}, errors.New("Invalid Disk Specification")
 	}
 	disk, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), "", diskSpec.Name)
-	if err != nil && azurestackhci.ResourceNotFound(err) {
-		return nil, errors.Wrapf(err, "disk %s not found", diskSpec.Name)
-	} else if err != nil {
+	if err != nil {
 		return nil, err
 	}
 	return (*disk)[0], nil

@@ -21,7 +21,6 @@ import (
 	"context"
 	"fmt"
 
-	azhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/moc-sdk-for-go/services/network"
 	"github.com/pkg/errors"
 )
@@ -40,9 +39,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 	}
 
 	vp, err := s.Client.Get(ctx, vpSpec.Location, vpSpec.Name)
-	if err != nil && azhci.ResourceNotFound(err) {
-		return nil, errors.Wrapf(err, "vippool %s not found", vpSpec.Name)
-	} else if err != nil {
+	if err != nil {
 		return nil, err
 	}
 	//If the user wants to get all the vippools, but none exist, cloudagent will return
