@@ -43,6 +43,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
+	ctrlmgr "sigs.k8s.io/controller-runtime/pkg/manager"
 
 	"github.com/microsoft/cluster-api-provider-azurestackhci/controllers"
 )
