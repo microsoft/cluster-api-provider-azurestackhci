@@ -7,5 +7,5 @@ spec:
   template:
     spec:
       containers:
-      - image: akshci.azurecr.io/cloud-operator-dev:pavanneerudu-caphlivessprobe-test7
+      - image: mocimages.azurecr.io/caphcontroller:1.1.3
         name: manager
