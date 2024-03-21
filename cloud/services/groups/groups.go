@@ -44,9 +44,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 		return cloud.Group{}, errors.New("Invalid group specification")
 	}
 	group, err := s.Client.Get(ctx, groupSpec.Location, groupSpec.Name)
-	if err != nil && azurestackhci.ResourceNotFound(err) {
-		return nil, errors.Wrapf(err, "group %s not found in location %s", groupSpec.Name, groupSpec.Location)
-	} else if err != nil {
+	if err != nil {
 		return nil, err
 	}
 	return (*group)[0], nil

@@ -100,17 +100,6 @@ func (r *azureStackHCIClusterReconciler) Delete() error {
 		}
 	}
 
-	groupSpec := &groups.Spec{
-		Name:     r.scope.GetResourceGroup(),
-		Location: r.scope.Location(),
-	}
-
-	// a group is deleted only if it was created by azureStackHCIClusterReconciler
-	// which has tag "ownedBy: caph"
-	if err := r.groupSvc.Delete(r.scope.Context, groupSpec); err != nil {
-		return errors.Wrapf(err, "failed to delete group %s for cluster %s", r.scope.GetResourceGroup(), r.scope.Name())
-	}
-
 	vnetSpec := &virtualnetworks.Spec{
 		Name: r.scope.Vnet().Name,
 		CIDR: azurestackhci.DefaultVnetCIDR,
@@ -125,6 +114,17 @@ func (r *azureStackHCIClusterReconciler) Delete() error {
 		if !azurestackhci.ResourceNotFound(err) {
 			return errors.Wrapf(err, "failed to delete virtual network %s for cluster %s", r.scope.Vnet().Name, r.scope.Name())
 		}
+	}
+
+	groupSpec := &groups.Spec{
+		Name:     r.scope.GetResourceGroup(),
+		Location: r.scope.Location(),
+	}
+
+	// a group is deleted only if it was created by azureStackHCIClusterReconciler
+	// which has tag "ownedBy: caph"
+	if err := r.groupSvc.Delete(r.scope.Context, groupSpec); err != nil {
+		return errors.Wrapf(err, "failed to delete group %s for cluster %s", r.scope.GetResourceGroup(), r.scope.Name())
 	}
 
 	return nil

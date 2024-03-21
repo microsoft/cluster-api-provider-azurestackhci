@@ -45,9 +45,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 	}
 
 	lb, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), lbSpec.Name)
-	if err != nil && azurestackhci.ResourceNotFound(err) {
-		return nil, errors.Wrapf(err, "loadbalancer %s not found", lbSpec.Name)
-	} else if err != nil {
+	if err != nil {
 		return nil, err
 	}
 	return (*lb)[0], nil

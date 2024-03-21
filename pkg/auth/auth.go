@@ -35,9 +35,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
+	"k8s.io/klog/v2/klogr"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
 var (
@@ -59,7 +59,7 @@ func GetAuthorizerFromKubernetesCluster(ctx context.Context, cloudFqdn string) (
 	}
 	config.Timeout = 10 * time.Second
 
-	logger := zap.New(zap.UseDevMode(true))
+	logger := klogr.New()
 	c, err := client.New(config, client.Options{Scheme: Scheme})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create a client")

@@ -38,9 +38,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (interface{}, error
 		return security.KeyVault{}, errors.New("Invalid keyvault specification")
 	}
 	vault, err := s.Client.Get(ctx, s.Scope.GetResourceGroup(), vaultSpec.Name)
-	if err != nil && azurestackhci.ResourceNotFound(err) {
-		return nil, errors.Wrapf(err, "keyvault %s not found", vaultSpec.Name)
-	} else if err != nil {
+	if err != nil {
 		return nil, err
 	}
 	return (*vault)[0], nil

@@ -54,6 +54,8 @@ spec:
                         description: AllocatePublicIP allows the ability to create
                           dynamic public ips for machines where this value is true.
                         type: boolean
+                      availabilitySetName:
+                        type: string
                       availabilityZone:
                         properties:
                           enabled:

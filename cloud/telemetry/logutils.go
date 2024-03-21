@@ -75,12 +75,7 @@ func WriteMocOperationLog(logger logr.Logger, operation Operation, crResourceNam
 		Message:        message,
 	}
 
-	jsonData, serializeError := json.Marshal(oplog)
-	if serializeError != nil {
-		logger.Error(serializeError, "Unable to serialize operation log object.", "resourceName", crResourceName)
-	} else {
-		logger.Info(string(jsonData))
-	}
+	logger.Info("Record Moc Operation", "telemetry", oplog)
 }
 
 // RecordHybridAKSCRDChange need to be called when CRD changed.
@@ -103,17 +98,7 @@ func RecordHybridAKSCRDChange(logger logr.Logger, parentResource string, resourc
 		Message:        errMessage,
 	}
 
-	jsonData, serializeError := json.Marshal(oplog)
-	if serializeError != nil {
-		logger.Error(serializeError, "Unable to serialize operation log object",
-			"timestamp", time.Now().Format(time.RFC3339),
-			"parent_resource", parentResource,
-			"resource", resource,
-			"filter_keyword", "RESOURCE_ACTION",
-			"action", action)
-	} else {
-		logger.Info(string(jsonData))
-	}
+	logger.Info("Record HybridAKS CRD Change", "telemetry", oplog)
 }
 
 func GenerateMocResourceName(nameSegments ...string) string {

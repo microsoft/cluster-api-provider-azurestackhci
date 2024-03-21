@@ -36,14 +36,13 @@ import (
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	cgrecord "k8s.io/client-go/tools/record"
 	"k8s.io/klog/v2"
+	"k8s.io/klog/v2/klogr"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/cluster-api/feature"
 	"sigs.k8s.io/cluster-api/util/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-	ctrlmgr "sigs.k8s.io/controller-runtime/pkg/manager"
 
 	"github.com/microsoft/cluster-api-provider-azurestackhci/controllers"
 )
@@ -202,7 +201,7 @@ func main() {
 		}()
 	}
 
-	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
+	ctrl.SetLogger(klogr.New())
 
 	// Machine and cluster operations can create enough events to trigger the event recorder spam filter
 	// Setting the burst size higher ensures all events will be recorded and submitted to the API
