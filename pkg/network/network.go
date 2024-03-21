@@ -6,38 +6,16 @@ import (
 	"net/http"
 	"time"
 
-	"k8s.io/apimachinery/pkg/util/wait"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 )
 
-func EndpointChecker(targetIPAddress string,
-	initialBackoffDuration time.Duration,
-	backoffFactor float64,
-	maxRetryAttempts int,
-	backoffJitterFactor float64,
-	dialTimeout time.Duration) healthz.Checker {
-
+func EndpointChecker(targetIPAddress string) healthz.Checker {
 	return func(req *http.Request) error {
-		var lastErr error
+		dialTimeout := 1 * time.Second
 
-		backoff := wait.Backoff{
-			Duration: initialBackoffDuration,
-			Factor:   backoffFactor,
-			Steps:    maxRetryAttempts,
-			Jitter:   backoffJitterFactor,
-		}
-
-		err := wait.ExponentialBackoff(backoff, func() (bool, error) {
-			_, err := net.DialTimeout("tcp", targetIPAddress, dialTimeout)
-			if err != nil {
-				lastErr = fmt.Errorf("failed to dial: %v", err)
-				return false, nil
-			}
-
-			return true, nil
-		})
+		_, err := net.DialTimeout("tcp", targetIPAddress, dialTimeout)
 		if err != nil {
-			return lastErr
+			return fmt.Errorf("failed to dial: %v", err)
 		}
 
 		return nil
