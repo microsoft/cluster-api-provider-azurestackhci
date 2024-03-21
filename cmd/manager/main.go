@@ -74,11 +74,6 @@ var (
 	syncPeriod                             time.Duration
 	healthAddr                             string
 	webhookPort                            int
-	probeInitialBackOffDurationMs          int
-	probeBackOffFactor                     float64
-	probeMaxRetryAttempts                  int
-	probeBackoffJitterFactor               float64
-	probeDialTimeoutSec                    int
 )
 
 func InitFlags(fs *pflag.FlagSet) {
@@ -150,36 +145,6 @@ func InitFlags(fs *pflag.FlagSet) {
 		"webhook-port",
 		9443,
 		"Webhook Server port, disabled by default. When enabled, the manager will only work as webhook server, no reconcilers are installed.",
-	)
-
-	fs.IntVar(&probeInitialBackOffDurationMs,
-		"probe-initial-backoff-duration-ms",
-		250,
-		"Initial backoff duration in milliseconds for liveness probe",
-	)
-
-	fs.Float64Var(&probeBackOffFactor,
-		"probe-backoff-factor",
-		1.5,
-		"Backoff factor for liveness probe",
-	)
-
-	fs.IntVar(&probeMaxRetryAttempts,
-		"probe-max-retry-attempts",
-		9,
-		"Maximum retry attempts for liveness probe",
-	)
-
-	fs.Float64Var(&probeBackoffJitterFactor,
-		"probe-backoff-jitter-factor",
-		0.1,
-		"Backoff jitter factor for liveness probe",
-	)
-
-	fs.IntVar(&probeDialTimeoutSec,
-		"probe-dial-timeout-sec",
-		1,
-		"Dial timeout in seconds for liveness probe",
 	)
 
 	feature.MutableGates.AddFlag(fs)
@@ -314,17 +279,7 @@ func setupChecks(mgr ctrlmgr.Manager) {
 	}
 
 	cloudAgentAddress := cloudAgentFqdn + ":55000"
-	if err := mgr.AddHealthzCheck(
-		"ping",
-		network.EndpointChecker(
-			cloudAgentAddress,
-			time.Duration(probeInitialBackOffDurationMs)*time.Millisecond,
-			probeBackOffFactor,
-			probeMaxRetryAttempts,
-			probeBackoffJitterFactor,
-			time.Duration(probeDialTimeoutSec)*time.Second,
-		),
-	); err != nil {
+	if err := mgr.AddHealthzCheck("ping", network.EndpointChecker(cloudAgentAddress)); err != nil {
 		setupLog.Error(err, "unable to create health check")
 		os.Exit(1)
 	}
