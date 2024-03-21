@@ -30,6 +30,7 @@ import (
 
 	// +kubebuilder:scaffold:imports
 
+	"github.com/microsoft/cluster-api-provider-azurestackhci/pkg/network"
 	"github.com/spf13/pflag"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -42,6 +43,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
+	ctrlmgr "sigs.k8s.io/controller-runtime/pkg/manager"
 
 	"github.com/microsoft/cluster-api-provider-azurestackhci/controllers"
 )
@@ -253,19 +255,32 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Setup Health checks
+	setupChecks(mgr)
+
+	setupLog.Info("starting manager")
+	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+		setupLog.Error(err, "problem running manager")
+		os.Exit(1)
+	}
+}
+
+func setupChecks(mgr ctrlmgr.Manager) {
 	if err := mgr.AddReadyzCheck("ping", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to create ready check")
 		os.Exit(1)
 	}
 
-	if err := mgr.AddHealthzCheck("ping", healthz.Ping); err != nil {
-		setupLog.Error(err, "unable to create health check")
+	// Get the cloudagent fqdn
+	cloudAgentFqdn := os.Getenv("AZURESTACKHCI_CLOUDAGENT_FQDN")
+	if cloudAgentFqdn == "" {
+		setupLog.Error(nil, "AZURESTACKHCI_CLOUDAGENT_FQDN is not set")
 		os.Exit(1)
 	}
 
-	setupLog.Info("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
-		setupLog.Error(err, "problem running manager")
+	cloudAgentAddress := cloudAgentFqdn + ":55000"
+	if err := mgr.AddHealthzCheck("ping", network.EndpointChecker(cloudAgentAddress)); err != nil {
+		setupLog.Error(err, "unable to create health check")
 		os.Exit(1)
 	}
 }
