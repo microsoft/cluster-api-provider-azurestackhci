@@ -111,6 +111,7 @@ replace (
 	github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
 	github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.2
 	github.com/microsoft/moc => github.com/jocardeMSFT/moc v0.14.1-0.20240403185628-a0bc53f9d690
+	github.com/microsoft/moc-sdk-for-go => github.com/jocardeMSFT/moc-sdk-for-go v0.12.1-0.20240403201310-04292cbf13aa
 	github.com/miekg/dns => github.com/miekg/dns v1.1.25
 	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.9.23
 	github.com/nats-io/nkeys => github.com/nats-io/nkeys v0.4.6
