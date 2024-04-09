@@ -2,7 +2,6 @@ package telemetry
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -130,12 +129,8 @@ func WriteMocInfoLog(ctx context.Context, scope scope.ScopeInterface) {
 		WssdCloudAgentVersion: wssdCloudAgentVersion,
 		MocVersion:            mocVersion,
 	}
-	jsonData, err := json.Marshal(infoLog)
-	if err != nil {
-		logger.Error(err, "Unable to serialize moc info log object.")
-	} else {
-		logger.Info(string(jsonData))
-	}
+
+	logger.Info("Record Moc Info", "mocInfo", infoLog)
 }
 
 func getVersionsService(scope scope.ScopeInterface) *versions.Service {
