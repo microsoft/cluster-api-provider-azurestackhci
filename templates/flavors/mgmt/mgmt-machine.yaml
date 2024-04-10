@@ -52,7 +52,7 @@ spec:
         leader-elect-lease-duration: 60s
         leader-elect-renew-deadline: 55s
         terminated-pod-gc-threshold: "10"
-    imageRepository: ecpacr.azurecr.io
+    imageRepository: mcr.microsoft.com
     scheduler:
       extraArgs:
         bind-address: 0.0.0.0
