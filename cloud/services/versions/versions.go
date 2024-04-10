@@ -32,7 +32,7 @@ type VersionPair struct {
 func (s *Service) Get(ctx context.Context) (*VersionPair, error) {
 	version, mocversion, err := s.Client.GetVersion(ctx)
 	if err != nil {
-		s.Scope.GetLogger().Error(err, "Unable to get moc deployment id")
+		s.Scope.GetLogger().Error(err, "Unable to get moc version")
 		return nil, err
 	}
 	return &VersionPair{
