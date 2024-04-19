@@ -46,6 +46,7 @@ import (
 	ctrlmgr "sigs.k8s.io/controller-runtime/pkg/manager"
 
 	"github.com/microsoft/cluster-api-provider-azurestackhci/controllers"
+	"k8s.io/client-go/util/workqueue"
 )
 
 var (
@@ -198,7 +199,10 @@ func main() {
 		Client:   mgr.GetClient(),
 		Log:      ctrl.Log.WithName("controllers").WithName("AzureStackHCIMachine"),
 		Recorder: mgr.GetEventRecorderFor("azurestackhcimachine-reconciler"),
-	}).SetupWithManager(mgr, controller.Options{MaxConcurrentReconciles: azureStackHCIMachineConcurrency}); err != nil {
+	}).SetupWithManager(mgr, controller.Options{
+		MaxConcurrentReconciles: azureStackHCIMachineConcurrency,
+		RateLimiter:             workqueue.DefaultControllerRateLimiter(),
+	}); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "AzureStackHCIMachine")
 		os.Exit(1)
 	}
@@ -206,7 +210,10 @@ func main() {
 		Client:   mgr.GetClient(),
 		Log:      ctrl.Log.WithName("controllers").WithName("AzureStackHCICluster"),
 		Recorder: mgr.GetEventRecorderFor("azurestackhcicluster-reconciler"),
-	}).SetupWithManager(mgr, controller.Options{MaxConcurrentReconciles: azureStackHCIClusterConcurrency}); err != nil {
+	}).SetupWithManager(mgr, controller.Options{
+		MaxConcurrentReconciles: azureStackHCIClusterConcurrency,
+		RateLimiter:             workqueue.DefaultControllerRateLimiter(),
+	}); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "AzureStackHCICluster")
 		os.Exit(1)
 	}
@@ -214,7 +221,10 @@ func main() {
 		Client:   mgr.GetClient(),
 		Log:      ctrl.Log.WithName("controllers").WithName("AzureStackHCILoadBalancer"),
 		Recorder: mgr.GetEventRecorderFor("azurestackhciloadbalancer-reconciler"),
-	}).SetupWithManager(mgr, controller.Options{MaxConcurrentReconciles: azureStackHCIloadBalancerConcurrency}); err != nil {
+	}).SetupWithManager(mgr, controller.Options{
+		MaxConcurrentReconciles: azureStackHCIloadBalancerConcurrency,
+		RateLimiter:             workqueue.DefaultControllerRateLimiter(),
+	}); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "AzureStackHCILoadBalancer")
 		os.Exit(1)
 	}
@@ -223,7 +233,10 @@ func main() {
 		Log:      ctrl.Log.WithName("controllers").WithName("AzureStackHCIVirtualMachine"),
 		Scheme:   mgr.GetScheme(),
 		Recorder: mgr.GetEventRecorderFor("azurestackhcivirtualmachine-reconciler"),
-	}).SetupWithManager(mgr, controller.Options{MaxConcurrentReconciles: azureStackHCIVirtualMachineConcurrency}); err != nil {
+	}).SetupWithManager(mgr, controller.Options{
+		MaxConcurrentReconciles: azureStackHCIVirtualMachineConcurrency,
+		RateLimiter:             workqueue.DefaultControllerRateLimiter(),
+	}); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "AzureStackHCIVirtualMachine")
 		os.Exit(1)
 	}
