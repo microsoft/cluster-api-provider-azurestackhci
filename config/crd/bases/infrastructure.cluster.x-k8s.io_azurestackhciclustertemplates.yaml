@@ -1,0 +1,200 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.11.4
+  name: azurestackhciclustertemplates.infrastructure.cluster.x-k8s.io
+spec:
+  group: infrastructure.cluster.x-k8s.io
+  names:
+    kind: AzureStackHCIClusterTemplate
+    listKind: AzureStackHCIClusterTemplateList
+    plural: azurestackhciclustertemplates
+    singular: azurestackhciclustertemplate
+  scope: Namespaced
+  versions:
+  - name: v1beta1
+    schema:
+      openAPIV3Schema:
+        description: AzureStackHCIClusterTemplate is the Schema for the azurestackhciclustertemplates
+          API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: AzureStackHCIClusterTemplateSpec defines the desired state
+              of AzureStackHCIClusterTemplate
+            properties:
+              template:
+                description: AzureStackHCIClusterTemplateResource describes the data
+                  needed to create an AzureStackHCICluster from a template
+                properties:
+                  spec:
+                    description: AzureStackHCIClusterSpec defines the desired state
+                      of AzureStackHCICluster
+                    properties:
+                      azureStackHCILoadBalancer:
+                        description: AzureStackHCILoadBalancer is used to declare
+                          the AzureStackHCILoadBalancerSpec if a LoadBalancer is desired
+                          for the AzureStackHCICluster.
+                        properties:
+                          image:
+                            description: 'Image defines information about the image
+                              to use for VM creation. There are three ways to specify
+                              an image: by ID, by publisher, or by Shared Image Gallery.
+                              If specifying an image by ID, only the ID field needs
+                              to be set. If specifying an image by publisher, the
+                              Publisher, Offer, SKU, and Version fields must be set.
+                              If specifying an image from a Shared Image Gallery,
+                              the SubscriptionID, ResourceGroup, Gallery, Name, and
+                              Version fields must be set.'
+                            properties:
+                              gallery:
+                                type: string
+                              id:
+                                type: string
+                              name:
+                                type: string
+                              offer:
+                                type: string
+                              osType:
+                                description: OSType describes the OS type of a disk.
+                                type: string
+                              publisher:
+                                type: string
+                              resourceGroup:
+                                type: string
+                              sku:
+                                type: string
+                              subscriptionID:
+                                type: string
+                              version:
+                                type: string
+                            required:
+                            - osType
+                            type: object
+                          replicas:
+                            default: 1
+                            description: Number of desired loadbalancer machines.
+                              Defaults to 1. This is a pointer to distinguish between
+                              explicit zero and not specified.
+                            format: int32
+                            type: integer
+                          sshPublicKey:
+                            type: string
+                          storageContainer:
+                            type: string
+                          vmSize:
+                            type: string
+                        required:
+                        - image
+                        - sshPublicKey
+                        - vmSize
+                        type: object
+                      controlPlaneEndpoint:
+                        description: ControlPlaneEndpoint represents the endpoint
+                          used to communicate with the control plane.
+                        properties:
+                          host:
+                            description: The hostname on which the API server is serving.
+                            type: string
+                          port:
+                            description: The port on which the API server is serving.
+                            format: int32
+                            type: integer
+                        required:
+                        - host
+                        - port
+                        type: object
+                      location:
+                        type: string
+                      management:
+                        description: Management is true when the cluster is a Management
+                          Cluster.
+                        type: boolean
+                      networkSpec:
+                        description: NetworkSpec encapsulates all things related to
+                          Azure network.
+                        properties:
+                          subnets:
+                            description: Subnets is the configuration for the control-plane
+                              subnet and the node subnet.
+                            items:
+                              description: SubnetSpec configures an Azure subnet.
+                              properties:
+                                cidrBlock:
+                                  description: CidrBlock is the CIDR block to be used
+                                    when the provider creates a managed Vnet.
+                                  type: string
+                                id:
+                                  description: ID defines a unique identifier to reference
+                                    this resource.
+                                  type: string
+                                name:
+                                  description: Name defines a name for the subnet
+                                    resource.
+                                  type: string
+                                vnetId:
+                                  description: VnetID defines the ID of the virtual
+                                    network this subnet should be built in.
+                                  type: string
+                              required:
+                              - name
+                              - vnetId
+                              type: object
+                            type: array
+                          vnet:
+                            description: Vnet is the configuration for the Azure virtual
+                              network.
+                            properties:
+                              cidrBlock:
+                                description: CidrBlock is the CIDR block to be used
+                                  when the provider creates a managed virtual network.
+                                type: string
+                              group:
+                                description: Group is the resource group the vnet
+                                  should use.
+                                type: string
+                              id:
+                                description: ID is the identifier of the virtual network
+                                  this provider should use to create resources.
+                                type: string
+                              name:
+                                description: Name defines a name for the virtual network
+                                  resource.
+                                type: string
+                            required:
+                            - name
+                            type: object
+                        type: object
+                      resourceGroup:
+                        type: string
+                      version:
+                        description: Version indicates the desired Kubernetes version
+                          of the cluster.
+                        type: string
+                    required:
+                    - location
+                    - resourceGroup
+                    - version
+                    type: object
+                required:
+                - spec
+                type: object
+            required:
+            - template
+            type: object
+        type: object
+    served: true
+    storage: true
