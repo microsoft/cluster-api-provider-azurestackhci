@@ -43,6 +43,8 @@ type AzureStackHCIVirtualMachineSpec struct {
 
 	// +optional
 	StorageContainer string `json:"storageContainer"`
+	// if not specified, it's a vm without gpu
+	GpuCount int32 `json:"gpuCount,omitempty"`
 
 	// come from the cluster scope for machine and lb controller creation path
 	ResourceGroup    string   `json:"resourceGroup"`
