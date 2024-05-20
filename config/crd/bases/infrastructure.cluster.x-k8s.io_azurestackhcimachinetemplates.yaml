@@ -68,6 +68,9 @@ spec:
                           id:
                             type: string
                         type: object
+                      gpuCount:
+                        format: int32
+                        type: integer
                       image:
                         description: |-
                           Image defines information about the image to use for VM creation.

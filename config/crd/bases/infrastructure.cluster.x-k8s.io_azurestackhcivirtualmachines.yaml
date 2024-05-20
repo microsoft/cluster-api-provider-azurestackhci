@@ -64,6 +64,10 @@ spec:
                 type: string
               clusterName:
                 type: string
+              gpuCount:
+                description: if not specified, it's a vm without gpu
+                format: int32
+                type: integer
               identity:
                 description: VMIdentity defines the identity of the virtual machine,
                   if configured.
