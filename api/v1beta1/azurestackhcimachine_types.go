@@ -152,5 +152,5 @@ type AzureStackHCIMachineList struct {
 }
 
 func init() {
-	SchemeBuilder.Register(&AzureStackHCIMachine{}, &AzureStackHCIMachineList{})
+	objectTypes = append(objectTypes, &AzureStackHCIMachine{}, &AzureStackHCIMachineList{})
 }

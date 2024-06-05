@@ -29,7 +29,6 @@ import (
 	"k8s.io/klog/v2/klogr"
 	"k8s.io/utils/pointer"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
-	"sigs.k8s.io/cluster-api/controllers/noderefutil"
 	capierrors "sigs.k8s.io/cluster-api/errors"
 	"sigs.k8s.io/cluster-api/util"
 	"sigs.k8s.io/cluster-api/util/conditions"
@@ -134,11 +133,7 @@ func (m *MachineScope) Role() string {
 
 // GetVMID returns the AzureStackHCIMachine instance id by parsing Spec.ProviderID.
 func (m *MachineScope) GetVMID() *string {
-	parsed, err := noderefutil.NewProviderID(m.GetProviderID())
-	if err != nil {
-		return nil
-	}
-	return pointer.StringPtr(parsed.ID())
+	return pointer.String(m.GetProviderID())
 }
 
 // GetLogger returns the logger.
