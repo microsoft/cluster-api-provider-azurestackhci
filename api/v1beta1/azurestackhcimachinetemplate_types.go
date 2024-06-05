@@ -48,7 +48,7 @@ type AzureStackHCIMachineTemplateList struct {
 }
 
 func init() {
-	SchemeBuilder.Register(&AzureStackHCIMachineTemplate{}, &AzureStackHCIMachineTemplateList{})
+	objectTypes = append(objectTypes, &AzureStackHCIMachineTemplate{}, &AzureStackHCIMachineTemplateList{})
 }
 
 // AzureStackHCIMachineTemplateResource describes the data needed to create an AzureStackHCIMachine from a template

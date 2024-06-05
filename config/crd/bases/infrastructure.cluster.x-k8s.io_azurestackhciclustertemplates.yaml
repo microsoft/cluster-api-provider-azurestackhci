@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.11.4
+    controller-gen.kubebuilder.io/version: v0.15.0
   name: azurestackhciclustertemplates.infrastructure.cluster.x-k8s.io
 spec:
   group: infrastructure.cluster.x-k8s.io
@@ -21,14 +21,19 @@ spec:
           API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
             type: string
           metadata:
             type: object
@@ -50,15 +55,13 @@ spec:
                           for the AzureStackHCICluster.
                         properties:
                           image:
-                            description: 'Image defines information about the image
-                              to use for VM creation. There are three ways to specify
-                              an image: by ID, by publisher, or by Shared Image Gallery.
-                              If specifying an image by ID, only the ID field needs
-                              to be set. If specifying an image by publisher, the
-                              Publisher, Offer, SKU, and Version fields must be set.
-                              If specifying an image from a Shared Image Gallery,
-                              the SubscriptionID, ResourceGroup, Gallery, Name, and
-                              Version fields must be set.'
+                            description: |-
+                              Image defines information about the image to use for VM creation.
+                              There are three ways to specify an image: by ID, by publisher, or by Shared Image Gallery.
+                              If specifying an image by ID, only the ID field needs to be set.
+                              If specifying an image by publisher, the Publisher, Offer, SKU, and Version fields must be set.
+                              If specifying an image from a Shared Image Gallery, the SubscriptionID, ResourceGroup,
+                              Gallery, Name, and Version fields must be set.
                             properties:
                               gallery:
                                 type: string
@@ -86,9 +89,9 @@ spec:
                             type: object
                           replicas:
                             default: 1
-                            description: Number of desired loadbalancer machines.
-                              Defaults to 1. This is a pointer to distinguish between
-                              explicit zero and not specified.
+                            description: |-
+                              Number of desired loadbalancer machines. Defaults to 1.
+                              This is a pointer to distinguish between explicit zero and not specified.
                             format: int32
                             type: integer
                           sshPublicKey:

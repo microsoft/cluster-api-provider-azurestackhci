@@ -46,7 +46,7 @@ type AzureStackHCIClusterTemplateList struct {
 }
 
 func init() {
-	SchemeBuilder.Register(&AzureStackHCIClusterTemplate{}, &AzureStackHCIClusterTemplateList{})
+	objectTypes = append(objectTypes, &AzureStackHCIClusterTemplate{}, &AzureStackHCIClusterTemplateList{})
 }
 
 // AzureStackHCIClusterTemplateResource describes the data needed to create an AzureStackHCICluster from a template

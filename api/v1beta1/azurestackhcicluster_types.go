@@ -125,5 +125,5 @@ type AzureStackHCIClusterList struct {
 }
 
 func init() {
-	SchemeBuilder.Register(&AzureStackHCICluster{}, &AzureStackHCIClusterList{})
+	objectTypes = append(objectTypes, &AzureStackHCICluster{}, &AzureStackHCIClusterList{})
 }

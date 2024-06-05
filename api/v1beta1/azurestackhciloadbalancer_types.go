@@ -187,5 +187,5 @@ type AzureStackHCILoadBalancerList struct {
 }
 
 func init() {
-	SchemeBuilder.Register(&AzureStackHCILoadBalancer{}, &AzureStackHCILoadBalancerList{})
+	objectTypes = append(objectTypes, &AzureStackHCILoadBalancer{}, &AzureStackHCILoadBalancerList{})
 }

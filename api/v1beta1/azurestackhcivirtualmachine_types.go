@@ -130,5 +130,5 @@ type AzureStackHCIVirtualMachineList struct {
 }
 
 func init() {
-	SchemeBuilder.Register(&AzureStackHCIVirtualMachine{}, &AzureStackHCIVirtualMachineList{})
+	objectTypes = append(objectTypes, &AzureStackHCIVirtualMachine{}, &AzureStackHCIVirtualMachineList{})
 }

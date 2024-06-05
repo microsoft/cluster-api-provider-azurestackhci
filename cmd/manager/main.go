@@ -29,24 +29,24 @@ import (
 	infrav1beta1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1"
 
 	// +kubebuilder:scaffold:imports
-
+	"github.com/microsoft/cluster-api-provider-azurestackhci/controllers"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/pkg/network"
 	"github.com/spf13/pflag"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	cgrecord "k8s.io/client-go/tools/record"
+	"k8s.io/client-go/util/workqueue"
 	"k8s.io/klog/v2"
 	"k8s.io/klog/v2/klogr"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/cluster-api/feature"
 	"sigs.k8s.io/cluster-api/util/record"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	ctrlmgr "sigs.k8s.io/controller-runtime/pkg/manager"
-
-	"github.com/microsoft/cluster-api-provider-azurestackhci/controllers"
-	"k8s.io/client-go/util/workqueue"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
 )
 
 var (
@@ -64,7 +64,6 @@ func init() {
 }
 
 var (
-	metricsAddr                            string
 	enableLeaderElection                   bool
 	watchNamespace                         string
 	profilerAddress                        string
@@ -78,12 +77,6 @@ var (
 )
 
 func InitFlags(fs *pflag.FlagSet) {
-	flag.StringVar(
-		&metricsAddr,
-		"metrics-bind-addr",
-		":8080",
-		"The address the metric endpoint binds to.",
-	)
 
 	flag.BoolVar(
 		&enableLeaderElection,
@@ -176,16 +169,28 @@ func main() {
 		BurstSize: 100,
 	})
 
+	var watchNamespaces map[string]cache.Config
+	if watchNamespace != "" {
+		watchNamespaces = map[string]cache.Config{
+			watchNamespace: {},
+		}
+	}
+
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
-		MetricsBindAddress:     metricsAddr,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "controller-leader-election-caph",
-		SyncPeriod:             &syncPeriod,
-		Namespace:              watchNamespace,
 		HealthProbeBindAddress: healthAddr,
-		Port:                   webhookPort,
 		EventBroadcaster:       broadcaster,
+		Cache: cache.Options{
+			DefaultNamespaces: watchNamespaces,
+			SyncPeriod:        &syncPeriod,
+		},
+		WebhookServer: webhook.NewServer(
+			webhook.Options{
+				Port: webhookPort,
+			},
+		),
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
