@@ -48,6 +48,7 @@ type Spec struct {
 	NICName             string
 	SSHKeyData          []string
 	Size                string
+	GpuCount            int32
 	Zone                string
 	Image               infrav1.Image
 	OSDisk              infrav1.OSDisk
@@ -104,6 +105,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		"Name", vmSpec.Name,
 		"NICName", vmSpec.NICName,
 		"Size", vmSpec.Size,
+		"GpuCount", vmSpec.GpuCount,
 		"Image", vmSpec.Image,
 		"OSDisk", vmSpec.OSDisk,
 		"VMType", vmSpec.VMType,
@@ -168,6 +170,8 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			},
 		},
 	}
+
+	virtualMachine.HardwareProfile.VirtualMachineGPUs = generateGpuList(vmSpec.GpuCount)
 
 	if vmSpec.Image.OSType == infrav1.OSTypeWindows || vmSpec.Image.OSType == infrav1.OSTypeWindows2022 {
 		virtualMachine.OsProfile.LinuxConfiguration = nil
@@ -358,4 +362,19 @@ func generateComputerName(os infrav1.OSType) (string, error) {
 	}
 
 	return computerName, nil
+}
+
+func generateGpuList(gpuCount int32) []*compute.VirtualMachineGPU {
+	if gpuCount <= 0 {
+		return nil
+	}
+
+	gpuList := make([]*compute.VirtualMachineGPU, gpuCount)
+	gpuAssignment := compute.GpuDefault
+	for i := 0; i < int(gpuCount); i++ {
+		gpuList[i] = &compute.VirtualMachineGPU{
+			Assignment: &gpuAssignment,
+		}
+	}
+	return gpuList
 }
