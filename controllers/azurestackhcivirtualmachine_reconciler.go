@@ -19,6 +19,7 @@ package controllers
 
 import (
 	"encoding/base64"
+	"time"
 
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
@@ -26,8 +27,16 @@ import (
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/disks"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/networkinterfaces"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/virtualmachines"
+	infrav1util "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/util"
 	sdk_compute "github.com/microsoft/moc-sdk-for-go/services/compute"
 	"github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/util/wait"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+)
+
+const (
+	waitVolumeAttachmentsInterval = time.Second * 10
+	waitVolumeAttachmentsTimeout  = time.Minute * 5
 )
 
 // azureStackHCIVirtualMachineService are list of services required by cluster actuator, easy to create a fake
@@ -90,6 +99,29 @@ func (s *azureStackHCIVirtualMachineService) Delete() error {
 		Name: s.vmScope.Name(),
 	}
 
+	now := time.Now()
+
+	if err := wait.PollImmediate(waitVolumeAttachmentsInterval, waitVolumeAttachmentsTimeout, func() (bool, error) {
+		volumes, err := s.ListVolumeAttachments()
+		if err != nil {
+			s.vmScope.Error(err, "failed to check volume attachment on vm", "vmName", s.vmScope.Name())
+			return true, nil
+		}
+		if len(volumes) == 0 {
+			s.vmScope.Info("No volume attachments found on vm", "vmName", s.vmScope.Name())
+			return true, nil
+		}
+		for _, volume := range volumes {
+			s.vmScope.Info("VolumeAttachment is still attached on vm, waiting for the volume to be detached before delete the vm", "volume", volume, "vmName", s.vmScope.Name())
+		}
+		return false, nil
+	}); err != nil {
+		s.vmScope.Error(err, "failed to wait for volume attachments to be detached on vm", "vmName", s.vmScope.Name())
+	}
+
+	latency := time.Since(now)
+	s.vmScope.Info("Waiting for volume attachments to be detached on vm took", "vmName", s.vmScope.Name(), "duration", latency.String())
+
 	err := s.virtualMachinesSvc.Delete(s.vmScope.Context, vmSpec)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete machine")
@@ -115,6 +147,40 @@ func (s *azureStackHCIVirtualMachineService) Delete() error {
 	}
 
 	return nil
+}
+
+func (s *azureStackHCIVirtualMachineService) ListVolumeAttachments() ([]string, error) {
+	// target cluster key
+	clusterKey := client.ObjectKey{
+		Namespace: s.vmScope.AzureStackHCIVirtualMachine.Namespace,
+		Name:      s.vmScope.AzureStackHCIVirtualMachine.Spec.ClusterName,
+	}
+
+	targetClusterClient, err := infrav1util.NewTargetClusterClient(s.vmScope.Context, s.vmScope.Client(), clusterKey)
+	if err != nil {
+		s.vmScope.Error(err, "failed to create target cluster client", "nameSpace", clusterKey.Namespace, "name", clusterKey.Name)
+		return nil, errors.Wrapf(err, "failed to create target cluster client for cluster %s:%s", clusterKey.Namespace, clusterKey.Name)
+	}
+
+	// get kubernetes node name of the AzureStackHCIVirtualMachine that's being reconciled
+	nodeName, err := infrav1util.GetNodeName(s.vmScope.Context, s.vmScope.Client(), s.vmScope.AzureStackHCIVirtualMachine.ObjectMeta)
+	if err != nil {
+		s.vmScope.Error(err, "failed to get valid node name for vm", "vmName", s.vmScope.Name())
+		return nil, errors.Wrapf(err, "failed to get node name for vm %s", s.vmScope.Name())
+	}
+
+	if nodeName == "" {
+		s.vmScope.Info("Node name is empty, skipping volume attachment check", "vmName", s.vmScope.Name())
+		return nil, nil
+	}
+
+	// get volume attachments from target cluster
+	volumes, err := infrav1util.ListVolumeAttachmentOnNode(s.vmScope.Context, targetClusterClient, clusterKey, nodeName)
+	if err != nil {
+		s.vmScope.Error(err, "failed to check volume attachment on vm", "vmName", s.vmScope.Name())
+		return nil, errors.Wrapf(err, "failed to check volume attachment on vm %s", s.vmScope.Name())
+	}
+	return volumes, nil
 }
 
 func (s *azureStackHCIVirtualMachineService) VMIfExists() (*infrav1.VM, error) {
