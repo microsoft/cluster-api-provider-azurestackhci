@@ -35,7 +35,7 @@ import (
 )
 
 const (
-	waitVolumeAttachmentsInterval = time.Second * 10
+	waitVolumeAttachmentsInterval = time.Second * 2
 	waitVolumeAttachmentsTimeout  = time.Minute * 5
 )
 
