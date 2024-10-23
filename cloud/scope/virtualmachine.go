@@ -42,6 +42,7 @@ type VirtualMachineScopeParams struct {
 	AzureStackHCIClients
 	Client                      client.Client
 	Logger                      *logr.Logger
+	Machine                     *clusterv1.Machine
 	AzureStackHCIVirtualMachine *infrav1.AzureStackHCIVirtualMachine
 }
 
@@ -51,7 +52,9 @@ func NewVirtualMachineScope(params VirtualMachineScopeParams) (*VirtualMachineSc
 	if params.Client == nil {
 		return nil, errors.New("client is required when creating a VirtualMachineScope")
 	}
-
+	if params.Machine == nil {
+		return nil, errors.New("machine is required when creating a VirtualMachineScope")
+	}
 	if params.AzureStackHCIVirtualMachine == nil {
 		return nil, errors.New("azurestackhci virtual machine is required when creating a VirtualMachineScope")
 	}
@@ -85,6 +88,7 @@ func NewVirtualMachineScope(params VirtualMachineScopeParams) (*VirtualMachineSc
 		Logger:                      *params.Logger,
 		patchHelper:                 helper,
 		Context:                     scopeContext,
+		Machine:                     params.Machine,
 	}, nil
 }
 
@@ -94,7 +98,7 @@ type VirtualMachineScope struct {
 	client      client.Client
 	patchHelper *patch.Helper
 	Context     context.Context
-
+	Machine     *clusterv1.Machine
 	AzureStackHCIClients
 	AzureStackHCIVirtualMachine *infrav1.AzureStackHCIVirtualMachine
 }

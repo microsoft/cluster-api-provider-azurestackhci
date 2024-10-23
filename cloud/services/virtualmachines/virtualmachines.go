@@ -378,3 +378,18 @@ func generateGpuList(gpuCount int32) []*compute.VirtualMachineGPU {
 	}
 	return gpuList
 }
+
+// RemoveIsoDisk removes/detaches the ISO from the VM and then deletes it.
+func (s *Service) RemoveIsoDisk(ctx context.Context, spec interface{}) error {
+	vmSpec, ok := spec.(*Spec)
+	if !ok {
+		return errors.New("invalid vm specification")
+	}
+
+	err := s.Client.RemoveIsoDisk(ctx, s.Scope.GetResourceGroup(), vmSpec.Name)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

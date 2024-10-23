@@ -35,7 +35,7 @@ import (
 type azureStackHCIVirtualMachineService struct {
 	vmScope              *scope.VirtualMachineScope
 	networkInterfacesSvc azurestackhci.Service
-	virtualMachinesSvc   azurestackhci.GetterService
+	virtualMachinesSvc   *virtualmachines.Service
 	disksSvc             azurestackhci.GetterService
 }
 
@@ -276,6 +276,21 @@ func (s *azureStackHCIVirtualMachineService) createVirtualMachine(nicName string
 	}
 
 	return vm, nil
+}
+
+func (s *azureStackHCIVirtualMachineService) removeISODisk() error {
+
+	s.vmScope.Info("removing ISO disk", "name", s.vmScope.Name())
+	vmSpec := &virtualmachines.Spec{
+		Name: s.vmScope.Name(),
+	}
+
+	err := s.virtualMachinesSvc.RemoveIsoDisk(s.vmScope.Context, vmSpec)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove ISO disk")
+	}
+
+	return nil
 }
 
 // isAvailabilityZoneSupported determines if Availability Zones are supported in a selected location
