@@ -139,6 +139,10 @@ func (m *VirtualMachineScope) ClusterName() string {
 	return m.AzureStackHCIVirtualMachine.Spec.ClusterName
 }
 
+func (m *VirtualMachineScope) Client() client.Client {
+	return m.client
+}
+
 // Location returns the AzureStackHCIVirtualMachine location.
 func (m *VirtualMachineScope) Location() string {
 	return m.AzureStackHCIVirtualMachine.Spec.Location
