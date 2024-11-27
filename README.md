@@ -25,8 +25,6 @@ This provider's versions are compatible with the following versions of Cluster A
 
 |  | Cluster API `v1beta1` (`v1.2`) | Cluster API `v1beta1` (`v1.4`) |  Cluster API `v1beta1` (`v1.5`) |
 |---|---|---|---|
-| CAPH v1beta1 (`v1.1.8`)  | ✓ | X  | X | 
-| CAPH v1beta1 (`v1.1.9`)  | ✓ | X  | X |
 | CAPH v1beta1 (`v1.1.10`) | X  | ✓ | X |
 | CAPH v1beta1 (`v1.1.11`) | X  | ✓ | X |
 | CAPH v1beta1 (`v1.1.12`) | X  | ✓ | X |
@@ -37,8 +35,6 @@ This provider's versions are compatible with the following versions of Cluster A
 This provider's versions are able to install and manage the following versions of Kubernetes:  
 | | k8s 1.24 | k8s 1.25 | k8s 1.26 | k8s 1.27 |
 |---|---|---|---|---|
-| CAPH v1beta1 (`v1.1.8`) | ✓ | ✓ | ✓ | X |
-| CAPH v1beta1 (`v1.1.9`) | ✓ | ✓ | ✓ | X |
 | CAPH v1beta1 (`v1.1.10`) | ✓ | ✓ | ✓ | X |
 | CAPH v1beta1 (`v1.1.11`) | ✓ | ✓ | ✓ | X |
 | CAPH v1beta1 (`v1.1.12`) | ✓ | ✓ | ✓ | X |
