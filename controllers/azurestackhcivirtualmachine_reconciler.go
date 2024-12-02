@@ -307,6 +307,7 @@ func (s *azureStackHCIVirtualMachineService) createVirtualMachine(nicName string
 			VMType:              vmType,
 			StorageContainer:    s.vmScope.StorageContainer(),
 			AvailabilitySetName: s.vmScope.AzureStackHCIVirtualMachine.Spec.AvailabilitySetName,
+			PlacementGroupName:  s.vmScope.AzureStackHCIVirtualMachine.Spec.PlacementGroupName,
 		}
 
 		err = s.virtualMachinesSvc.Reconcile(s.vmScope.Context, vmSpec)

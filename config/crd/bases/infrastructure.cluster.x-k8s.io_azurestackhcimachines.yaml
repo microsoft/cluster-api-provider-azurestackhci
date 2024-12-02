@@ -153,6 +153,8 @@ spec:
                 - osType
                 - source
                 type: object
+              placementGroupName:
+                type: string
               providerID:
                 description: ProviderID is the unique identifier as specified by the
                   cloud provider.

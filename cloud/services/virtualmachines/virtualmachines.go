@@ -56,6 +56,7 @@ type Spec struct {
 	VMType              compute.VMType
 	StorageContainer    string
 	AvailabilitySetName string
+	PlacementGroupName  string
 }
 
 // Get provides information about a virtual machine.
@@ -110,6 +111,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		"OSDisk", vmSpec.OSDisk,
 		"VMType", vmSpec.VMType,
 		"AvailabilitySetName", vmSpec.AvailabilitySetName,
+		"PlacementGroupName", vmSpec.PlacementGroupName,
 	)
 
 	sshKeyData := vmSpec.SSHKeyData
@@ -189,6 +191,13 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	if vmSpec.AvailabilitySetName != "" {
 		virtualMachine.VirtualMachineProperties.AvailabilitySetProfile = &compute.AvailabilitySetReference{
 			Name:      to.StringPtr(vmSpec.AvailabilitySetName),
+			GroupName: to.StringPtr(s.Scope.GetResourceGroup()),
+		}
+	}
+
+	if vmSpec.PlacementGroupName != "" {
+		virtualMachine.VirtualMachineProperties.PlacementGroupProfile = &compute.PlacementGroupReference{
+			Name:      to.StringPtr(vmSpec.PlacementGroupName),
 			GroupName: to.StringPtr(s.Scope.GetResourceGroup()),
 		}
 	}

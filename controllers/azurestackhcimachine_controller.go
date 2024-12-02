@@ -324,6 +324,7 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineNormal(machineSc
 		vm.Spec.AdditionalSSHKeys = machineScope.AzureStackHCIMachine.Spec.AdditionalSSHKeys
 		vm.Spec.StorageContainer = machineScope.AzureStackHCIMachine.Spec.StorageContainer
 		vm.Spec.AvailabilitySetName = machineScope.AzureStackHCIMachine.Spec.AvailabilitySetName
+		vm.Spec.PlacementGroupName = machineScope.AzureStackHCIMachine.Spec.PlacementGroupName
 
 		machineScope.AzureStackHCIMachine.Spec.NetworkInterfaces.DeepCopyInto(&vm.Spec.NetworkInterfaces)
 
