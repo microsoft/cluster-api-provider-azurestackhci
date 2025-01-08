@@ -163,6 +163,8 @@ spec:
                 - osType
                 - source
                 type: object
+              placementGroupName:
+                type: string
               resourceGroup:
                 description: come from the cluster scope for machine and lb controller
                   creation path

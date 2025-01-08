@@ -60,6 +60,9 @@ type AzureStackHCIVirtualMachineSpec struct {
 
 	// +optional
 	AvailabilitySetName string `json:"availabilitySetName,omitempty"`
+
+	// +optional
+	PlacementGroupName string `json:"placementGroupName,omitempty"`
 }
 
 // AzureStackHCIVirtualMachineStatus defines the observed state of AzureStackHCIVirtualMachine
