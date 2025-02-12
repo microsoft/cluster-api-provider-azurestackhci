@@ -18,7 +18,7 @@ spec:
       containers:
         - args:
             - "--v=6"
-            - "--metrics-bind-addr=127.0.0.1:8080"
+            - "--diagnostics-address=127.0.0.1:8080"
           image: ecpacr.azurecr.io/public/aksarc/caphcontroller:latest
           imagePullPolicy: Always
           name: manager
@@ -34,4 +34,5 @@ spec:
             httpGet:
               path: /healthz
               port: healthz
+          terminationMessagePolicy: FallbackToLogsOnError
       terminationGracePeriodSeconds: 10
