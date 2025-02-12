@@ -39,7 +39,6 @@ import (
 	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/client-go/tools/record"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
-	capierrors "sigs.k8s.io/cluster-api/errors"
 	"sigs.k8s.io/cluster-api/util"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -193,12 +192,6 @@ func (r *AzureStackHCIMachineReconciler) Reconcile(ctx context.Context, req ctrl
 
 func (r *AzureStackHCIMachineReconciler) reconcileNormal(machineScope *scope.MachineScope, clusterScope *scope.ClusterScope) (reconcile.Result, error) {
 	machineScope.Info("Reconciling AzureStackHCIMachine")
-	// If the AzureStackHCIMachine is in an error state, return early.
-	if machineScope.AzureStackHCIMachine.Status.FailureReason != nil || machineScope.AzureStackHCIMachine.Status.FailureMessage != nil {
-		machineScope.Info("Error state detected, skipping reconciliation")
-		r.Recorder.Eventf(machineScope.AzureStackHCIMachine, corev1.EventTypeWarning, "ErrorStateAzureStackHCIMachine", "AzureStackHCIMachine is in an error state")
-		return reconcile.Result{}, nil
-	}
 
 	// If the AzureMachine doesn't have our finalizer, add it.
 	controllerutil.AddFinalizer(machineScope.AzureStackHCIMachine, infrav1.MachineFinalizer)
@@ -254,8 +247,7 @@ func (r *AzureStackHCIMachineReconciler) reconcileNormal(machineScope *scope.Mac
 	case infrav1.VMStateUpdating:
 		machineScope.Info("Machine VM is updating", "name", vm.Name)
 	default:
-		machineScope.SetFailureReason(capierrors.UpdateMachineError)
-		machineScope.SetFailureMessage(errors.Errorf("AzureStackHCI VM state %q is unexpected", *machineScope.GetVMState()))
+		machineScope.Info("Machine state is unexpected", "VMState", *machineScope.GetVMState())
 	}
 
 	return reconcile.Result{}, nil
