@@ -46,6 +46,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	ctrlmgr "sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 )
 
@@ -206,7 +207,7 @@ func main() {
 		Recorder: mgr.GetEventRecorderFor("azurestackhcimachine-reconciler"),
 	}).SetupWithManager(mgr, controller.Options{
 		MaxConcurrentReconciles: azureStackHCIMachineConcurrency,
-		RateLimiter:             workqueue.DefaultControllerRateLimiter(),
+		RateLimiter:             workqueue.DefaultTypedControllerRateLimiter[reconcile.Request](),
 	}); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "AzureStackHCIMachine")
 		os.Exit(1)
@@ -217,7 +218,7 @@ func main() {
 		Recorder: mgr.GetEventRecorderFor("azurestackhcicluster-reconciler"),
 	}).SetupWithManager(mgr, controller.Options{
 		MaxConcurrentReconciles: azureStackHCIClusterConcurrency,
-		RateLimiter:             workqueue.DefaultControllerRateLimiter(),
+		RateLimiter:             workqueue.DefaultTypedControllerRateLimiter[reconcile.Request](),
 	}); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "AzureStackHCICluster")
 		os.Exit(1)
@@ -228,7 +229,7 @@ func main() {
 		Recorder: mgr.GetEventRecorderFor("azurestackhciloadbalancer-reconciler"),
 	}).SetupWithManager(mgr, controller.Options{
 		MaxConcurrentReconciles: azureStackHCIloadBalancerConcurrency,
-		RateLimiter:             workqueue.DefaultControllerRateLimiter(),
+		RateLimiter:             workqueue.DefaultTypedControllerRateLimiter[reconcile.Request](),
 	}); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "AzureStackHCILoadBalancer")
 		os.Exit(1)
@@ -240,7 +241,7 @@ func main() {
 		Recorder: mgr.GetEventRecorderFor("azurestackhcivirtualmachine-reconciler"),
 	}).SetupWithManager(mgr, controller.Options{
 		MaxConcurrentReconciles: azureStackHCIVirtualMachineConcurrency,
-		RateLimiter:             workqueue.DefaultControllerRateLimiter(),
+		RateLimiter:             workqueue.DefaultTypedControllerRateLimiter[reconcile.Request](),
 	}); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "AzureStackHCIVirtualMachine")
 		os.Exit(1)
