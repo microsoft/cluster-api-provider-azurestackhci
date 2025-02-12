@@ -29,9 +29,7 @@ import (
 	"github.com/microsoft/moc/pkg/diagnostics"
 	"github.com/pkg/errors"
 	"k8s.io/klog/v2/klogr"
-	"k8s.io/utils/pointer"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
-	capierrors "sigs.k8s.io/cluster-api/errors"
 	"sigs.k8s.io/cluster-api/util/conditions"
 	"sigs.k8s.io/cluster-api/util/patch"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -182,16 +180,6 @@ func (m *VirtualMachineScope) SetVMState(v infrav1.VMState) {
 // SetReady sets the AzureStackHCIVirtualMachine Ready Status
 func (m *VirtualMachineScope) SetReady() {
 	m.AzureStackHCIVirtualMachine.Status.Ready = true
-}
-
-// SetFailureMessage sets the AzureStackHCIVirtualMachine status failure message.
-func (m *VirtualMachineScope) SetFailureMessage(v error) {
-	m.AzureStackHCIVirtualMachine.Status.FailureMessage = pointer.StringPtr(v.Error())
-}
-
-// SetFailureReason sets the AzureStackHCIVirtualMachine status failure reason.
-func (m *VirtualMachineScope) SetFailureReason(v capierrors.MachineStatusError) {
-	m.AzureStackHCIVirtualMachine.Status.FailureReason = &v
 }
 
 // SetAnnotation sets a key value annotation on the AzureStackHCIVirtualMachine.

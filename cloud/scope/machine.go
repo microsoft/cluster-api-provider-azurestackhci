@@ -29,7 +29,6 @@ import (
 	"k8s.io/klog/v2/klogr"
 	"k8s.io/utils/pointer"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
-	capierrors "sigs.k8s.io/cluster-api/errors"
 	"sigs.k8s.io/cluster-api/util"
 	"sigs.k8s.io/cluster-api/util/conditions"
 	"sigs.k8s.io/cluster-api/util/patch"
@@ -168,16 +167,6 @@ func (m *MachineScope) SetVMState(v *infrav1.VMState) {
 // SetReady sets the AzureStackHCIMachine Ready Status
 func (m *MachineScope) SetReady() {
 	m.AzureStackHCIMachine.Status.Ready = true
-}
-
-// SetFailureMessage sets the AzureStackHCIMachine status failure message.
-func (m *MachineScope) SetFailureMessage(v error) {
-	m.AzureStackHCIMachine.Status.FailureMessage = pointer.StringPtr(v.Error())
-}
-
-// SetFailureReason sets the AzureStackHCIMachine status failure reason.
-func (m *MachineScope) SetFailureReason(v capierrors.MachineStatusError) {
-	m.AzureStackHCIMachine.Status.FailureReason = &v
 }
 
 // SetAnnotation sets a key value annotation on the AzureStackHCIMachine.
