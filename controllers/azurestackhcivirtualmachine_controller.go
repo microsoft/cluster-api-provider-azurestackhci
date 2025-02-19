@@ -31,6 +31,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
+	capierrors "sigs.k8s.io/cluster-api/errors"
 	"sigs.k8s.io/cluster-api/util/conditions"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -136,6 +137,11 @@ func (r *AzureStackHCIVirtualMachineReconciler) findVM(scope *scope.VirtualMachi
 
 func (r *AzureStackHCIVirtualMachineReconciler) reconcileNormal(virtualMachineScope *scope.VirtualMachineScope) (reconcile.Result, error) {
 	virtualMachineScope.Info("Reconciling AzureStackHCIVirtualMachine")
+	// If the AzureStackHCIVirtualMachine is in an error state, return early.
+	if virtualMachineScope.AzureStackHCIVirtualMachine.Status.FailureReason != nil || virtualMachineScope.AzureStackHCIVirtualMachine.Status.FailureMessage != nil {
+		virtualMachineScope.Info("Error state detected, skipping reconciliation")
+		return reconcile.Result{}, nil
+	}
 
 	// If the AzureStackHCIVirtualMachine doesn't have our finalizer, add it.
 	controllerutil.AddFinalizer(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VirtualMachineFinalizer)
@@ -173,6 +179,8 @@ func (r *AzureStackHCIVirtualMachineReconciler) reconcileNormal(virtualMachineSc
 		virtualMachineScope.Info("Machine VM is updating", "name", virtualMachineScope.Name())
 		conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.VMUpdatingReason, clusterv1.ConditionSeverityInfo, "")
 	default:
+		virtualMachineScope.SetFailureReason(capierrors.UpdateMachineError)
+		virtualMachineScope.SetFailureMessage(errors.Errorf("AzureStackHCI VM state %q is unexpected", vm.State))
 		r.Recorder.Eventf(virtualMachineScope.AzureStackHCIVirtualMachine, corev1.EventTypeWarning, "UnexpectedVMState", "AzureStackHCIVirtualMachine is in an unexpected state %q", vm.State)
 		conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.VMProvisionFailedReason, clusterv1.ConditionSeverityWarning, "")
 	}
