@@ -79,7 +79,7 @@ type AzureStackHCIVirtualMachineStatus struct {
 	VMState *VMState `json:"vmState,omitempty"`
 
 	// +optional
-	FailureReason *errors.MachineStatusError `json:"failureReason,omitempty`
+	FailureReason *errors.MachineStatusError `json:"failureReason,omitempty"`
 
 	// +optional
 	FailureMessage *string `json:"failureMessage,omitempty"`
