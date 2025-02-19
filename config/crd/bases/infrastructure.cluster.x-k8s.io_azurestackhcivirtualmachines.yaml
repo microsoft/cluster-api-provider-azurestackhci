@@ -256,6 +256,12 @@ spec:
                   - type
                   type: object
                 type: array
+              failureMessage:
+                type: string
+              failureReason:
+                description: MachineStatusError defines errors states for Machine
+                  objects.
+                type: string
               ready:
                 description: Ready is true when the provider resource is ready.
                 type: boolean
