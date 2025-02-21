@@ -64,7 +64,7 @@ export PATH := $(TOOLS_BIN_DIR):$(PATH)
 OUTPUT_BASE := --output-base=$(ROOT_DIR)
 
 # the current cluster API version
-CAPI_VERSION := v1.7.2
+CAPI_VERSION := v1.9.4
 
 # Binaries.
 GO_INSTALL = ./scripts/go_install.sh
@@ -74,7 +74,7 @@ CLUSTERCTL_VER := $(CAPI_VERSION)
 CLUSTERCTL_BIN := clusterctl
 CLUSTERCTL := $(TOOLS_BIN_DIR)/$(CLUSTERCTL_BIN)-$(CLUSTERCTL_VER)
 
-CONTROLLER_GEN_VER := v0.15.0
+CONTROLLER_GEN_VER := v0.17.2
 CONTROLLER_GEN_BIN := controller-gen
 CONTROLLER_GEN := $(TOOLS_BIN_DIR)/$(CONTROLLER_GEN_BIN)-$(CONTROLLER_GEN_VER)
 
@@ -110,12 +110,12 @@ GINKGO_VER := v2.19.0
 GINKGO_BIN := ginkgo
 GINKGO := $(TOOLS_BIN_DIR)/$(GINKGO_BIN)-$(GINKGO_VER)
 
-KUBECTL_VER := v1.29.0
+KUBECTL_VER := v1.31.0
 KUBECTL_BIN := kubectl
 KUBECTL := $(TOOLS_BIN_DIR)/$(KUBECTL_BIN)-$(KUBECTL_VER)
 
 # ENVTEST is used for running controller tests.
-SETUP_ENVTEST_VER := 116a1b831fffe7ccc3c8145306c3e1a3b1b14ffa # Note: this matches the commit ID of the dependent controller-runtime module.
+SETUP_ENVTEST_VER :=  v0.0.0-20240522175850-2e9781e9fc60 # updating this to match the version that pulls from controller-tools, details in https://github.com/kubernetes-sigs/cluster-api/pull/10569
 SETUP_ENVTEST_BIN := setup-envtest
 SETUP_ENVTEST := $(abspath $(TOOLS_BIN_DIR)/$(SETUP_ENVTEST_BIN)-$(SETUP_ENVTEST_VER))
 
