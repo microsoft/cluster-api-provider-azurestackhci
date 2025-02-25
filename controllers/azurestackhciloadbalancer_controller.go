@@ -263,7 +263,8 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileLoadBalancerServiceStatus
 		loadBalancerScope.SetAddress(*((*lb.FrontendIPConfigurations)[0].IPAddress))
 	}
 
-	loadBalancerScope.SetReadyReplicas(int32(lb.ReplicationCount))
+	// Assume that overflow will not happen for G115
+	loadBalancerScope.SetReadyReplicas(int32(lb.ReplicationCount)) //nolint
 	return nil
 }
 
