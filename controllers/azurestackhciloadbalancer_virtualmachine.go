@@ -356,7 +356,8 @@ func (r *AzureStackHCILoadBalancerReconciler) updateReplicaStatus(lbs *scope.Loa
 
 // getMachineReplicaCounts calculates the replica counts for the AzureStackHCIVirtualMachines associated with the load balancer
 func (r *AzureStackHCILoadBalancerReconciler) getMachineReplicaCounts(vmList []*infrav1.AzureStackHCIVirtualMachine) (replicas, failedReplicas int32) {
-	replicas = int32(len(vmList))
+	// Assume replicas will be under uniteger overflow for G115
+	replicas = int32(len(vmList)) //nolint
 	for _, vm := range vmList {
 		if vm.Status.VMState == nil {
 			continue

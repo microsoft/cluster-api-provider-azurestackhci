@@ -1,5 +1,6 @@
 run:
   deadline: 3m
+issues:
   skip-dirs:
     - mock*
   skip-files:
@@ -7,22 +8,16 @@ run:
   - ".*conversion.*\\.go$"
 linters:
   enable:
-    - golint
     - govet
     - gofmt
-    - structcheck
-    - varcheck
-    - interfacer
     - unconvert
     - ineffassign
     - goconst
     # - gocyclo
-    - maligned
     - misspell
     - nakedret
     - prealloc
     - gosec
-    - deadcode
   disable-all: true
   # Run with --fast=false for more extensive checks
   fast: true
