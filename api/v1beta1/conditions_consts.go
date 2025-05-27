@@ -36,6 +36,8 @@ const (
 	OutOfCapacityReason = "OutOfCapacity"
 	// OutOfNodeCapacityReason used when the AzureStackHCI node is out of capacity.
 	OutOfNodeCapacityReason = "OutOfNodeCapacity"
+	// PathNotFoundReason used when the AzureStackHCI GalleryImage is not found.
+	PathNotFoundReason = "PathNotFound"
 )
 
 // Conditions and condition Reasons for the AzureStackHCICluster object
