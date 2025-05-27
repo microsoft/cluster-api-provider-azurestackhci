@@ -211,7 +211,7 @@ func (r *AzureStackHCIVirtualMachineReconciler) getOrCreate(virtualMachineScope 
 			case mocerrors.OutOfNodeCapacity.Error():
 				conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.OutOfNodeCapacityReason, clusterv1.ConditionSeverityWarning, err.Error())
 			case mocerrors.PathNotFound.Error():
-				conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.PathNotFoundReason, clusterv1.ConditionSeverityWarning, err.Error())
+				conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.PathNotFoundReason, clusterv1.ConditionSeverityError, err.Error())
 			default:
 				conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.VMProvisionFailedReason, clusterv1.ConditionSeverityError, err.Error())
 			}
