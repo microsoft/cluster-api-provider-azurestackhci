@@ -19,11 +19,13 @@ package controllers
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/go-logr/logr"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
 	infrav1util "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/util"
 	mocerrors "github.com/microsoft/moc/pkg/errors"
+	moccodes "github.com/microsoft/moc/pkg/errors/codes"
 	"github.com/pkg/errors"
 
 	corev1 "k8s.io/api/core/v1"
@@ -203,6 +205,11 @@ func (r *AzureStackHCIVirtualMachineReconciler) getOrCreate(virtualMachineScope 
 		virtualMachineScope.Info("No VM found, creating VM", "Name", virtualMachineScope.Name())
 		vm, err = ams.Create()
 		if err != nil {
+			virtualMachineScope.Info("Switch statement value", mocerrors.GetErrorCode(err))
+			virtualMachineScope.Info("NotFound", mocerrors.NotFound.Error())
+			virtualMachineScope.Info("PathNotFound", mocerrors.PathNotFound.Error())
+			virtualMachineScope.Info("bool", strconv.FormatBool(mocerrors.IsPathNotFound(err)))
+			virtualMachineScope.Info("comp", strconv.FormatBool(mocerrors.GetErrorCode(err) == mocerrors.NotFound.Error()))
 			switch mocerrors.GetErrorCode(err) {
 			case mocerrors.OutOfMemory.Error():
 				conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.OutOfMemoryReason, clusterv1.ConditionSeverityError, err.Error())
@@ -210,8 +217,13 @@ func (r *AzureStackHCIVirtualMachineReconciler) getOrCreate(virtualMachineScope 
 				conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.OutOfCapacityReason, clusterv1.ConditionSeverityError, err.Error())
 			case mocerrors.OutOfNodeCapacity.Error():
 				conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.OutOfNodeCapacityReason, clusterv1.ConditionSeverityWarning, err.Error())
-			case mocerrors.PathNotFound.Error():
-				conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.PathNotFoundReason, clusterv1.ConditionSeverityError, err.Error())
+			// Internally, NotFound is a legacy error and returns the error string instead.
+			case moccodes.NotFound.String():
+				if mocerrors.IsPathNotFound(err) {
+					conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.PathNotFoundReason, clusterv1.ConditionSeverityError, err.Error())
+				} else {					
+					conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.NotFoundReason, clusterv1.ConditionSeverityError, err.Error())
+				}
 			default:
 				conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.VMProvisionFailedReason, clusterv1.ConditionSeverityError, err.Error())
 			}
