@@ -19,7 +19,6 @@ package controllers
 
 import (
 	"context"
-	"strconv"
 
 	"github.com/go-logr/logr"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
@@ -205,11 +204,6 @@ func (r *AzureStackHCIVirtualMachineReconciler) getOrCreate(virtualMachineScope 
 		virtualMachineScope.Info("No VM found, creating VM", "Name", virtualMachineScope.Name())
 		vm, err = ams.Create()
 		if err != nil {
-			virtualMachineScope.Info("Switch statement value", mocerrors.GetErrorCode(err))
-			virtualMachineScope.Info("NotFound", mocerrors.NotFound.Error())
-			virtualMachineScope.Info("PathNotFound", mocerrors.PathNotFound.Error())
-			virtualMachineScope.Info("bool", strconv.FormatBool(mocerrors.IsPathNotFound(err)))
-			virtualMachineScope.Info("comp", strconv.FormatBool(mocerrors.GetErrorCode(err) == mocerrors.NotFound.Error()))
 			switch mocerrors.GetErrorCode(err) {
 			case mocerrors.OutOfMemory.Error():
 				conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.OutOfMemoryReason, clusterv1.ConditionSeverityError, err.Error())
