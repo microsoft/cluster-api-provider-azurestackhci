@@ -210,11 +210,11 @@ func (r *AzureStackHCIVirtualMachineReconciler) getOrCreate(virtualMachineScope 
 			case mocerrors.OutOfCapacity.Error():
 				conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.OutOfCapacityReason, clusterv1.ConditionSeverityError, err.Error())
 			case mocerrors.OutOfNodeCapacity.Error():
-				conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.OutOfNodeCapacityReason, clusterv1.ConditionSeverityWarning, err.Error())
-			// Internally, NotFound is a legacy error and returns the error string instead.
-			case mocerrors.NotFound.Error():
+				conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.OutOfNodeCapacityReason, clusterv1.ConditionSeverityWarning, err.Error())			
+			case mocerrors.NotFound.Error(): // "NotFound"
 				fallthrough
-			case moccodes.NotFound.String():
+			// Internally, NotFound is a legacy error and returns the error string instead.
+			case moccodes.NotFound.String(): // "Not Found"
 				if mocerrors.IsPathNotFound(err) {
 					conditions.MarkFalse(virtualMachineScope.AzureStackHCIVirtualMachine, infrav1.VMRunningCondition, infrav1.PathNotFoundReason, clusterv1.ConditionSeverityError, err.Error())
 				} else {					
