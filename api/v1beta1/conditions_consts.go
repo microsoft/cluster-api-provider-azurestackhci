@@ -39,7 +39,7 @@ const (
 	// PathNotFoundReason used when the AzureStackHCI GalleryImage is not found.
 	PathNotFoundReason = "PathNotFound"
 	// NotFoundReason used as a generic error reason when a resource is not found.
-	NotFoundReason = "PathNotFound"
+	NotFoundReason = "NotFound"
 )
 
 // Conditions and condition Reasons for the AzureStackHCICluster object
