@@ -24,7 +24,6 @@ import (
 	infrav1 "github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1"
 	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
-	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/disks"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/networkinterfaces"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/services/virtualmachines"
 	infrav1util "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/util"
@@ -45,7 +44,6 @@ type azureStackHCIVirtualMachineService struct {
 	vmScope              *scope.VirtualMachineScope
 	networkInterfacesSvc azurestackhci.Service
 	virtualMachinesSvc   azurestackhci.GetterService
-	disksSvc             azurestackhci.GetterService
 }
 
 // newAzureStackHCIMachineService populates all the services based on input scope
@@ -54,7 +52,6 @@ func newAzureStackHCIVirtualMachineService(vmScope *scope.VirtualMachineScope) *
 		vmScope:              vmScope,
 		networkInterfacesSvc: networkinterfaces.NewService(vmScope),
 		virtualMachinesSvc:   virtualmachines.NewService(vmScope),
-		disksSvc:             disks.NewService(vmScope),
 	}
 }
 
@@ -137,15 +134,6 @@ func (s *azureStackHCIVirtualMachineService) Delete() error {
 		return errors.Wrapf(err, "Unable to delete network interface")
 	}
 
-	diskSpec := &disks.Spec{
-		Name: azurestackhci.GenerateOSDiskName(s.vmScope.Name()),
-	}
-
-	err = s.disksSvc.Delete(s.vmScope.Context, diskSpec)
-	if err != nil {
-		return errors.Wrapf(err, "Unable to delete os disk of machine %s", s.vmScope.Name())
-	}
-
 	return nil
 }
 
@@ -212,20 +200,6 @@ func (s *azureStackHCIVirtualMachineService) VMIfExists() (*infrav1.VM, error) {
 // this will hopefully be an input from upstream machinesets so all the vms are balanced
 func (s *azureStackHCIVirtualMachineService) getVirtualMachineZone() (string, error) {
 	return "", nil
-}
-
-func (s *azureStackHCIVirtualMachineService) reconcileDisk(disk infrav1.OSDisk) error {
-	diskSpec := &disks.Spec{
-		Name:   azurestackhci.GenerateOSDiskName(s.vmScope.Name()), //disk.Name,
-		Source: disk.Source,
-	}
-
-	err := s.disksSvc.Reconcile(s.vmScope.Context, diskSpec)
-	if err != nil {
-		return errors.Wrap(err, "unable to create VM OS disk")
-	}
-
-	return err
 }
 
 func (s *azureStackHCIVirtualMachineService) reconcileNetworkInterface(nicName string, ipconfigs networkinterfaces.IPConfigurations) error {
