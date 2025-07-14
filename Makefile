@@ -26,7 +26,7 @@ SHELL:=/usr/bin/env bash
 # Go version
 GO_VERSION := $(shell go env GOVERSION | sed "s/[^[:digit:].-]//g")
 ifeq ($(GO_VERSION),)
-GO_VERSION := 1.22.4
+GO_VERSION := 1.24.0
 endif
 
 # Use GOPROXY environment variable if set
@@ -86,9 +86,10 @@ ENVSUBST_VER := v2.0.0-20210730161058-179042472c46
 ENVSUBST_BIN := envsubst
 ENVSUBST := $(TOOLS_BIN_DIR)/$(ENVSUBST_BIN)-$(ENVSUBST_VER)
 
-GOLANGCI_LINT_VER := v1.64.5
+GOLANGCI_LINT_VER := v2.2.2
 GOLANGCI_LINT_BIN := golangci-lint
 GOLANGCI_LINT := $(TOOLS_BIN_DIR)/$(GOLANGCI_LINT_BIN)-$(GOLANGCI_LINT_VER)
+GOLANGCI_LINT_PKG := github.com/golangci/golangci-lint/v2/cmd/golangci-lint
 
 KUSTOMIZE_VER := v5.6.0
 KUSTOMIZE_BIN := kustomize
@@ -115,7 +116,7 @@ KUBECTL_BIN := kubectl
 KUBECTL := $(TOOLS_BIN_DIR)/$(KUBECTL_BIN)-$(KUBECTL_VER)
 
 # ENVTEST is used for running controller tests.
-SETUP_ENVTEST_VER :=  v0.0.0-20240522175850-2e9781e9fc60 # updating this to match the version that pulls from controller-tools, details in https://github.com/kubernetes-sigs/cluster-api/pull/10569
+SETUP_ENVTEST_VER :=  release-0.21
 SETUP_ENVTEST_BIN := setup-envtest
 SETUP_ENVTEST := $(abspath $(TOOLS_BIN_DIR)/$(SETUP_ENVTEST_BIN)-$(SETUP_ENVTEST_VER))
 
@@ -221,7 +222,7 @@ setup-envtest: $(SETUP_ENVTEST) ## Set up envtest (download kubebuilder assets)
 mockgen: $(MOCKGEN) ## Generate mocks using mockgen.
 
 $(GOLANGCI_LINT): ## Build golangci-lint from tools folder.
-	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/golangci/golangci-lint/cmd/golangci-lint $(GOLANGCI_LINT_BIN) $(GOLANGCI_LINT_VER)
+	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) $(GOLANGCI_LINT_PKG) $(GOLANGCI_LINT_BIN) $(GOLANGCI_LINT_VER)
 
 $(KUSTOMIZE): ## Build kustomize from tools folder.
 	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) sigs.k8s.io/kustomize/kustomize/v5 $(KUSTOMIZE_BIN) $(KUSTOMIZE_VER)

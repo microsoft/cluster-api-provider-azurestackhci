@@ -1,26 +1,38 @@
-run:
-  deadline: 3m
-issues:
-  skip-dirs:
-    - mock*
-  skip-files:
-  - "zz_generated.*\\.go$"
-  - ".*conversion.*\\.go$"
+version: "2"
 linters:
+  default: none
   enable:
-    - govet
-    - gofmt
-    - unconvert
-    - ineffassign
     - goconst
-    # - gocyclo
+    - gosec
+    - govet
+    - ineffassign
     - misspell
     - nakedret
     - prealloc
-    - gosec
-  disable-all: true
-  # Run with --fast=false for more extensive checks
-  fast: true
-issue:
-  max-same-issues: 0
-  max-per-linter: 0
+    - unconvert
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+      - mock*
+      - "zz_generated.*\\.go$"
+      - ".*conversion.*\\.go$"
+formatters:
+  enable:
+    - gofmt
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+      - mock*
+      - "zz_generated.*\\.go$"
+      - ".*conversion.*\\.go$"
