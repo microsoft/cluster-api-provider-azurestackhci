@@ -8,7 +8,7 @@ require (
 	github.com/go-logr/logr v1.4.2
 	github.com/golang/mock v1.6.0
 	github.com/microsoft/moc v0.25.0
-	github.com/microsoft/moc-sdk-for-go v1.2.112
+	github.com/microsoft/moc-sdk-for-go v0.24.2
 	github.com/onsi/ginkgo/v2 v2.23.4
 	github.com/onsi/gomega v1.36.3
 	github.com/pkg/errors v0.9.1

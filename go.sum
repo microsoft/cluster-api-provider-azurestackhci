@@ -146,8 +146,8 @@ github.com/mailru/easyjson v0.7.7 h1:UGYAvKxe3sBsEDzO8ZeWOSlIQfWFlxbzLZe7hwFURr0
 github.com/mailru/easyjson v0.7.7/go.mod h1:xzfreul335JAWq5oZzymOObrkdz5UnU4kGfJJLY9Nlc=
 github.com/microsoft/moc v0.25.0 h1:lgGesosWrJQ9UauTHR9ZXHtaM2YiurgnK514AXCpC9E=
 github.com/microsoft/moc v0.25.0/go.mod h1:nvYz7yZT6x+rRx/aEkswVTI2sa8AyAG9mZmWvXHk8cw=
-github.com/microsoft/moc-sdk-for-go v1.2.112 h1:4uSf1vbqOmqdeX3o47DptypXsyTRdFTwhD291ntJLz8=
-github.com/microsoft/moc-sdk-for-go v1.2.112/go.mod h1:0+oc446+TRBMMN2Y0nY0HiuXt1k3R3Yn0DxcvyZTRGM=
+github.com/microsoft/moc-sdk-for-go v0.24.2 h1:OkBuE/TDeuNlcSJ4z0Ly8C2C5xJHywbkncG2wuiAbhQ=
+github.com/microsoft/moc-sdk-for-go v0.24.2/go.mod h1:1h3uU5Z3qE5d/x8L+Tw8rS/PPqfb/8HhCG6/qmD5HCA=
 github.com/mitchellh/copystructure v1.2.0 h1:vpKXTN4ewci03Vljg/q9QvCGUDttBOGBIa15WveJJGw=
 github.com/mitchellh/copystructure v1.2.0/go.mod h1:qLl+cE2AmVv+CoeAwDPye/v+N2HKCj9FbZEVFJRxO9s=
 github.com/mitchellh/reflectwalk v1.0.2 h1:G2LzWKi524PWgd3mLHV8Y5k7s6XUvT0Gef6zxSIeXaQ=
