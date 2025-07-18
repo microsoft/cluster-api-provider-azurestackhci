@@ -64,7 +64,7 @@ export PATH := $(TOOLS_BIN_DIR):$(PATH)
 OUTPUT_BASE := --output-base=$(ROOT_DIR)
 
 # the current cluster API version
-CAPI_VERSION := v1.9.4
+CAPI_VERSION := v1.10.3
 
 # Binaries.
 GO_INSTALL = ./scripts/go_install.sh
@@ -132,7 +132,7 @@ KUBEBUILDER_ASSETS ?= $(shell $(SETUP_ENVTEST) use --use-env -p path $(KUBEBUILD
 # Version
 MAJOR_VER ?= 1
 MINOR_VER ?= 1
-PATCH_VER ?= 3
+PATCH_VER ?= 21
 
 # Define Docker related variables. Releases should modify and double check these vars.
 REGISTRY ?= mocimages.azurecr.io
