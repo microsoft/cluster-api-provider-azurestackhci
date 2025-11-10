@@ -53,6 +53,8 @@ type AzureStackHCIMachineSpec struct {
 
 	GpuCount int32 `json:"gpuCount,omitempty"`
 
+	CustomGpuConfig VirtualMachineCustomGpuConfig `json:"customGpu,omitempty"`
+
 	// AllocatePublicIP allows the ability to create dynamic public ips for machines where this value is true.
 	// +optional
 	AllocatePublicIP bool `json:"allocatePublicIP,omitempty"`

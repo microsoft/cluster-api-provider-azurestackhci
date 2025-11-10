@@ -216,6 +216,17 @@ type AvailabilityZone struct {
 	Enabled *bool   `json:"enabled,omitempty"`
 }
 
+// VirtualMachineCustomGpuConfig specifies Bring-Your-Own GPU details
+type VirtualMachineCustomGpuConfig struct {
+	GpuDriver  string                  `json:"gpuDriver,omitempty"`
+	MMIORegion GpuMemoryMappedIORegion `json:"mmioRegion,omitempty"`
+}
+
+type GpuMemoryMappedIORegion struct {
+	Low  int `json:"low,omitempty"`
+	High int `json:"high,omitempty"`
+}
+
 // VMIdentity defines the identity of the virtual machine, if configured.
 type VMIdentity string
 
