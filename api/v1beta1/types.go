@@ -216,15 +216,30 @@ type AvailabilityZone struct {
 	Enabled *bool   `json:"enabled,omitempty"`
 }
 
-// VirtualMachineCustomGpuConfig specifies Bring-Your-Own GPU details
-type VirtualMachineCustomGpuConfig struct {
-	GpuDriver  string                  `json:"gpuDriver,omitempty"`
-	MMIORegion GpuMemoryMappedIORegion `json:"mmioRegion,omitempty"`
+// VirtualMachineCustomSize specifies cpu/memory/gpu information for custom VMSize types.
+type VirtualMachineCustomSize struct {
+	CpuCount        *int32                   `json:"cpucount,omitempty"`
+	MemoryMB        *int32                   `json:"memorymb,omitempty"`
+	Assignment      *GpuAssignment           `json:"assignment,omitempty"`
+	PartitionSizeMB *uint64                  `json:"partitionSizeMB,omitempty"`
+	GpuName         *string                  `json:"gpuName,omitempty"`
+	GpuDriver       *string                  `json:"gpuDriver,omitempty"`
+	MMIORegion      *GpuMemoryMappedIORegion `json:"mmioRegion,omitempty"`
 }
 
+type GpuAssignment string
+
+// possible values of gpu assignment
+const (
+	GpuDDA     GpuAssignment = "GpuDDA"
+	GpuP       GpuAssignment = "GpuP"
+	GpuPV      GpuAssignment = "GpuPV"
+	GpuDefault GpuAssignment = "GpuDefault"
+)
+
 type GpuMemoryMappedIORegion struct {
-	Low  int `json:"low,omitempty"`
-	High int `json:"high,omitempty"`
+	Low  *uint64 `json:"low,omitempty"`
+	High *uint64 `json:"high,omitempty"`
 }
 
 // VMIdentity defines the identity of the virtual machine, if configured.

@@ -53,7 +53,9 @@ type AzureStackHCIMachineSpec struct {
 
 	GpuCount int32 `json:"gpuCount,omitempty"`
 
-	CustomGpuConfig VirtualMachineCustomGpuConfig `json:"customGpu,omitempty"`
+	// VM cpu/memory/GPU details when VM size type is custom
+	// +optional
+	CustomSize VirtualMachineCustomSize `json:"customSize,omitempty"`
 
 	// AllocatePublicIP allows the ability to create dynamic public ips for machines where this value is true.
 	// +optional
