@@ -68,6 +68,35 @@ spec:
                           id:
                             type: string
                         type: object
+                      customSize:
+                        description: VM cpu/memory/GPU details when VM size type is
+                          custom
+                        properties:
+                          assignment:
+                            type: string
+                          cpucount:
+                            format: int32
+                            type: integer
+                          gpuDriver:
+                            type: string
+                          gpuName:
+                            type: string
+                          memorymb:
+                            format: int32
+                            type: integer
+                          mmioRegion:
+                            properties:
+                              high:
+                                format: int64
+                                type: integer
+                              low:
+                                format: int64
+                                type: integer
+                            type: object
+                          partitionSizeMB:
+                            format: int64
+                            type: integer
+                        type: object
                       gpuCount:
                         format: int32
                         type: integer
