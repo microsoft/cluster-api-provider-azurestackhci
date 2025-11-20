@@ -1,20 +1,20 @@
 module github.com/microsoft/cluster-api-provider-azurestackhci
 
-go 1.24.0
+go 1.23.0
 
 require (
 	github.com/Azure/go-autorest/autorest/to v0.4.0
 	github.com/blang/semver v3.5.1+incompatible
-	github.com/go-logr/logr v1.4.3
+	github.com/go-logr/logr v1.4.2
 	github.com/golang/mock v1.6.0
-	github.com/microsoft/moc v0.38.1
+	github.com/microsoft/moc v0.25.0
 	github.com/microsoft/moc-sdk-for-go v0.24.2
 	github.com/onsi/ginkgo/v2 v2.23.4
 	github.com/onsi/gomega v1.36.3
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/pflag v1.0.6
-	golang.org/x/crypto v0.43.0
-	google.golang.org/grpc v1.76.0
+	golang.org/x/crypto v0.36.0
+	google.golang.org/grpc v1.67.3
 	k8s.io/api v0.32.3
 	k8s.io/apimachinery v0.32.3
 	k8s.io/client-go v0.32.3
@@ -46,7 +46,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
 	github.com/gobuffalo/flect v1.0.3 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
+	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
@@ -80,17 +80,17 @@ require (
 	go.opentelemetry.io/otel/trace v1.29.0 // indirect
 	go.uber.org/automaxprocs v1.6.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/net v0.46.0 // indirect
-	golang.org/x/oauth2 v0.30.0 // indirect
-	golang.org/x/sync v0.18.0 // indirect
-	golang.org/x/sys v0.37.0 // indirect
-	golang.org/x/term v0.36.0 // indirect
-	golang.org/x/text v0.31.0 // indirect
+	golang.org/x/net v0.38.0 // indirect
+	golang.org/x/oauth2 v0.28.0 // indirect
+	golang.org/x/sync v0.12.0 // indirect
+	golang.org/x/sys v0.32.0 // indirect
+	golang.org/x/term v0.30.0 // indirect
+	golang.org/x/text v0.23.0 // indirect
 	golang.org/x/time v0.8.0 // indirect
-	golang.org/x/tools v0.38.0 // indirect
+	golang.org/x/tools v0.31.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.5.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20251111163417-95abcf5c77ba // indirect
-	google.golang.org/protobuf v1.36.10 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20241223144023-3abc09e42ca8 // indirect
+	google.golang.org/protobuf v1.36.5 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -110,8 +110,6 @@ replace (
 	github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
 	github.com/golang-jwt/jwt/v4 => github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.2
-	github.com/microsoft/moc => github.com/2sjha/moc v0.0.0-20251113175623-00f42f049443
-	github.com/microsoft/moc-sdk-for-go => github.com/2sjha/moc-sdk-for-go v0.0.0-20251113212106-919123a31002
 	github.com/miekg/dns => github.com/miekg/dns v1.1.25
 	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.9.23
 	github.com/nats-io/nkeys => github.com/nats-io/nkeys v0.4.6
