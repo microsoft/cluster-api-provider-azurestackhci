@@ -300,6 +300,7 @@ func (s *azureStackHCIVirtualMachineService) createVirtualMachine(nicName string
 			SSHKeyData:          decodedKeys,
 			Size:                s.vmScope.AzureStackHCIVirtualMachine.Spec.VMSize,
 			GpuCount:            s.vmScope.AzureStackHCIVirtualMachine.Spec.GpuCount,
+			CustomSize:          s.vmScope.AzureStackHCIVirtualMachine.Spec.CustomSize,
 			OSDisk:              s.vmScope.AzureStackHCIVirtualMachine.Spec.OSDisk,
 			Image:               s.vmScope.AzureStackHCIVirtualMachine.Spec.Image,
 			CustomData:          *s.vmScope.AzureStackHCIVirtualMachine.Spec.BootstrapData,
