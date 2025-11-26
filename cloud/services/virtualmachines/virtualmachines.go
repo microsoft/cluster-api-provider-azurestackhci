@@ -49,7 +49,7 @@ type Spec struct {
 	SSHKeyData          []string
 	Size                string
 	GpuCount            int32
-	CustomSize          compute.CustomSize
+	CustomSize          infrav1.VirtualMachineCustomSize
 	Zone                string
 	Image               infrav1.Image
 	OSDisk              infrav1.OSDisk
