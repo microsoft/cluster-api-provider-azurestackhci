@@ -174,9 +174,13 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		},
 	}
 
+	logger.Info("creating vm", "vmSpec", vmSpec)
+
 	if vmSpec.Size == string(compute.VirtualMachineSizeTypesCustom) {
-		virtualMachine.HardwareProfile.CustomSize.CpuCount = vmSpec.CustomSize.CpuCount
-		virtualMachine.HardwareProfile.CustomSize.MemoryMB = vmSpec.CustomSize.MemoryMB
+		virtualMachine.HardwareProfile.CustomSize = &compute.VirtualMachineCustomSize{
+			CpuCount: vmSpec.CustomSize.CpuCount,
+			MemoryMB: vmSpec.CustomSize.MemoryMB,
+		}
 	}
 
 	virtualMachine.HardwareProfile.VirtualMachineGPUs = generateGpuList(vmSpec.GpuCount)
@@ -207,6 +211,8 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			GroupName: to.StringPtr(s.Scope.GetResourceGroup()),
 		}
 	}
+
+	logger.Info("creating vm", "vm", virtualMachine)
 
 	_, err = s.Client.CreateOrUpdate(
 		ctx,
