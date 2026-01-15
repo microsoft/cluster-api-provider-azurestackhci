@@ -49,6 +49,7 @@ type Spec struct {
 	SSHKeyData          []string
 	Size                string
 	GpuCount            int32
+	CustomSize          infrav1.VirtualMachineCustomSize
 	Zone                string
 	Image               infrav1.Image
 	OSDisk              infrav1.OSDisk
@@ -171,6 +172,13 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 				VMSize: compute.VirtualMachineSizeTypes(vmSpec.Size),
 			},
 		},
+	}
+
+	if vmSpec.Size == string(compute.VirtualMachineSizeTypesCustom) {
+		virtualMachine.HardwareProfile.CustomSize = &compute.VirtualMachineCustomSize{
+			CpuCount: vmSpec.CustomSize.CpuCount,
+			MemoryMB: vmSpec.CustomSize.MemoryMB,
+		}
 	}
 
 	virtualMachine.HardwareProfile.VirtualMachineGPUs = generateGpuList(vmSpec.GpuCount)

@@ -46,6 +46,10 @@ type AzureStackHCIVirtualMachineSpec struct {
 	// if not specified, it's a vm without gpu
 	GpuCount int32 `json:"gpuCount,omitempty"`
 
+	// VM cpu/memory/GPU details when VM size type is custom
+	// +optional
+	CustomSize VirtualMachineCustomSize `json:"customSize,omitempty"`
+
 	// come from the cluster scope for machine and lb controller creation path
 	ResourceGroup    string   `json:"resourceGroup"`
 	VnetName         string   `json:"vnetName"`
