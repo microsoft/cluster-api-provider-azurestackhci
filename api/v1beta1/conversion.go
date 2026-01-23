@@ -153,3 +153,35 @@ func Convert_v1beta1_Condition_To_v1_Condition(in *corev1beta1.Condition, out *m
 	// corev1beta1.Condition doesn't have ObservedGeneration field
 	return nil
 }
+
+// Convert_v1beta1_OSDisk_To_v1beta2_OSDisk converts v1beta1 OSDisk to v1beta2.
+// Manual conversion needed because v1beta2 ManagedDisk is a pointer type.
+func Convert_v1beta1_OSDisk_To_v1beta2_OSDisk(in *OSDisk, out *v1beta2.OSDisk, s conversion.Scope) error {
+	out.Name = in.Name
+	out.Source = in.Source
+	out.OSType = v1beta2.OSType(in.OSType)
+	out.DiskSizeGB = in.DiskSizeGB
+	// Convert value type to pointer - only set if non-empty
+	if in.ManagedDisk.StorageAccountType != "" {
+		out.ManagedDisk = &v1beta2.ManagedDisk{
+			StorageAccountType: in.ManagedDisk.StorageAccountType,
+		}
+	}
+	return nil
+}
+
+// Convert_v1beta2_OSDisk_To_v1beta1_OSDisk converts v1beta2 OSDisk to v1beta1.
+// Manual conversion needed because v1beta2 ManagedDisk is a pointer type.
+func Convert_v1beta2_OSDisk_To_v1beta1_OSDisk(in *v1beta2.OSDisk, out *OSDisk, s conversion.Scope) error {
+	out.Name = in.Name
+	out.Source = in.Source
+	out.OSType = OSType(in.OSType)
+	out.DiskSizeGB = in.DiskSizeGB
+	// Convert pointer type to value type
+	if in.ManagedDisk != nil {
+		out.ManagedDisk = ManagedDisk{
+			StorageAccountType: in.ManagedDisk.StorageAccountType,
+		}
+	}
+	return nil
+}

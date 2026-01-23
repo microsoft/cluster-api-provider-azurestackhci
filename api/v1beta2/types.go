@@ -234,11 +234,11 @@ const (
 )
 
 type OSDisk struct {
-	Name        string      `json:"name"`
-	Source      string      `json:"source"`
-	OSType      OSType      `json:"osType"`
-	DiskSizeGB  int32       `json:"diskSizeGB"`
-	ManagedDisk ManagedDisk `json:"managedDisk"`
+	Name        string       `json:"name"`
+	Source      string       `json:"source"`
+	OSType      OSType       `json:"osType"`
+	DiskSizeGB  int32        `json:"diskSizeGB"`
+	ManagedDisk *ManagedDisk `json:"managedDisk,omitempty"`
 }
 
 type ManagedDisk struct {

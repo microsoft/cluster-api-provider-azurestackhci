@@ -331,7 +331,6 @@ spec:
                             type: string
                         required:
                         - diskSizeGB
-                        - managedDisk
                         - name
                         - osType
                         - source
