@@ -346,12 +346,16 @@ func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineNormal(machineSc
 		if err != nil {
 			return errors.Wrap(err, "failed to get VM image")
 		}
-		image.DeepCopyInto(&vm.Spec.Image)
+		vm.Spec.Image = image.DeepCopy()
 
 		vm.Spec.VMSize = machineScope.AzureStackHCIMachine.Spec.VMSize
 		vm.Spec.GpuCount = machineScope.AzureStackHCIMachine.Spec.GpuCount
-		machineScope.AzureStackHCIMachine.Spec.AvailabilityZone.DeepCopyInto(&vm.Spec.AvailabilityZone)
-		machineScope.AzureStackHCIMachine.Spec.OSDisk.DeepCopyInto(&vm.Spec.OSDisk)
+		if machineScope.AzureStackHCIMachine.Spec.AvailabilityZone != nil {
+			vm.Spec.AvailabilityZone = machineScope.AzureStackHCIMachine.Spec.AvailabilityZone.DeepCopy()
+		}
+		if machineScope.AzureStackHCIMachine.Spec.OSDisk != nil {
+			vm.Spec.OSDisk = machineScope.AzureStackHCIMachine.Spec.OSDisk.DeepCopy()
+		}
 		vm.Spec.Location = machineScope.AzureStackHCIMachine.Spec.Location
 		vm.Spec.SSHPublicKey = machineScope.AzureStackHCIMachine.Spec.SSHPublicKey
 		vm.Spec.BootstrapData = &bootstrapData
@@ -525,10 +529,16 @@ func (r *AzureStackHCIMachineReconciler) AzureStackHCIClusterToAzureStackHCIMach
 // Pick image from the machine configuration, or use a default one.
 func (r *AzureStackHCIMachineReconciler) getVMImage(scope *scope.MachineScope) (*infrav1.Image, error) {
 	// Use custom image if provided
-	if scope.AzureStackHCIMachine.Spec.Image.Name != nil && *scope.AzureStackHCIMachine.Spec.Image.Name != "" {
+	if scope.AzureStackHCIMachine.Spec.Image != nil &&
+		scope.AzureStackHCIMachine.Spec.Image.Name != nil &&
+		*scope.AzureStackHCIMachine.Spec.Image.Name != "" {
 		scope.Info("Using custom image name for machine", "machine", scope.AzureStackHCIMachine.GetName(), "imageName", scope.AzureStackHCIMachine.Spec.Image.Name)
-		return &scope.AzureStackHCIMachine.Spec.Image, nil
+		return scope.AzureStackHCIMachine.Spec.Image, nil
 	}
 
-	return azurestackhci.GetDefaultImage(scope.AzureStackHCIMachine.Spec.Image.OSType, scope.Machine.Spec.Version)
+	osType := infrav1.OSTypeLinux
+	if scope.AzureStackHCIMachine.Spec.Image != nil {
+		osType = scope.AzureStackHCIMachine.Spec.Image.OSType
+	}
+	return azurestackhci.GetDefaultImage(osType, scope.Machine.Spec.Version)
 }

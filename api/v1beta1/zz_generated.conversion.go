@@ -42,16 +42,6 @@ func init() {
 // RegisterConversions adds conversion functions to the given scheme.
 // Public to allow building arbitrary schemes.
 func RegisterConversions(s *runtime.Scheme) error {
-	if err := s.AddGeneratedConversionFunc((*v1beta2.AvailabilityZone)(nil), (*AvailabilityZone)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1beta2_AvailabilityZone_To_v1beta1_AvailabilityZone(a.(*v1beta2.AvailabilityZone), b.(*AvailabilityZone), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*AvailabilityZone)(nil), (*v1beta2.AvailabilityZone)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1beta1_AvailabilityZone_To_v1beta2_AvailabilityZone(a.(*AvailabilityZone), b.(*v1beta2.AvailabilityZone), scope)
-	}); err != nil {
-		return err
-	}
 	if err := s.AddGeneratedConversionFunc((*v1beta2.AzureStackHCICluster)(nil), (*AzureStackHCICluster)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1beta2_AzureStackHCICluster_To_v1beta1_AzureStackHCICluster(a.(*v1beta2.AzureStackHCICluster), b.(*AzureStackHCICluster), scope)
 	}); err != nil {
@@ -142,16 +132,6 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
-	if err := s.AddGeneratedConversionFunc((*v1beta2.AzureStackHCILoadBalancerSpec)(nil), (*AzureStackHCILoadBalancerSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1beta2_AzureStackHCILoadBalancerSpec_To_v1beta1_AzureStackHCILoadBalancerSpec(a.(*v1beta2.AzureStackHCILoadBalancerSpec), b.(*AzureStackHCILoadBalancerSpec), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*AzureStackHCILoadBalancerSpec)(nil), (*v1beta2.AzureStackHCILoadBalancerSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1beta1_AzureStackHCILoadBalancerSpec_To_v1beta2_AzureStackHCILoadBalancerSpec(a.(*AzureStackHCILoadBalancerSpec), b.(*v1beta2.AzureStackHCILoadBalancerSpec), scope)
-	}); err != nil {
-		return err
-	}
 	if err := s.AddGeneratedConversionFunc((*v1beta2.AzureStackHCILoadBalancerStatus)(nil), (*AzureStackHCILoadBalancerStatus)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1beta2_AzureStackHCILoadBalancerStatus_To_v1beta1_AzureStackHCILoadBalancerStatus(a.(*v1beta2.AzureStackHCILoadBalancerStatus), b.(*AzureStackHCILoadBalancerStatus), scope)
 	}); err != nil {
@@ -189,16 +169,6 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}
 	if err := s.AddGeneratedConversionFunc((*AzureStackHCIMachineProviderCondition)(nil), (*v1beta2.AzureStackHCIMachineProviderCondition)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1beta1_AzureStackHCIMachineProviderCondition_To_v1beta2_AzureStackHCIMachineProviderCondition(a.(*AzureStackHCIMachineProviderCondition), b.(*v1beta2.AzureStackHCIMachineProviderCondition), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*v1beta2.AzureStackHCIMachineSpec)(nil), (*AzureStackHCIMachineSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1beta2_AzureStackHCIMachineSpec_To_v1beta1_AzureStackHCIMachineSpec(a.(*v1beta2.AzureStackHCIMachineSpec), b.(*AzureStackHCIMachineSpec), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*AzureStackHCIMachineSpec)(nil), (*v1beta2.AzureStackHCIMachineSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1beta1_AzureStackHCIMachineSpec_To_v1beta2_AzureStackHCIMachineSpec(a.(*AzureStackHCIMachineSpec), b.(*v1beta2.AzureStackHCIMachineSpec), scope)
 	}); err != nil {
 		return err
 	}
@@ -272,16 +242,6 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
-	if err := s.AddGeneratedConversionFunc((*v1beta2.AzureStackHCIVirtualMachineSpec)(nil), (*AzureStackHCIVirtualMachineSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1beta2_AzureStackHCIVirtualMachineSpec_To_v1beta1_AzureStackHCIVirtualMachineSpec(a.(*v1beta2.AzureStackHCIVirtualMachineSpec), b.(*AzureStackHCIVirtualMachineSpec), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*AzureStackHCIVirtualMachineSpec)(nil), (*v1beta2.AzureStackHCIVirtualMachineSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1beta1_AzureStackHCIVirtualMachineSpec_To_v1beta2_AzureStackHCIVirtualMachineSpec(a.(*AzureStackHCIVirtualMachineSpec), b.(*v1beta2.AzureStackHCIVirtualMachineSpec), scope)
-	}); err != nil {
-		return err
-	}
 	if err := s.AddGeneratedConversionFunc((*v1beta2.AzureStackHCIVirtualMachineStatus)(nil), (*AzureStackHCIVirtualMachineStatus)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1beta2_AzureStackHCIVirtualMachineStatus_To_v1beta1_AzureStackHCIVirtualMachineStatus(a.(*v1beta2.AzureStackHCIVirtualMachineStatus), b.(*AzureStackHCIVirtualMachineStatus), scope)
 	}); err != nil {
@@ -289,16 +249,6 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}
 	if err := s.AddGeneratedConversionFunc((*AzureStackHCIVirtualMachineStatus)(nil), (*v1beta2.AzureStackHCIVirtualMachineStatus)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1beta1_AzureStackHCIVirtualMachineStatus_To_v1beta2_AzureStackHCIVirtualMachineStatus(a.(*AzureStackHCIVirtualMachineStatus), b.(*v1beta2.AzureStackHCIVirtualMachineStatus), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*v1beta2.Image)(nil), (*Image)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1beta2_Image_To_v1beta1_Image(a.(*v1beta2.Image), b.(*Image), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*Image)(nil), (*v1beta2.Image)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1beta1_Image_To_v1beta2_Image(a.(*Image), b.(*v1beta2.Image), scope)
 	}); err != nil {
 		return err
 	}
@@ -392,8 +342,23 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
+	if err := s.AddConversionFunc((*AvailabilityZone)(nil), (*v1beta2.AvailabilityZone)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1beta1_AvailabilityZone_To_v1beta2_AvailabilityZone(a.(*AvailabilityZone), b.(*v1beta2.AvailabilityZone), scope)
+	}); err != nil {
+		return err
+	}
 	if err := s.AddConversionFunc((*AzureStackHCIClusterStatus)(nil), (*v1beta2.AzureStackHCIClusterStatus)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1beta1_AzureStackHCIClusterStatus_To_v1beta2_AzureStackHCIClusterStatus(a.(*AzureStackHCIClusterStatus), b.(*v1beta2.AzureStackHCIClusterStatus), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddConversionFunc((*AzureStackHCILoadBalancerSpec)(nil), (*v1beta2.AzureStackHCILoadBalancerSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1beta1_AzureStackHCILoadBalancerSpec_To_v1beta2_AzureStackHCILoadBalancerSpec(a.(*AzureStackHCILoadBalancerSpec), b.(*v1beta2.AzureStackHCILoadBalancerSpec), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddConversionFunc((*AzureStackHCIMachineSpec)(nil), (*v1beta2.AzureStackHCIMachineSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1beta1_AzureStackHCIMachineSpec_To_v1beta2_AzureStackHCIMachineSpec(a.(*AzureStackHCIMachineSpec), b.(*v1beta2.AzureStackHCIMachineSpec), scope)
 	}); err != nil {
 		return err
 	}
@@ -402,8 +367,18 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
+	if err := s.AddConversionFunc((*AzureStackHCIVirtualMachineSpec)(nil), (*v1beta2.AzureStackHCIVirtualMachineSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1beta1_AzureStackHCIVirtualMachineSpec_To_v1beta2_AzureStackHCIVirtualMachineSpec(a.(*AzureStackHCIVirtualMachineSpec), b.(*v1beta2.AzureStackHCIVirtualMachineSpec), scope)
+	}); err != nil {
+		return err
+	}
 	if err := s.AddConversionFunc((*corev1beta1.Condition)(nil), (*v1.Condition)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1beta1_Condition_To_v1_Condition(a.(*corev1beta1.Condition), b.(*v1.Condition), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddConversionFunc((*Image)(nil), (*v1beta2.Image)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1beta1_Image_To_v1beta2_Image(a.(*Image), b.(*v1beta2.Image), scope)
 	}); err != nil {
 		return err
 	}
@@ -417,13 +392,38 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
+	if err := s.AddConversionFunc((*v1beta2.AvailabilityZone)(nil), (*AvailabilityZone)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1beta2_AvailabilityZone_To_v1beta1_AvailabilityZone(a.(*v1beta2.AvailabilityZone), b.(*AvailabilityZone), scope)
+	}); err != nil {
+		return err
+	}
 	if err := s.AddConversionFunc((*v1beta2.AzureStackHCIClusterStatus)(nil), (*AzureStackHCIClusterStatus)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1beta2_AzureStackHCIClusterStatus_To_v1beta1_AzureStackHCIClusterStatus(a.(*v1beta2.AzureStackHCIClusterStatus), b.(*AzureStackHCIClusterStatus), scope)
 	}); err != nil {
 		return err
 	}
+	if err := s.AddConversionFunc((*v1beta2.AzureStackHCILoadBalancerSpec)(nil), (*AzureStackHCILoadBalancerSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1beta2_AzureStackHCILoadBalancerSpec_To_v1beta1_AzureStackHCILoadBalancerSpec(a.(*v1beta2.AzureStackHCILoadBalancerSpec), b.(*AzureStackHCILoadBalancerSpec), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddConversionFunc((*v1beta2.AzureStackHCIMachineSpec)(nil), (*AzureStackHCIMachineSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1beta2_AzureStackHCIMachineSpec_To_v1beta1_AzureStackHCIMachineSpec(a.(*v1beta2.AzureStackHCIMachineSpec), b.(*AzureStackHCIMachineSpec), scope)
+	}); err != nil {
+		return err
+	}
 	if err := s.AddConversionFunc((*v1beta2.AzureStackHCIMachineStatus)(nil), (*AzureStackHCIMachineStatus)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1beta2_AzureStackHCIMachineStatus_To_v1beta1_AzureStackHCIMachineStatus(a.(*v1beta2.AzureStackHCIMachineStatus), b.(*AzureStackHCIMachineStatus), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddConversionFunc((*v1beta2.AzureStackHCIVirtualMachineSpec)(nil), (*AzureStackHCIVirtualMachineSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1beta2_AzureStackHCIVirtualMachineSpec_To_v1beta1_AzureStackHCIVirtualMachineSpec(a.(*v1beta2.AzureStackHCIVirtualMachineSpec), b.(*AzureStackHCIVirtualMachineSpec), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddConversionFunc((*v1beta2.Image)(nil), (*Image)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1beta2_Image_To_v1beta1_Image(a.(*v1beta2.Image), b.(*Image), scope)
 	}); err != nil {
 		return err
 	}
@@ -441,20 +441,10 @@ func autoConvert_v1beta2_AvailabilityZone_To_v1beta1_AvailabilityZone(in *v1beta
 	return nil
 }
 
-// Convert_v1beta2_AvailabilityZone_To_v1beta1_AvailabilityZone is an autogenerated conversion function.
-func Convert_v1beta2_AvailabilityZone_To_v1beta1_AvailabilityZone(in *v1beta2.AvailabilityZone, out *AvailabilityZone, s conversion.Scope) error {
-	return autoConvert_v1beta2_AvailabilityZone_To_v1beta1_AvailabilityZone(in, out, s)
-}
-
 func autoConvert_v1beta1_AvailabilityZone_To_v1beta2_AvailabilityZone(in *AvailabilityZone, out *v1beta2.AvailabilityZone, s conversion.Scope) error {
 	out.ID = (*string)(unsafe.Pointer(in.ID))
 	out.Enabled = (*bool)(unsafe.Pointer(in.Enabled))
 	return nil
-}
-
-// Convert_v1beta1_AvailabilityZone_To_v1beta2_AvailabilityZone is an autogenerated conversion function.
-func Convert_v1beta1_AvailabilityZone_To_v1beta2_AvailabilityZone(in *AvailabilityZone, out *v1beta2.AvailabilityZone, s conversion.Scope) error {
-	return autoConvert_v1beta1_AvailabilityZone_To_v1beta2_AvailabilityZone(in, out, s)
 }
 
 func autoConvert_v1beta2_AzureStackHCICluster_To_v1beta1_AzureStackHCICluster(in *v1beta2.AzureStackHCICluster, out *AzureStackHCICluster, s conversion.Scope) error {
@@ -537,7 +527,15 @@ func autoConvert_v1beta2_AzureStackHCIClusterSpec_To_v1beta1_AzureStackHCICluste
 	}
 	out.ResourceGroup = in.ResourceGroup
 	out.Location = in.Location
-	out.AzureStackHCILoadBalancer = (*AzureStackHCILoadBalancerSpec)(unsafe.Pointer(in.AzureStackHCILoadBalancer))
+	if in.AzureStackHCILoadBalancer != nil {
+		in, out := &in.AzureStackHCILoadBalancer, &out.AzureStackHCILoadBalancer
+		*out = new(AzureStackHCILoadBalancerSpec)
+		if err := Convert_v1beta2_AzureStackHCILoadBalancerSpec_To_v1beta1_AzureStackHCILoadBalancerSpec(*in, *out, s); err != nil {
+			return err
+		}
+	} else {
+		out.AzureStackHCILoadBalancer = nil
+	}
 	if err := Convert_v1beta2_APIEndpoint_To_v1beta1_APIEndpoint(&in.ControlPlaneEndpoint, &out.ControlPlaneEndpoint, s); err != nil {
 		return err
 	}
@@ -557,7 +555,15 @@ func autoConvert_v1beta1_AzureStackHCIClusterSpec_To_v1beta2_AzureStackHCICluste
 	}
 	out.ResourceGroup = in.ResourceGroup
 	out.Location = in.Location
-	out.AzureStackHCILoadBalancer = (*v1beta2.AzureStackHCILoadBalancerSpec)(unsafe.Pointer(in.AzureStackHCILoadBalancer))
+	if in.AzureStackHCILoadBalancer != nil {
+		in, out := &in.AzureStackHCILoadBalancer, &out.AzureStackHCILoadBalancer
+		*out = new(v1beta2.AzureStackHCILoadBalancerSpec)
+		if err := Convert_v1beta1_AzureStackHCILoadBalancerSpec_To_v1beta2_AzureStackHCILoadBalancerSpec(*in, *out, s); err != nil {
+			return err
+		}
+	} else {
+		out.AzureStackHCILoadBalancer = nil
+	}
 	if err := Convert_v1beta1_APIEndpoint_To_v1beta2_APIEndpoint(&in.ControlPlaneEndpoint, &out.ControlPlaneEndpoint, s); err != nil {
 		return err
 	}
@@ -803,34 +809,20 @@ func Convert_v1beta1_AzureStackHCILoadBalancerList_To_v1beta2_AzureStackHCILoadB
 
 func autoConvert_v1beta2_AzureStackHCILoadBalancerSpec_To_v1beta1_AzureStackHCILoadBalancerSpec(in *v1beta2.AzureStackHCILoadBalancerSpec, out *AzureStackHCILoadBalancerSpec, s conversion.Scope) error {
 	out.SSHPublicKey = in.SSHPublicKey
-	if err := Convert_v1beta2_Image_To_v1beta1_Image(&in.Image, &out.Image, s); err != nil {
-		return err
-	}
+	// WARNING: in.Image requires manual conversion: inconvertible types (*github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta2.Image vs github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1.Image)
 	out.VMSize = in.VMSize
 	out.StorageContainer = in.StorageContainer
 	out.Replicas = (*int32)(unsafe.Pointer(in.Replicas))
 	return nil
-}
-
-// Convert_v1beta2_AzureStackHCILoadBalancerSpec_To_v1beta1_AzureStackHCILoadBalancerSpec is an autogenerated conversion function.
-func Convert_v1beta2_AzureStackHCILoadBalancerSpec_To_v1beta1_AzureStackHCILoadBalancerSpec(in *v1beta2.AzureStackHCILoadBalancerSpec, out *AzureStackHCILoadBalancerSpec, s conversion.Scope) error {
-	return autoConvert_v1beta2_AzureStackHCILoadBalancerSpec_To_v1beta1_AzureStackHCILoadBalancerSpec(in, out, s)
 }
 
 func autoConvert_v1beta1_AzureStackHCILoadBalancerSpec_To_v1beta2_AzureStackHCILoadBalancerSpec(in *AzureStackHCILoadBalancerSpec, out *v1beta2.AzureStackHCILoadBalancerSpec, s conversion.Scope) error {
 	out.SSHPublicKey = in.SSHPublicKey
-	if err := Convert_v1beta1_Image_To_v1beta2_Image(&in.Image, &out.Image, s); err != nil {
-		return err
-	}
+	// WARNING: in.Image requires manual conversion: inconvertible types (github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1.Image vs *github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta2.Image)
 	out.VMSize = in.VMSize
 	out.StorageContainer = in.StorageContainer
 	out.Replicas = (*int32)(unsafe.Pointer(in.Replicas))
 	return nil
-}
-
-// Convert_v1beta1_AzureStackHCILoadBalancerSpec_To_v1beta2_AzureStackHCILoadBalancerSpec is an autogenerated conversion function.
-func Convert_v1beta1_AzureStackHCILoadBalancerSpec_To_v1beta2_AzureStackHCILoadBalancerSpec(in *AzureStackHCILoadBalancerSpec, out *v1beta2.AzureStackHCILoadBalancerSpec, s conversion.Scope) error {
-	return autoConvert_v1beta1_AzureStackHCILoadBalancerSpec_To_v1beta2_AzureStackHCILoadBalancerSpec(in, out, s)
 }
 
 func autoConvert_v1beta2_AzureStackHCILoadBalancerStatus_To_v1beta1_AzureStackHCILoadBalancerStatus(in *v1beta2.AzureStackHCILoadBalancerStatus, out *AzureStackHCILoadBalancerStatus, s conversion.Scope) error {
@@ -1000,15 +992,9 @@ func Convert_v1beta1_AzureStackHCIMachineProviderCondition_To_v1beta2_AzureStack
 func autoConvert_v1beta2_AzureStackHCIMachineSpec_To_v1beta1_AzureStackHCIMachineSpec(in *v1beta2.AzureStackHCIMachineSpec, out *AzureStackHCIMachineSpec, s conversion.Scope) error {
 	out.ProviderID = (*string)(unsafe.Pointer(in.ProviderID))
 	out.VMSize = in.VMSize
-	if err := Convert_v1beta2_AvailabilityZone_To_v1beta1_AvailabilityZone(&in.AvailabilityZone, &out.AvailabilityZone, s); err != nil {
-		return err
-	}
-	if err := Convert_v1beta2_Image_To_v1beta1_Image(&in.Image, &out.Image, s); err != nil {
-		return err
-	}
-	if err := Convert_v1beta2_OSDisk_To_v1beta1_OSDisk(&in.OSDisk, &out.OSDisk, s); err != nil {
-		return err
-	}
+	// WARNING: in.AvailabilityZone requires manual conversion: inconvertible types (*github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta2.AvailabilityZone vs github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1.AvailabilityZone)
+	// WARNING: in.Image requires manual conversion: inconvertible types (*github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta2.Image vs github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1.Image)
+	// WARNING: in.OSDisk requires manual conversion: inconvertible types (*github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta2.OSDisk vs github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1.OSDisk)
 	out.Location = in.Location
 	out.SSHPublicKey = in.SSHPublicKey
 	out.StorageContainer = in.StorageContainer
@@ -1021,23 +1007,12 @@ func autoConvert_v1beta2_AzureStackHCIMachineSpec_To_v1beta1_AzureStackHCIMachin
 	return nil
 }
 
-// Convert_v1beta2_AzureStackHCIMachineSpec_To_v1beta1_AzureStackHCIMachineSpec is an autogenerated conversion function.
-func Convert_v1beta2_AzureStackHCIMachineSpec_To_v1beta1_AzureStackHCIMachineSpec(in *v1beta2.AzureStackHCIMachineSpec, out *AzureStackHCIMachineSpec, s conversion.Scope) error {
-	return autoConvert_v1beta2_AzureStackHCIMachineSpec_To_v1beta1_AzureStackHCIMachineSpec(in, out, s)
-}
-
 func autoConvert_v1beta1_AzureStackHCIMachineSpec_To_v1beta2_AzureStackHCIMachineSpec(in *AzureStackHCIMachineSpec, out *v1beta2.AzureStackHCIMachineSpec, s conversion.Scope) error {
 	out.ProviderID = (*string)(unsafe.Pointer(in.ProviderID))
 	out.VMSize = in.VMSize
-	if err := Convert_v1beta1_AvailabilityZone_To_v1beta2_AvailabilityZone(&in.AvailabilityZone, &out.AvailabilityZone, s); err != nil {
-		return err
-	}
-	if err := Convert_v1beta1_Image_To_v1beta2_Image(&in.Image, &out.Image, s); err != nil {
-		return err
-	}
-	if err := Convert_v1beta1_OSDisk_To_v1beta2_OSDisk(&in.OSDisk, &out.OSDisk, s); err != nil {
-		return err
-	}
+	// WARNING: in.AvailabilityZone requires manual conversion: inconvertible types (github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1.AvailabilityZone vs *github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta2.AvailabilityZone)
+	// WARNING: in.Image requires manual conversion: inconvertible types (github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1.Image vs *github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta2.Image)
+	// WARNING: in.OSDisk requires manual conversion: inconvertible types (github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1.OSDisk vs *github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta2.OSDisk)
 	out.Location = in.Location
 	out.SSHPublicKey = in.SSHPublicKey
 	out.StorageContainer = in.StorageContainer
@@ -1048,11 +1023,6 @@ func autoConvert_v1beta1_AzureStackHCIMachineSpec_To_v1beta2_AzureStackHCIMachin
 	out.AvailabilitySetName = in.AvailabilitySetName
 	out.PlacementGroupName = in.PlacementGroupName
 	return nil
-}
-
-// Convert_v1beta1_AzureStackHCIMachineSpec_To_v1beta2_AzureStackHCIMachineSpec is an autogenerated conversion function.
-func Convert_v1beta1_AzureStackHCIMachineSpec_To_v1beta2_AzureStackHCIMachineSpec(in *AzureStackHCIMachineSpec, out *v1beta2.AzureStackHCIMachineSpec, s conversion.Scope) error {
-	return autoConvert_v1beta1_AzureStackHCIMachineSpec_To_v1beta2_AzureStackHCIMachineSpec(in, out, s)
 }
 
 func autoConvert_v1beta2_AzureStackHCIMachineStatus_To_v1beta1_AzureStackHCIMachineStatus(in *v1beta2.AzureStackHCIMachineStatus, out *AzureStackHCIMachineStatus, s conversion.Scope) error {
@@ -1306,15 +1276,9 @@ func Convert_v1beta1_AzureStackHCIVirtualMachineList_To_v1beta2_AzureStackHCIVir
 
 func autoConvert_v1beta2_AzureStackHCIVirtualMachineSpec_To_v1beta1_AzureStackHCIVirtualMachineSpec(in *v1beta2.AzureStackHCIVirtualMachineSpec, out *AzureStackHCIVirtualMachineSpec, s conversion.Scope) error {
 	out.VMSize = in.VMSize
-	if err := Convert_v1beta2_AvailabilityZone_To_v1beta1_AvailabilityZone(&in.AvailabilityZone, &out.AvailabilityZone, s); err != nil {
-		return err
-	}
-	if err := Convert_v1beta2_Image_To_v1beta1_Image(&in.Image, &out.Image, s); err != nil {
-		return err
-	}
-	if err := Convert_v1beta2_OSDisk_To_v1beta1_OSDisk(&in.OSDisk, &out.OSDisk, s); err != nil {
-		return err
-	}
+	// WARNING: in.AvailabilityZone requires manual conversion: inconvertible types (*github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta2.AvailabilityZone vs github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1.AvailabilityZone)
+	// WARNING: in.Image requires manual conversion: inconvertible types (*github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta2.Image vs github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1.Image)
+	// WARNING: in.OSDisk requires manual conversion: inconvertible types (*github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta2.OSDisk vs github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1.OSDisk)
 	out.BootstrapData = (*string)(unsafe.Pointer(in.BootstrapData))
 	out.Identity = VMIdentity(in.Identity)
 	out.Location = in.Location
@@ -1333,22 +1297,11 @@ func autoConvert_v1beta2_AzureStackHCIVirtualMachineSpec_To_v1beta1_AzureStackHC
 	return nil
 }
 
-// Convert_v1beta2_AzureStackHCIVirtualMachineSpec_To_v1beta1_AzureStackHCIVirtualMachineSpec is an autogenerated conversion function.
-func Convert_v1beta2_AzureStackHCIVirtualMachineSpec_To_v1beta1_AzureStackHCIVirtualMachineSpec(in *v1beta2.AzureStackHCIVirtualMachineSpec, out *AzureStackHCIVirtualMachineSpec, s conversion.Scope) error {
-	return autoConvert_v1beta2_AzureStackHCIVirtualMachineSpec_To_v1beta1_AzureStackHCIVirtualMachineSpec(in, out, s)
-}
-
 func autoConvert_v1beta1_AzureStackHCIVirtualMachineSpec_To_v1beta2_AzureStackHCIVirtualMachineSpec(in *AzureStackHCIVirtualMachineSpec, out *v1beta2.AzureStackHCIVirtualMachineSpec, s conversion.Scope) error {
 	out.VMSize = in.VMSize
-	if err := Convert_v1beta1_AvailabilityZone_To_v1beta2_AvailabilityZone(&in.AvailabilityZone, &out.AvailabilityZone, s); err != nil {
-		return err
-	}
-	if err := Convert_v1beta1_Image_To_v1beta2_Image(&in.Image, &out.Image, s); err != nil {
-		return err
-	}
-	if err := Convert_v1beta1_OSDisk_To_v1beta2_OSDisk(&in.OSDisk, &out.OSDisk, s); err != nil {
-		return err
-	}
+	// WARNING: in.AvailabilityZone requires manual conversion: inconvertible types (github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1.AvailabilityZone vs *github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta2.AvailabilityZone)
+	// WARNING: in.Image requires manual conversion: inconvertible types (github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1.Image vs *github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta2.Image)
+	// WARNING: in.OSDisk requires manual conversion: inconvertible types (github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta1.OSDisk vs *github.com/microsoft/cluster-api-provider-azurestackhci/api/v1beta2.OSDisk)
 	out.BootstrapData = (*string)(unsafe.Pointer(in.BootstrapData))
 	out.Identity = v1beta2.VMIdentity(in.Identity)
 	out.Location = in.Location
@@ -1365,11 +1318,6 @@ func autoConvert_v1beta1_AzureStackHCIVirtualMachineSpec_To_v1beta2_AzureStackHC
 	out.AvailabilitySetName = in.AvailabilitySetName
 	out.PlacementGroupName = in.PlacementGroupName
 	return nil
-}
-
-// Convert_v1beta1_AzureStackHCIVirtualMachineSpec_To_v1beta2_AzureStackHCIVirtualMachineSpec is an autogenerated conversion function.
-func Convert_v1beta1_AzureStackHCIVirtualMachineSpec_To_v1beta2_AzureStackHCIVirtualMachineSpec(in *AzureStackHCIVirtualMachineSpec, out *v1beta2.AzureStackHCIVirtualMachineSpec, s conversion.Scope) error {
-	return autoConvert_v1beta1_AzureStackHCIVirtualMachineSpec_To_v1beta2_AzureStackHCIVirtualMachineSpec(in, out, s)
 }
 
 func autoConvert_v1beta2_AzureStackHCIVirtualMachineStatus_To_v1beta1_AzureStackHCIVirtualMachineStatus(in *v1beta2.AzureStackHCIVirtualMachineStatus, out *AzureStackHCIVirtualMachineStatus, s conversion.Scope) error {
@@ -1436,11 +1384,6 @@ func autoConvert_v1beta2_Image_To_v1beta1_Image(in *v1beta2.Image, out *Image, s
 	return nil
 }
 
-// Convert_v1beta2_Image_To_v1beta1_Image is an autogenerated conversion function.
-func Convert_v1beta2_Image_To_v1beta1_Image(in *v1beta2.Image, out *Image, s conversion.Scope) error {
-	return autoConvert_v1beta2_Image_To_v1beta1_Image(in, out, s)
-}
-
 func autoConvert_v1beta1_Image_To_v1beta2_Image(in *Image, out *v1beta2.Image, s conversion.Scope) error {
 	out.Publisher = (*string)(unsafe.Pointer(in.Publisher))
 	out.Offer = (*string)(unsafe.Pointer(in.Offer))
@@ -1453,11 +1396,6 @@ func autoConvert_v1beta1_Image_To_v1beta2_Image(in *Image, out *v1beta2.Image, s
 	out.Version = (*string)(unsafe.Pointer(in.Version))
 	out.OSType = v1beta2.OSType(in.OSType)
 	return nil
-}
-
-// Convert_v1beta1_Image_To_v1beta2_Image is an autogenerated conversion function.
-func Convert_v1beta1_Image_To_v1beta2_Image(in *Image, out *v1beta2.Image, s conversion.Scope) error {
-	return autoConvert_v1beta1_Image_To_v1beta2_Image(in, out, s)
 }
 
 func autoConvert_v1beta2_IpConfigurationSpec_To_v1beta1_IpConfigurationSpec(in *v1beta2.IpConfigurationSpec, out *IpConfigurationSpec, s conversion.Scope) error {

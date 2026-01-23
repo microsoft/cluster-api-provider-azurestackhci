@@ -446,7 +446,6 @@ spec:
                 type: string
             required:
             - clusterName
-            - image
             - location
             - resourceGroup
             - sshPublicKey

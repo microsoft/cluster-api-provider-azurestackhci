@@ -300,14 +300,18 @@ func (s *azureStackHCIVirtualMachineService) createVirtualMachine(nicName string
 			SSHKeyData:          decodedKeys,
 			Size:                s.vmScope.AzureStackHCIVirtualMachine.Spec.VMSize,
 			GpuCount:            s.vmScope.AzureStackHCIVirtualMachine.Spec.GpuCount,
-			OSDisk:              s.vmScope.AzureStackHCIVirtualMachine.Spec.OSDisk,
-			Image:               s.vmScope.AzureStackHCIVirtualMachine.Spec.Image,
 			CustomData:          *s.vmScope.AzureStackHCIVirtualMachine.Spec.BootstrapData,
 			Zone:                vmZone,
 			VMType:              vmType,
 			StorageContainer:    s.vmScope.StorageContainer(),
 			AvailabilitySetName: s.vmScope.AzureStackHCIVirtualMachine.Spec.AvailabilitySetName,
 			PlacementGroupName:  s.vmScope.AzureStackHCIVirtualMachine.Spec.PlacementGroupName,
+		}
+		if s.vmScope.AzureStackHCIVirtualMachine.Spec.OSDisk != nil {
+			vmSpec.OSDisk = *s.vmScope.AzureStackHCIVirtualMachine.Spec.OSDisk
+		}
+		if s.vmScope.AzureStackHCIVirtualMachine.Spec.Image != nil {
+			vmSpec.Image = *s.vmScope.AzureStackHCIVirtualMachine.Spec.Image
 		}
 
 		err = s.virtualMachinesSvc.Reconcile(s.vmScope.Context, vmSpec)

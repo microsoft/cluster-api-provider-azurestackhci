@@ -29,8 +29,11 @@ const (
 
 type AzureStackHCILoadBalancerSpec struct {
 	SSHPublicKey string `json:"sshPublicKey"`
-	Image        Image  `json:"image"`
-	VMSize       string `json:"vmSize"`
+
+	// +optional
+	Image *Image `json:"image,omitempty"`
+
+	VMSize string `json:"vmSize"`
 
 	// +optional
 	StorageContainer string `json:"storageContainer"`

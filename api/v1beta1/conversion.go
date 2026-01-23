@@ -185,3 +185,349 @@ func Convert_v1beta2_OSDisk_To_v1beta1_OSDisk(in *v1beta2.OSDisk, out *OSDisk, s
 	}
 	return nil
 }
+
+// Convert_v1beta1_Image_To_v1beta2_Image converts v1beta1 Image to v1beta2.
+func Convert_v1beta1_Image_To_v1beta2_Image(in *Image, out *v1beta2.Image, s conversion.Scope) error {
+	out.Publisher = in.Publisher
+	out.Offer = in.Offer
+	out.SKU = in.SKU
+	out.ID = in.ID
+	out.SubscriptionID = in.SubscriptionID
+	out.ResourceGroup = in.ResourceGroup
+	out.Gallery = in.Gallery
+	out.Name = in.Name
+	out.Version = in.Version
+	out.OSType = v1beta2.OSType(in.OSType)
+	return nil
+}
+
+// Convert_v1beta2_Image_To_v1beta1_Image converts v1beta2 Image to v1beta1.
+func Convert_v1beta2_Image_To_v1beta1_Image(in *v1beta2.Image, out *Image, s conversion.Scope) error {
+	out.Publisher = in.Publisher
+	out.Offer = in.Offer
+	out.SKU = in.SKU
+	out.ID = in.ID
+	out.SubscriptionID = in.SubscriptionID
+	out.ResourceGroup = in.ResourceGroup
+	out.Gallery = in.Gallery
+	out.Name = in.Name
+	out.Version = in.Version
+	out.OSType = OSType(in.OSType)
+	return nil
+}
+
+// Convert_v1beta1_AvailabilityZone_To_v1beta2_AvailabilityZone converts v1beta1 AvailabilityZone to v1beta2.
+func Convert_v1beta1_AvailabilityZone_To_v1beta2_AvailabilityZone(in *AvailabilityZone, out *v1beta2.AvailabilityZone, s conversion.Scope) error {
+	out.ID = in.ID
+	out.Enabled = in.Enabled
+	return nil
+}
+
+// Convert_v1beta2_AvailabilityZone_To_v1beta1_AvailabilityZone converts v1beta2 AvailabilityZone to v1beta1.
+func Convert_v1beta2_AvailabilityZone_To_v1beta1_AvailabilityZone(in *v1beta2.AvailabilityZone, out *AvailabilityZone, s conversion.Scope) error {
+	out.ID = in.ID
+	out.Enabled = in.Enabled
+	return nil
+}
+
+// Convert_v1beta1_AzureStackHCIMachineSpec_To_v1beta2_AzureStackHCIMachineSpec converts v1beta1 MachineSpec to v1beta2.
+// Manual conversion needed because v1beta2 uses pointer types for Image, OSDisk, and AvailabilityZone.
+func Convert_v1beta1_AzureStackHCIMachineSpec_To_v1beta2_AzureStackHCIMachineSpec(in *AzureStackHCIMachineSpec, out *v1beta2.AzureStackHCIMachineSpec, s conversion.Scope) error {
+	out.ProviderID = in.ProviderID
+	out.VMSize = in.VMSize
+	out.Location = in.Location
+	out.SSHPublicKey = in.SSHPublicKey
+	out.StorageContainer = in.StorageContainer
+	out.GpuCount = in.GpuCount
+	out.AllocatePublicIP = in.AllocatePublicIP
+	out.AdditionalSSHKeys = in.AdditionalSSHKeys
+	out.AvailabilitySetName = in.AvailabilitySetName
+	out.PlacementGroupName = in.PlacementGroupName
+
+	// Convert NetworkInterfaces (slice of pointers, should work automatically)
+	if in.NetworkInterfaces != nil {
+		out.NetworkInterfaces = make(v1beta2.NetworkInterfaces, len(in.NetworkInterfaces))
+		for i, nic := range in.NetworkInterfaces {
+			if nic != nil {
+				outNic := &v1beta2.NetworkInterfaceSpec{Name: nic.Name}
+				if nic.IPConfigurations != nil {
+					outNic.IPConfigurations = make(v1beta2.IpConfigurations, len(nic.IPConfigurations))
+					for j, ipconfig := range nic.IPConfigurations {
+						if ipconfig != nil {
+							outNic.IPConfigurations[j] = &v1beta2.IpConfigurationSpec{
+								Name:         ipconfig.Name,
+								Primary:      ipconfig.Primary,
+								Allocation:   v1beta2.IPAllocationMethod(ipconfig.Allocation),
+								IpAddress:    ipconfig.IpAddress,
+								PrefixLength: ipconfig.PrefixLength,
+								SubnetId:     ipconfig.SubnetId,
+								Gateway:      ipconfig.Gateway,
+							}
+						}
+					}
+				}
+				out.NetworkInterfaces[i] = outNic
+			}
+		}
+	}
+
+	// Convert value types to pointers - only if non-zero
+	if in.AvailabilityZone.ID != nil || in.AvailabilityZone.Enabled != nil {
+		out.AvailabilityZone = &v1beta2.AvailabilityZone{
+			ID:      in.AvailabilityZone.ID,
+			Enabled: in.AvailabilityZone.Enabled,
+		}
+	}
+
+	// Only set Image if it has meaningful content
+	if in.Image.OSType != "" || in.Image.ID != nil || in.Image.Publisher != nil {
+		out.Image = &v1beta2.Image{}
+		if err := Convert_v1beta1_Image_To_v1beta2_Image(&in.Image, out.Image, s); err != nil {
+			return err
+		}
+	}
+
+	// Only set OSDisk if it has meaningful content
+	if in.OSDisk.Name != "" || in.OSDisk.DiskSizeGB != 0 {
+		out.OSDisk = &v1beta2.OSDisk{}
+		if err := Convert_v1beta1_OSDisk_To_v1beta2_OSDisk(&in.OSDisk, out.OSDisk, s); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Convert_v1beta2_AzureStackHCIMachineSpec_To_v1beta1_AzureStackHCIMachineSpec converts v1beta2 MachineSpec to v1beta1.
+// Manual conversion needed because v1beta2 uses pointer types for Image, OSDisk, and AvailabilityZone.
+func Convert_v1beta2_AzureStackHCIMachineSpec_To_v1beta1_AzureStackHCIMachineSpec(in *v1beta2.AzureStackHCIMachineSpec, out *AzureStackHCIMachineSpec, s conversion.Scope) error {
+	out.ProviderID = in.ProviderID
+	out.VMSize = in.VMSize
+	out.Location = in.Location
+	out.SSHPublicKey = in.SSHPublicKey
+	out.StorageContainer = in.StorageContainer
+	out.GpuCount = in.GpuCount
+	out.AllocatePublicIP = in.AllocatePublicIP
+	out.AdditionalSSHKeys = in.AdditionalSSHKeys
+	out.AvailabilitySetName = in.AvailabilitySetName
+	out.PlacementGroupName = in.PlacementGroupName
+
+	// Convert NetworkInterfaces
+	if in.NetworkInterfaces != nil {
+		out.NetworkInterfaces = make(NetworkInterfaces, len(in.NetworkInterfaces))
+		for i, nic := range in.NetworkInterfaces {
+			if nic != nil {
+				outNic := &NetworkInterfaceSpec{Name: nic.Name}
+				if nic.IPConfigurations != nil {
+					outNic.IPConfigurations = make(IpConfigurations, len(nic.IPConfigurations))
+					for j, ipconfig := range nic.IPConfigurations {
+						if ipconfig != nil {
+							outNic.IPConfigurations[j] = &IpConfigurationSpec{
+								Name:         ipconfig.Name,
+								Primary:      ipconfig.Primary,
+								Allocation:   IPAllocationMethod(ipconfig.Allocation),
+								IpAddress:    ipconfig.IpAddress,
+								PrefixLength: ipconfig.PrefixLength,
+								SubnetId:     ipconfig.SubnetId,
+								Gateway:      ipconfig.Gateway,
+							}
+						}
+					}
+				}
+				out.NetworkInterfaces[i] = outNic
+			}
+		}
+	}
+
+	// Convert pointer types to value types
+	if in.AvailabilityZone != nil {
+		out.AvailabilityZone = AvailabilityZone{
+			ID:      in.AvailabilityZone.ID,
+			Enabled: in.AvailabilityZone.Enabled,
+		}
+	}
+
+	if in.Image != nil {
+		if err := Convert_v1beta2_Image_To_v1beta1_Image(in.Image, &out.Image, s); err != nil {
+			return err
+		}
+	}
+
+	if in.OSDisk != nil {
+		if err := Convert_v1beta2_OSDisk_To_v1beta1_OSDisk(in.OSDisk, &out.OSDisk, s); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Convert_v1beta1_AzureStackHCIVirtualMachineSpec_To_v1beta2_AzureStackHCIVirtualMachineSpec converts v1beta1 to v1beta2.
+func Convert_v1beta1_AzureStackHCIVirtualMachineSpec_To_v1beta2_AzureStackHCIVirtualMachineSpec(in *AzureStackHCIVirtualMachineSpec, out *v1beta2.AzureStackHCIVirtualMachineSpec, s conversion.Scope) error {
+	out.VMSize = in.VMSize
+	out.BootstrapData = in.BootstrapData
+	out.Identity = v1beta2.VMIdentity(in.Identity)
+	out.Location = in.Location
+	out.SSHPublicKey = in.SSHPublicKey
+	out.StorageContainer = in.StorageContainer
+	out.GpuCount = in.GpuCount
+	out.ResourceGroup = in.ResourceGroup
+	out.VnetName = in.VnetName
+	out.ClusterName = in.ClusterName
+	out.SubnetName = in.SubnetName
+	out.BackendPoolNames = in.BackendPoolNames
+	out.AdditionalSSHKeys = in.AdditionalSSHKeys
+	out.AvailabilitySetName = in.AvailabilitySetName
+	out.PlacementGroupName = in.PlacementGroupName
+
+	// Convert NetworkInterfaces
+	if in.NetworkInterfaces != nil {
+		out.NetworkInterfaces = make(v1beta2.NetworkInterfaces, len(in.NetworkInterfaces))
+		for i, nic := range in.NetworkInterfaces {
+			if nic != nil {
+				outNic := &v1beta2.NetworkInterfaceSpec{Name: nic.Name}
+				if nic.IPConfigurations != nil {
+					outNic.IPConfigurations = make(v1beta2.IpConfigurations, len(nic.IPConfigurations))
+					for j, ipconfig := range nic.IPConfigurations {
+						if ipconfig != nil {
+							outNic.IPConfigurations[j] = &v1beta2.IpConfigurationSpec{
+								Name:         ipconfig.Name,
+								Primary:      ipconfig.Primary,
+								Allocation:   v1beta2.IPAllocationMethod(ipconfig.Allocation),
+								IpAddress:    ipconfig.IpAddress,
+								PrefixLength: ipconfig.PrefixLength,
+								SubnetId:     ipconfig.SubnetId,
+								Gateway:      ipconfig.Gateway,
+							}
+						}
+					}
+				}
+				out.NetworkInterfaces[i] = outNic
+			}
+		}
+	}
+
+	// Convert value types to pointers
+	if in.AvailabilityZone.ID != nil || in.AvailabilityZone.Enabled != nil {
+		out.AvailabilityZone = &v1beta2.AvailabilityZone{
+			ID:      in.AvailabilityZone.ID,
+			Enabled: in.AvailabilityZone.Enabled,
+		}
+	}
+
+	// Always set Image for VirtualMachine since it was required
+	out.Image = &v1beta2.Image{}
+	if err := Convert_v1beta1_Image_To_v1beta2_Image(&in.Image, out.Image, s); err != nil {
+		return err
+	}
+
+	if in.OSDisk.Name != "" || in.OSDisk.DiskSizeGB != 0 {
+		out.OSDisk = &v1beta2.OSDisk{}
+		if err := Convert_v1beta1_OSDisk_To_v1beta2_OSDisk(&in.OSDisk, out.OSDisk, s); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Convert_v1beta2_AzureStackHCIVirtualMachineSpec_To_v1beta1_AzureStackHCIVirtualMachineSpec converts v1beta2 to v1beta1.
+func Convert_v1beta2_AzureStackHCIVirtualMachineSpec_To_v1beta1_AzureStackHCIVirtualMachineSpec(in *v1beta2.AzureStackHCIVirtualMachineSpec, out *AzureStackHCIVirtualMachineSpec, s conversion.Scope) error {
+	out.VMSize = in.VMSize
+	out.BootstrapData = in.BootstrapData
+	out.Identity = VMIdentity(in.Identity)
+	out.Location = in.Location
+	out.SSHPublicKey = in.SSHPublicKey
+	out.StorageContainer = in.StorageContainer
+	out.GpuCount = in.GpuCount
+	out.ResourceGroup = in.ResourceGroup
+	out.VnetName = in.VnetName
+	out.ClusterName = in.ClusterName
+	out.SubnetName = in.SubnetName
+	out.BackendPoolNames = in.BackendPoolNames
+	out.AdditionalSSHKeys = in.AdditionalSSHKeys
+	out.AvailabilitySetName = in.AvailabilitySetName
+	out.PlacementGroupName = in.PlacementGroupName
+
+	// Convert NetworkInterfaces
+	if in.NetworkInterfaces != nil {
+		out.NetworkInterfaces = make(NetworkInterfaces, len(in.NetworkInterfaces))
+		for i, nic := range in.NetworkInterfaces {
+			if nic != nil {
+				outNic := &NetworkInterfaceSpec{Name: nic.Name}
+				if nic.IPConfigurations != nil {
+					outNic.IPConfigurations = make(IpConfigurations, len(nic.IPConfigurations))
+					for j, ipconfig := range nic.IPConfigurations {
+						if ipconfig != nil {
+							outNic.IPConfigurations[j] = &IpConfigurationSpec{
+								Name:         ipconfig.Name,
+								Primary:      ipconfig.Primary,
+								Allocation:   IPAllocationMethod(ipconfig.Allocation),
+								IpAddress:    ipconfig.IpAddress,
+								PrefixLength: ipconfig.PrefixLength,
+								SubnetId:     ipconfig.SubnetId,
+								Gateway:      ipconfig.Gateway,
+							}
+						}
+					}
+				}
+				out.NetworkInterfaces[i] = outNic
+			}
+		}
+	}
+
+	// Convert pointer types to value types
+	if in.AvailabilityZone != nil {
+		out.AvailabilityZone = AvailabilityZone{
+			ID:      in.AvailabilityZone.ID,
+			Enabled: in.AvailabilityZone.Enabled,
+		}
+	}
+
+	if in.Image != nil {
+		if err := Convert_v1beta2_Image_To_v1beta1_Image(in.Image, &out.Image, s); err != nil {
+			return err
+		}
+	}
+
+	if in.OSDisk != nil {
+		if err := Convert_v1beta2_OSDisk_To_v1beta1_OSDisk(in.OSDisk, &out.OSDisk, s); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Convert_v1beta1_AzureStackHCILoadBalancerSpec_To_v1beta2_AzureStackHCILoadBalancerSpec converts v1beta1 to v1beta2.
+func Convert_v1beta1_AzureStackHCILoadBalancerSpec_To_v1beta2_AzureStackHCILoadBalancerSpec(in *AzureStackHCILoadBalancerSpec, out *v1beta2.AzureStackHCILoadBalancerSpec, s conversion.Scope) error {
+	out.SSHPublicKey = in.SSHPublicKey
+	out.VMSize = in.VMSize
+	out.StorageContainer = in.StorageContainer
+	out.Replicas = in.Replicas
+
+	// Convert value type to pointer
+	out.Image = &v1beta2.Image{}
+	if err := Convert_v1beta1_Image_To_v1beta2_Image(&in.Image, out.Image, s); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Convert_v1beta2_AzureStackHCILoadBalancerSpec_To_v1beta1_AzureStackHCILoadBalancerSpec converts v1beta2 to v1beta1.
+func Convert_v1beta2_AzureStackHCILoadBalancerSpec_To_v1beta1_AzureStackHCILoadBalancerSpec(in *v1beta2.AzureStackHCILoadBalancerSpec, out *AzureStackHCILoadBalancerSpec, s conversion.Scope) error {
+	out.SSHPublicKey = in.SSHPublicKey
+	out.VMSize = in.VMSize
+	out.StorageContainer = in.StorageContainer
+	out.Replicas = in.Replicas
+
+	// Convert pointer type to value type
+	if in.Image != nil {
+		if err := Convert_v1beta2_Image_To_v1beta1_Image(in.Image, &out.Image, s); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

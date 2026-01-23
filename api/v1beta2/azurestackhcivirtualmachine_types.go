@@ -31,14 +31,21 @@ const (
 
 // AzureStackHCIVirtualMachineSpec defines the desired state of AzureStackHCIVirtualMachine
 type AzureStackHCIVirtualMachineSpec struct {
-	VMSize           string           `json:"vmSize"`
-	AvailabilityZone AvailabilityZone `json:"availabilityZone,omitempty"`
-	Image            Image            `json:"image"`
-	OSDisk           OSDisk           `json:"osDisk,omitempty"`
-	BootstrapData    *string          `json:"bootstrapData,omitempty"`
-	Identity         VMIdentity       `json:"identity,omitempty"`
-	Location         string           `json:"location"` // does location belong here?
-	SSHPublicKey     string           `json:"sshPublicKey"`
+	VMSize string `json:"vmSize"`
+
+	// +optional
+	AvailabilityZone *AvailabilityZone `json:"availabilityZone,omitempty"`
+
+	// +optional
+	Image *Image `json:"image,omitempty"`
+
+	// +optional
+	OSDisk *OSDisk `json:"osDisk,omitempty"`
+
+	BootstrapData *string    `json:"bootstrapData,omitempty"`
+	Identity      VMIdentity `json:"identity,omitempty"`
+	Location      string     `json:"location"` // does location belong here?
+	SSHPublicKey  string     `json:"sshPublicKey"`
 
 	// +optional
 	StorageContainer string `json:"storageContainer"`

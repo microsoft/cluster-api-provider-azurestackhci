@@ -230,7 +230,7 @@ func (r *AzureStackHCILoadBalancerReconciler) createOrUpdateVirtualMachine(loadB
 		if err != nil {
 			return errors.Wrap(err, "failed to get AzureStackHCILoadBalancer image")
 		}
-		image.DeepCopyInto(&vm.Spec.Image)
+		vm.Spec.Image = image.DeepCopy()
 		infrav1util.CopyCorrelationID(loadBalancerScope.AzureStackHCILoadBalancer, vm)
 
 		return nil
@@ -334,12 +334,18 @@ func (r *AzureStackHCILoadBalancerReconciler) selectVirtualMachineForScaleDown(l
 // getVMImage returns the image to use for a virtual machine
 func (r *AzureStackHCILoadBalancerReconciler) getVMImage(loadBalancerScope *scope.LoadBalancerScope) (*infrav1.Image, error) {
 	// Use custom image if provided
-	if loadBalancerScope.AzureStackHCILoadBalancer.Spec.Image.Name != nil && *loadBalancerScope.AzureStackHCILoadBalancer.Spec.Image.Name != "" {
+	if loadBalancerScope.AzureStackHCILoadBalancer.Spec.Image != nil &&
+		loadBalancerScope.AzureStackHCILoadBalancer.Spec.Image.Name != nil &&
+		*loadBalancerScope.AzureStackHCILoadBalancer.Spec.Image.Name != "" {
 		loadBalancerScope.Info("Using custom image name for loadbalancer", "loadbalancer", loadBalancerScope.AzureStackHCILoadBalancer.GetName(), "imageName", loadBalancerScope.AzureStackHCILoadBalancer.Spec.Image.Name)
-		return &loadBalancerScope.AzureStackHCILoadBalancer.Spec.Image, nil
+		return loadBalancerScope.AzureStackHCILoadBalancer.Spec.Image, nil
 	}
 
-	return azurestackhci.GetDefaultImage(loadBalancerScope.AzureStackHCILoadBalancer.Spec.Image.OSType, to.String(loadBalancerScope.AzureStackHCICluster.Spec.Version))
+	osType := infrav1.OSTypeLinux
+	if loadBalancerScope.AzureStackHCILoadBalancer.Spec.Image != nil {
+		osType = loadBalancerScope.AzureStackHCILoadBalancer.Spec.Image.OSType
+	}
+	return azurestackhci.GetDefaultImage(osType, to.String(loadBalancerScope.AzureStackHCICluster.Spec.Version))
 }
 
 // getVirtualMachinesForLoadBalancer returns a list of non-deleted AzureStackHCIVirtualMachines associated with the load balancer

@@ -36,11 +36,14 @@ type AzureStackHCIMachineSpec struct {
 
 	VMSize string `json:"vmSize"`
 
-	AvailabilityZone AvailabilityZone `json:"availabilityZone,omitempty"`
+	// +optional
+	AvailabilityZone *AvailabilityZone `json:"availabilityZone,omitempty"`
 
-	Image Image `json:"image,omitempty"`
+	// +optional
+	Image *Image `json:"image,omitempty"`
 
-	OSDisk OSDisk `json:"osDisk,omitempty"`
+	// +optional
+	OSDisk *OSDisk `json:"osDisk,omitempty"`
 
 	Location string `json:"location"`
 
