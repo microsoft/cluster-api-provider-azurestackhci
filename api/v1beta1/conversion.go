@@ -33,9 +33,15 @@ func Convert_v1beta1_AzureStackHCIClusterStatus_To_v1beta2_AzureStackHCIClusterS
 		return err
 	}
 
-	// v1beta1 has Ready field, v1beta2 uses conditions
-	// The Ready condition should be managed by the controller, so we don't convert it here
-	// v1beta2 has Initialization field which doesn't exist in v1beta1, leave it nil
+	// v1beta1 has Ready field, v1beta2 uses Initialization.Provisioned
+	// This is critical for upgrade scenarios: when a v1beta1 cluster is being upgraded
+	// and the v1beta2 controller reads it, the Initialization field must be populated
+	// otherwise the machine controller will never reconcile machines (it checks Initialization.Provisioned)
+	if in.Ready {
+		out.Initialization = &v1beta2.AzureStackHCIClusterInitializationStatus{
+			Provisioned: boolPtr(true),
+		}
+	}
 
 	return nil
 }
@@ -67,9 +73,13 @@ func Convert_v1beta1_AzureStackHCIMachineStatus_To_v1beta2_AzureStackHCIMachineS
 		return err
 	}
 
-	// v1beta1 has FailureReason/FailureMessage, v1beta2 uses conditions
-	// These are managed by the controller and reflected in conditions, so we don't convert them
-	// v1beta2 has Initialization field which doesn't exist in v1beta1, leave it nil
+	// v1beta1 has Ready field, v1beta2 uses Initialization.Provisioned
+	// This is needed for upgrade scenarios when v1beta1 machines are read by v1beta2 controller
+	if in.Ready {
+		out.Initialization = &v1beta2.AzureStackHCIMachineInitializationStatus{
+			Provisioned: boolPtr(true),
+		}
+	}
 
 	return nil
 }
@@ -530,4 +540,9 @@ func Convert_v1beta2_AzureStackHCILoadBalancerSpec_To_v1beta1_AzureStackHCILoadB
 	}
 
 	return nil
+}
+
+// Helper function to create a pointer to a bool value
+func boolPtr(b bool) *bool {
+	return &b
 }
