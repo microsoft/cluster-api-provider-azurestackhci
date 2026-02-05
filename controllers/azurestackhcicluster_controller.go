@@ -196,6 +196,17 @@ func (r *AzureStackHCIClusterReconciler) reconcileNormal(clusterScope *scope.Clu
 		return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 20}, nil
 	}
 
+	// Only set Provisioned=true when ControlPlaneEndpoint is valid.
+	// This ensures the control plane is actually running before KCP starts looking for machines.
+	// This is necessary to preserve the timing behavior from CAPI v1beta1 where KCP waited for
+	// InfrastructureReady (set late) rather than InfrastructureProvisioned (set early in v1beta2).
+	// Without this delay, KCP may adopt standalone control plane machines during bootstrap and
+	// trigger an unwanted rolling update due to KubeadmConfig mismatches.
+	if !clusterScope.Cluster.Spec.ControlPlaneEndpoint.IsValid() {
+		clusterScope.Info("Waiting for ControlPlaneEndpoint to be set before marking infrastructure provisioned")
+		return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 20}, nil
+	}
+
 	// No errors, so mark us ready so the Cluster API Cluster Controller can pull it
 	// Initialize Status.Initialization if needed
 	if azureStackHCICluster.Status.Initialization == nil {
