@@ -173,6 +173,7 @@ func (m *MachineScope) SetVMState(v *infrav1.VMState) {
 
 // SetReady sets the AzureStackHCIMachine Ready Status
 func (m *MachineScope) SetReady() {
+	m.AzureStackHCIMachine.Status.Ready = true
 	if m.AzureStackHCIMachine.Status.Initialization == nil {
 		m.AzureStackHCIMachine.Status.Initialization = &infrav1.AzureStackHCIMachineInitializationStatus{}
 	}
