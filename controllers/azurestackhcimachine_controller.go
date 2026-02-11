@@ -257,7 +257,12 @@ func (r *AzureStackHCIMachineReconciler) reconcileNormal(machineScope *scope.Mac
 	// TODO(vincepri): Remove this annotation when clusterctl is no longer relevant.
 	machineScope.SetAnnotation("cluster-api-provider-azurestackhci", "true")
 
-	machineScope.AzureStackHCIMachine.Status.Conditions = append(machineScope.AzureStackHCIMachine.Status.Conditions, vm.Status.Conditions...)
+	// Merge VM conditions into the Machine using conditions.Set (update and insert by type)
+	// to avoid duplicating conditions on every reconcile, which would cause
+	// infinite growth and a hot reconcile loop.
+	for _, vmCond := range vm.Status.Conditions {
+		conditions.Set(machineScope.AzureStackHCIMachine, vmCond)
+	}
 
 	if vm.Status.VMState == nil {
 		machineScope.Info("Waiting for VM controller to set vm state")
