@@ -168,7 +168,7 @@ func (r *AzureStackHCIClusterReconciler) reconcileNormal(clusterScope *scope.Clu
 			outOfCapacityCondition := metav1.Condition{
 				Type:    infrav1.NetworkInfrastructureReadyCondition,
 				Status:  metav1.ConditionFalse,
-				Reason:  infrav1.OutOfMemoryReason,
+				Reason:  infrav1.OutOfCapacityReason,
 				Message: err.Error(),
 			}
 			conditions.Set(azureStackHCICluster, outOfCapacityCondition)
@@ -305,6 +305,7 @@ func (r *AzureStackHCIClusterReconciler) reconcileDelete(clusterScope *scope.Clu
 		r.Recorder.Eventf(azureStackHCICluster, corev1.EventTypeWarning, "FailureClusterDelete", wrappedErr.Error())
 		conditions.Set(azureStackHCICluster, metav1.Condition{
 			Type:    infrav1.NetworkInfrastructureReadyCondition,
+			Status:  metav1.ConditionFalse,
 			Reason:  "DeletionFailed",
 			Message: err.Error()})
 		return reconcile.Result{}, wrappedErr
