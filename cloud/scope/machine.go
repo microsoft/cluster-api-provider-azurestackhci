@@ -111,6 +111,9 @@ func (m *MachineScope) Location() string {
 
 // AvailabilityZone returns the AzureStackHCIMachine Availability Zone.
 func (m *MachineScope) AvailabilityZone() string {
+	if m.AzureStackHCIMachine.Spec.AvailabilityZone == nil || m.AzureStackHCIMachine.Spec.AvailabilityZone.ID == nil {
+		return ""
+	}
 	return *m.AzureStackHCIMachine.Spec.AvailabilityZone.ID
 }
 

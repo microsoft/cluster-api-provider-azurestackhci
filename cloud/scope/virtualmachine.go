@@ -147,6 +147,9 @@ func (m *VirtualMachineScope) Location() string {
 
 // AvailabilityZone returns the AzureStackHCIVirtualMachine Availability Zone.
 func (m *VirtualMachineScope) AvailabilityZone() string {
+	if m.AzureStackHCIVirtualMachine.Spec.AvailabilityZone == nil || m.AzureStackHCIVirtualMachine.Spec.AvailabilityZone.ID == nil {
+		return ""
+	}
 	return *m.AzureStackHCIVirtualMachine.Spec.AvailabilityZone.ID
 }
 

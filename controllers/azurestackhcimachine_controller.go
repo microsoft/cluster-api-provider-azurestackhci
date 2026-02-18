@@ -218,21 +218,9 @@ func (r *AzureStackHCIMachineReconciler) reconcileNormal(machineScope *scope.Mac
 		return reconcile.Result{}, nil
 	}
 
-	// Set machine infrastructure as provisioned so CAPI knows we're ready to accept bootstrap data
-	// This must be set before we check for bootstrap data to avoid a circular dependency
-	if machineScope.AzureStackHCIMachine.Status.Initialization == nil {
-		machineScope.AzureStackHCIMachine.Status.Initialization = &infrav1.AzureStackHCIMachineInitializationStatus{}
-	}
-	if machineScope.AzureStackHCIMachine.Status.Initialization.Provisioned == nil {
-		trueVal := true
-		machineScope.AzureStackHCIMachine.Status.Initialization.Provisioned = &trueVal
-		if err := machineScope.PatchObject(); err != nil {
-			return reconcile.Result{}, err
-		}
-		machineScope.Info("Set machine infrastructure as provisioned")
-	}
-
 	// Make sure bootstrap data is available and populated.
+	// NOTE: CAPI's Machine controller populates DataSecretName via the bootstrap phase
+	// independently of InfraMachine's Provisioned status, so no circular dependency exists.
 	if machineScope.Machine.Spec.Bootstrap.DataSecretName == nil {
 		machineScope.Info("Bootstrap data secret reference is not yet available")
 		return reconcile.Result{}, nil

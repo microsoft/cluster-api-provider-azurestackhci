@@ -102,7 +102,7 @@ func (l *LoadBalancerScope) Address() string {
 
 // OSVersion returns the AzureStackHCILoadBalancer image OS version
 func (l *LoadBalancerScope) OSVersion() string {
-	if l.AzureStackHCILoadBalancer.Spec.Image.Version != nil {
+	if l.AzureStackHCILoadBalancer.Spec.Image != nil && l.AzureStackHCILoadBalancer.Spec.Image.Version != nil {
 		return *l.AzureStackHCILoadBalancer.Spec.Image.Version
 	}
 	return ""
