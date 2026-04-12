@@ -92,7 +92,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 
 	logger := s.Scope.GetLogger()
 	logger.Info("getting nic", "nic", vmSpec.NICName)
-	nicInterface, err := networkinterfaces.NewService(s.Scope).Get(ctx, &networkinterfaces.Spec{Name: vmSpec.NICName})
+	nicInterface, err := networkinterfaces.NewService(s.Scope, nil).Get(ctx, &networkinterfaces.Spec{Name: vmSpec.NICName})
 	if err != nil {
 		return err
 	}

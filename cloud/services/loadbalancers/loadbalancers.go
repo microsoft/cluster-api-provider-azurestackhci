@@ -59,8 +59,10 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		return errors.New("invalid loadbalancer specification")
 	}
 
-	if _, err := s.Get(ctx, lbSpec); err == nil {
+	if lb, err := s.Get(ctx, lbSpec); err == nil {
 		// loadbalancer already exists, no update supported for now
+		// Sync back to IPAM to ensure claim exists (if IP is available)
+		s.syncLoadBalancerIPToIPAM(ctx, lb.(network.LoadBalancer))
 		return nil
 	}
 
@@ -97,7 +99,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	// create the load balancer
 	logger := s.Scope.GetLogger()
 	logger.Info("creating loadbalancer", "name", lbSpec.Name)
-	_, err := s.Client.CreateOrUpdate(ctx, s.Scope.GetResourceGroup(), lbSpec.Name, &networkLB)
+	createdLb, err := s.Client.CreateOrUpdate(ctx, s.Scope.GetResourceGroup(), lbSpec.Name, &networkLB)
 	telemetry.WriteMocOperationLog(logger, telemetry.CreateOrUpdate, s.Scope.GetCustomResourceTypeWithName(), telemetry.LoadBalancer,
 		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), lbSpec.Name), &networkLB, err)
 	if err != nil {
@@ -105,7 +107,52 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	}
 
 	logger.Info("successfully created loadbalancer", "name", lbSpec.Name)
-	return err
+
+	// Try to sync IP to IPAM after creation (best-effort, IP may not be available yet)
+	if createdLb != nil {
+		s.syncLoadBalancerIPToIPAM(ctx, *createdLb)
+	}
+
+	return nil
+}
+
+// syncLoadBalancerIPToIPAM syncs the MOC-allocated LB IP to IPAM via SyncIPClaim only.
+// We intentionally do not actively allocate IPs in the LB create/reconcile path because
+// the CAPH LB path is deprecated (cloud-operator manages LBs via AksHciCluster).
+// This is best-effort and non-blocking.
+func (s *Service) syncLoadBalancerIPToIPAM(ctx context.Context, lb network.LoadBalancer) {
+	if s.IPAMService == nil {
+		return
+	}
+
+	// Extract IP from the load balancer's frontend configuration
+	ip := extractLoadBalancerIP(lb)
+	if ip == "" {
+		s.Scope.GetLogger().Info("LoadBalancer IP not yet available, skipping IPAM sync")
+		return
+	}
+
+	mocGroup := s.Scope.GetResourceGroup()
+	lbName := ""
+	if lb.Name != nil {
+		lbName = *lb.Name
+	}
+	if err := s.IPAMService.SyncLoadBalancerIP(ctx, mocGroup, lbName, ip); err != nil {
+		s.Scope.GetLogger().Info("Failed to sync LoadBalancer IP to IPAM", "error", err, "ip", ip)
+		// Non-blocking - don't fail LB reconcile
+	}
+}
+
+// extractLoadBalancerIP extracts the frontend IP from a load balancer.
+func extractLoadBalancerIP(lb network.LoadBalancer) string {
+	if lb.FrontendIPConfigurations == nil || len(*lb.FrontendIPConfigurations) == 0 {
+		return ""
+	}
+	frontendConfig := (*lb.FrontendIPConfigurations)[0]
+	if frontendConfig.FrontendIPConfigurationPropertiesFormat == nil || frontendConfig.IPAddress == nil {
+		return ""
+	}
+	return *frontendConfig.IPAddress
 }
 
 // Delete deletes the load balancer with the provided name.
@@ -117,17 +164,23 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 	}
 	logger := s.Scope.GetLogger()
 	logger.Info("deleting loadbalancer", "name", lbSpec.Name)
+
 	err := s.Client.Delete(ctx, s.Scope.GetResourceGroup(), lbSpec.Name)
 	telemetry.WriteMocOperationLog(logger, telemetry.Delete, s.Scope.GetCustomResourceTypeWithName(), telemetry.LoadBalancer,
 		telemetry.GenerateMocResourceName(s.Scope.GetResourceGroup(), lbSpec.Name), nil, err)
 	if err != nil && azurestackhci.ResourceNotFound(err) {
 		// already deleted
-		return nil
-	}
-	if err != nil {
+	} else if err != nil {
 		return errors.Wrapf(err, "failed to delete loadbalancer %s in resource group %s", lbSpec.Name, s.Scope.GetResourceGroup())
 	}
 
+	// Delete IPAM claim only after MOC resource is confirmed deleted
+	if s.IPAMService != nil {
+		if err := s.IPAMService.DeleteLoadBalancerIPClaim(ctx); err != nil {
+			logger.Info("Failed to delete LoadBalancer IPClaim", "error", err)
+		}
+	}
+
 	logger.Info("successfully deleted loadbalancer", "name", lbSpec.Name)
-	return err
+	return nil
 }

@@ -79,6 +79,10 @@ func (r *AzureStackHCIVirtualMachineReconciler) ConstructLogger(req *reconcile.R
 
 // +kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=azurestackhcivirtualmachines,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=azurestackhcivirtualmachines/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=ipam.cluster.x-k8s.io,resources=ipaddressclaims,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=ipam.cluster.x-k8s.io,resources=ipaddresses,verbs=get;list;watch
+// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch
+// +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch
 
 // Reconcile reacts to some event on the kubernetes object that the controller has registered to handle
 func (r *AzureStackHCIVirtualMachineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (_ ctrl.Result, reterr error) {
@@ -277,6 +281,14 @@ func (r *AzureStackHCIVirtualMachineReconciler) getOrCreate(virtualMachineScope 
 			return nil, wrappedErr
 		}
 		r.Recorder.Eventf(virtualMachineScope.AzureStackHCIVirtualMachine, corev1.EventTypeNormal, "SuccessfulCreateVM", "Success creating AzureStackHCIVirtualMachine %s/%s", virtualMachineScope.Namespace(), virtualMachineScope.Name())
+	} else {
+		// calling this here to ensure nic ip claims are created for existing vms as well, this is needed for
+		// brownfield scenarios where VMs already exist when we introduce IPAM
+		virtualMachineScope.Info("VM found, reconciling existing VM for Nics", "Name", virtualMachineScope.Name())
+		_, err = ams.ReconcileNics()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return vm, nil

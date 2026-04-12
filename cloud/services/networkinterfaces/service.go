@@ -29,8 +29,9 @@ var _ azurestackhci.Service = (*Service)(nil)
 
 // Service provides operations on network interfaces
 type Service struct {
-	Client networkinterface.InterfaceClient
-	Scope  scope.ScopeInterface
+	Client      networkinterface.InterfaceClient
+	Scope       scope.ScopeInterface
+	IPAMService *IPAMService
 }
 
 // getNetworkInterfacesClient creates a new network interfaces client.
@@ -40,9 +41,10 @@ func getNetworkInterfacesClient(cloudAgentFqdn string, authorizer auth.Authorize
 }
 
 // NewService creates a new network interfaces service.
-func NewService(scope scope.ScopeInterface) *Service {
+func NewService(scope scope.ScopeInterface, ipamSvc *IPAMService) *Service {
 	return &Service{
-		Client: getNetworkInterfacesClient(scope.GetCloudAgentFqdn(), scope.GetAuthorizer()),
-		Scope:  scope,
+		Client:      getNetworkInterfacesClient(scope.GetCloudAgentFqdn(), scope.GetAuthorizer()),
+		Scope:       scope,
+		IPAMService: ipamSvc,
 	}
 }

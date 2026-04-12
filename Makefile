@@ -40,7 +40,7 @@ export GOPROXY
 export GO111MODULE=on
 
 # Private repo workaround
-export GOPRIVATE = github.com/microsoft
+export GOPRIVATE = github.com/microsoft,dev.azure.com/msazure
 
 # Go OS and ARCH values
 GOOS := $(shell go env GOOS)

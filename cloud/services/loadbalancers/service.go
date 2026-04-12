@@ -28,8 +28,9 @@ var _ azurestackhci.Service = (*Service)(nil)
 
 // Service provides operations on load balancers.
 type Service struct {
-	Client loadbalancer.LoadBalancerClient
-	Scope  scope.ScopeInterface
+	Client      loadbalancer.LoadBalancerClient
+	Scope       scope.ScopeInterface
+	IPAMService *IPAMService
 }
 
 // getLoadBalancersClient creates a new load balancers client.
@@ -39,9 +40,10 @@ func getLoadBalancersClient(cloudAgentFqdn string, authorizer auth.Authorizer) l
 }
 
 // NewService creates a new load balancers service.
-func NewService(scope scope.ScopeInterface) *Service {
+func NewService(scope scope.ScopeInterface, ipamSvc *IPAMService) *Service {
 	return &Service{
-		Client: getLoadBalancersClient(scope.GetCloudAgentFqdn(), scope.GetAuthorizer()),
-		Scope:  scope,
+		Client:      getLoadBalancersClient(scope.GetCloudAgentFqdn(), scope.GetAuthorizer()),
+		Scope:       scope,
+		IPAMService: ipamSvc,
 	}
 }
