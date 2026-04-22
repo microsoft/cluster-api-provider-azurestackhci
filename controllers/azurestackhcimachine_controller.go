@@ -193,15 +193,11 @@ func (r *AzureStackHCIMachineReconciler) Reconcile(ctx context.Context, req ctrl
 
 func (r *AzureStackHCIMachineReconciler) reconcileNormal(machineScope *scope.MachineScope, clusterScope *scope.ClusterScope) (reconcile.Result, error) {
 	machineScope.Info("Reconciling AzureStackHCIMachine")
-	// If the AzureStackHCIMachine is in an error state, return early.
-	// In v1beta2, we check conditions for error states
-	vmRunningCondition := conditions.Get(machineScope.AzureStackHCIMachine, infrav1.VMRunningCondition)
-	if vmRunningCondition != nil && vmRunningCondition.Status == metav1.ConditionFalse &&
-		(vmRunningCondition.Reason != "") {
-		machineScope.Info("Error state detected, skipping reconciliation")
-		r.Recorder.Eventf(machineScope.AzureStackHCIMachine, corev1.EventTypeWarning, "ErrorStateAzureStackHCIMachine", "AzureStackHCIMachine is in an error state")
-		return reconcile.Result{}, nil
-	}
+	// NOTE: Do not gate reconciliation on stale Machine conditions (e.g. VMRunningCondition=False).
+	// The VM controller owns VM state and can recover asynchronously after transient failures
+	// (e.g. MOC I/O errors). The Machine controller must always re-fetch the VM CR to get
+	// current status, otherwise a stale error condition permanently blocks reconciliation
+	// even after the VM has been successfully created.
 
 	// If the AzureMachine doesn't have our finalizer, add it.
 	controllerutil.AddFinalizer(machineScope.AzureStackHCIMachine, infrav1.MachineFinalizer)
