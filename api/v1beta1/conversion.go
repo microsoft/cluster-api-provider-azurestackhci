@@ -159,7 +159,19 @@ func Convert_v1beta1_Condition_To_v1_Condition(in *corev1beta1.Condition, out *m
 	out.Status = metav1.ConditionStatus(in.Status)
 	out.LastTransitionTime = in.LastTransitionTime
 	out.Reason = in.Reason
+	// v1beta1 Reason is optional (json omitempty), but v1beta2 metav1.Condition
+	// requires Reason with minLength=1. Objects stored as v1beta1 may have empty
+	// Reason, which would fail CRD validation after upgrade to v1beta2 storage.
+	if out.Reason == "" {
+		out.Reason = string(in.Type)
+	}
 	out.Message = in.Message
+	// v1beta1 Message is optional (json omitempty), but the v1beta2 CRD schema
+	// applies minLength=1 to message in the conditions array. An empty Message
+	// would serialize as "" and fail validation, so default to the Type.
+	if out.Message == "" {
+		out.Message = string(in.Type)
+	}
 	// corev1beta1.Condition doesn't have ObservedGeneration field
 	return nil
 }
@@ -171,11 +183,10 @@ func Convert_v1beta1_OSDisk_To_v1beta2_OSDisk(in *OSDisk, out *v1beta2.OSDisk, s
 	out.Source = in.Source
 	out.OSType = v1beta2.OSType(in.OSType)
 	out.DiskSizeGB = in.DiskSizeGB
-	// Convert value type to pointer - only set if non-empty
-	if in.ManagedDisk.StorageAccountType != "" {
-		out.ManagedDisk = &v1beta2.ManagedDisk{
-			StorageAccountType: in.ManagedDisk.StorageAccountType,
-		}
+	// Always create ManagedDisk pointer — v1beta2 CRD requires managedDisk
+	// to be present. Using empty StorageAccountType is safe as MOC handles defaults.
+	out.ManagedDisk = &v1beta2.ManagedDisk{
+		StorageAccountType: in.ManagedDisk.StorageAccountType,
 	}
 	return nil
 }
