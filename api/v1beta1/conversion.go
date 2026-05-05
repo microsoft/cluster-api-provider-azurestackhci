@@ -158,19 +158,27 @@ func Convert_v1beta1_Condition_To_v1_Condition(in *corev1beta1.Condition, out *m
 	out.Type = string(in.Type)
 	out.Status = metav1.ConditionStatus(in.Status)
 	out.LastTransitionTime = in.LastTransitionTime
+	// Generic fallback used when both the target field and Type are empty.
+	// v1beta2 metav1.Condition CRD validation enforces minLength=1 on Reason
+	// and Message, so we must never emit an empty string here.
+	fallback := string(in.Type)
+	if fallback == "" {
+		fallback = "Unknown"
+	}
 	out.Reason = in.Reason
 	// v1beta1 Reason is optional (json omitempty), but v1beta2 metav1.Condition
 	// requires Reason with minLength=1. Objects stored as v1beta1 may have empty
 	// Reason, which would fail CRD validation after upgrade to v1beta2 storage.
 	if out.Reason == "" {
-		out.Reason = string(in.Type)
+		out.Reason = fallback
 	}
 	out.Message = in.Message
 	// v1beta1 Message is optional (json omitempty), but the v1beta2 CRD schema
 	// applies minLength=1 to message in the conditions array. An empty Message
-	// would serialize as "" and fail validation, so default to the Type.
+	// would serialize as "" and fail validation, so default to Type (or
+	// "Unknown" if Type is also empty).
 	if out.Message == "" {
-		out.Message = string(in.Type)
+		out.Message = fallback
 	}
 	// corev1beta1.Condition doesn't have ObservedGeneration field
 	return nil
