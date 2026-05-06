@@ -65,7 +65,7 @@ func (s *azureStackHCIVirtualMachineService) Create() (*infrav1.VM, error) {
 	var ipconfigs networkinterfaces.IPConfigurations
 
 	if len(s.vmScope.AzureStackHCIVirtualMachine.Spec.NetworkInterfaces) > 0 {
-		ipconfigs = networkinterfaces.IPConfigurations{}
+		ipconfigs = make(networkinterfaces.IPConfigurations, 0, len(s.vmScope.AzureStackHCIVirtualMachine.Spec.NetworkInterfaces[0].IPConfigurations))
 		for i, ipconfigSpec := range s.vmScope.AzureStackHCIVirtualMachine.Spec.NetworkInterfaces[0].IPConfigurations {
 			ipconfigName := ipconfigSpec.Name
 			if len(ipconfigName) == 0 {

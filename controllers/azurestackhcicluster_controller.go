@@ -211,7 +211,7 @@ func (r *AzureStackHCIClusterReconciler) reconcileNormal(clusterScope *scope.Clu
 	readyCondition := metav1.Condition{
 		Type:   infrav1.NetworkInfrastructureReadyCondition,
 		Status: metav1.ConditionTrue,
-		Reason: "InfrastructureReady",
+		Reason: infrav1.InfrastructureReadyReason,
 	}
 	conditions.Set(azureStackHCICluster, readyCondition)
 
@@ -219,7 +219,7 @@ func (r *AzureStackHCIClusterReconciler) reconcileNormal(clusterScope *scope.Clu
 	conditions.Set(azureStackHCICluster, metav1.Condition{
 		Type:   clusterv1.ReadyCondition,
 		Status: metav1.ConditionTrue,
-		Reason: "InfrastructureReady",
+		Reason: infrav1.InfrastructureReadyReason,
 	})
 
 	return reconcile.Result{}, nil
@@ -248,7 +248,7 @@ func (r *AzureStackHCIClusterReconciler) reconcileDelete(clusterScope *scope.Clu
 		conditions.Set(azureStackHCICluster, metav1.Condition{
 			Type:    infrav1.NetworkInfrastructureReadyCondition,
 			Status:  metav1.ConditionFalse,
-			Reason:  "DeletionFailed",
+			Reason:  infrav1.DeletionFailedReason,
 			Message: err.Error(),
 		})
 		return reconcile.Result{}, wrappedErr
@@ -263,7 +263,7 @@ func (r *AzureStackHCIClusterReconciler) reconcileDelete(clusterScope *scope.Clu
 			conditions.Set(azureStackHCICluster, metav1.Condition{
 				Type:    infrav1.NetworkInfrastructureReadyCondition,
 				Status:  metav1.ConditionFalse,
-				Reason:  "DeletionFailed",
+				Reason:  infrav1.DeletionFailedReason,
 				Message: err.Error(),
 			})
 			return reconcile.Result{}, wrappedErr
@@ -306,7 +306,7 @@ func (r *AzureStackHCIClusterReconciler) reconcileDelete(clusterScope *scope.Clu
 		conditions.Set(azureStackHCICluster, metav1.Condition{
 			Type:    infrav1.NetworkInfrastructureReadyCondition,
 			Status:  metav1.ConditionFalse,
-			Reason:  "DeletionFailed",
+			Reason:  infrav1.DeletionFailedReason,
 			Message: err.Error()})
 		return reconcile.Result{}, wrappedErr
 	}
@@ -463,7 +463,7 @@ func (r *AzureStackHCIClusterReconciler) reconcileDeleteAzureStackHCILoadBalance
 				conditions.Set(clusterScope.AzureStackHCICluster, metav1.Condition{
 					Type:    infrav1.NetworkInfrastructureReadyCondition,
 					Status:  metav1.ConditionFalse,
-					Reason:  "DeletionFailed",
+					Reason:  infrav1.DeletionFailedReason,
 					Message: err.Error()})
 				return errors.Wrapf(err, "Failed to update AzureStackHCILoadBalancer %s", azureStackHCILoadBalancerName)
 			}
@@ -482,7 +482,7 @@ func (r *AzureStackHCIClusterReconciler) reconcileDeleteAzureStackHCILoadBalance
 				conditions.Set(clusterScope.AzureStackHCICluster, metav1.Condition{
 					Type:    infrav1.NetworkInfrastructureReadyCondition,
 					Status:  metav1.ConditionFalse,
-					Reason:  "DeletionFailed",
+					Reason:  infrav1.DeletionFailedReason,
 					Message: err.Error(),
 				})
 				return errors.Wrapf(err, "Failed to delete AzureStackHCILoadBalancer %s", azureStackHCILoadBalancerName)

@@ -84,3 +84,12 @@ const (
 	// LoadBalancerReplicasFailedReason used when we have failed replicas.
 	LoadBalancerReplicasFailedReason = "FailedReplicas"
 )
+
+// Common condition Reasons used across multiple AzureStackHCI resources
+
+const (
+	// InfrastructureReadyReason used when infrastructure provisioning has completed successfully.
+	InfrastructureReadyReason = "InfrastructureReady"
+	// DeletionFailedReason used when deletion of a resource has failed.
+	DeletionFailedReason = "DeletionFailed"
+)

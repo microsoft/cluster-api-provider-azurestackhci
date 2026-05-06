@@ -76,7 +76,7 @@ func ReconcileAzureStackHCIAccess(ctx context.Context, logger logr.Logger, cli c
 	}
 
 	if strings.ToLower(os.Getenv("WSSD_DEBUG_MODE")) != "on" {
-		_, err := os.Stat(wssdconfigpath)
+		_, err := os.Stat(wssdconfigpath) // #nosec G703 -- path comes from trusted env var WSSD_CONFIG_PATH
 		if err != nil {
 			return login(ctx, logger, cli, cloudFqdn)
 		}
@@ -127,7 +127,7 @@ func login(ctx context.Context, logger logr.Logger, cli client.Client, cloudFqdn
 
 	mut.Lock()
 	defer mut.Unlock()
-	if _, err := os.Stat(wssdconfigpath); err == nil {
+	if _, err := os.Stat(wssdconfigpath); err == nil { // #nosec G703 -- path comes from trusted env var WSSD_CONFIG_PATH
 		if authorizer, err := auth.NewAuthorizerFromEnvironment(cloudFqdn); err == nil {
 			return authorizer, nil
 		}
@@ -158,7 +158,7 @@ func login(ctx context.Context, logger logr.Logger, cli client.Client, cloudFqdn
 	if err != nil && !azurestackhci.ResourceAlreadyExists(err) {
 		return nil, errors.Wrap(err, "failed to create wssd session: login failed")
 	}
-	if _, err := os.Stat(wssdconfigpath); err != nil {
+	if _, err := os.Stat(wssdconfigpath); err != nil { // #nosec G703 -- path comes from trusted env var WSSD_CONFIG_PATH
 		return nil, errors.Wrapf(err, "Missing wssdconfig %s after login", wssdconfigpath)
 	}
 	logger.Info("AzureStackHCI: Login successful")
