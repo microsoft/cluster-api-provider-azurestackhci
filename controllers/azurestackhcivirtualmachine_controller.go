@@ -298,7 +298,7 @@ func (r *AzureStackHCIVirtualMachineReconciler) reconcileDelete(virtualMachineSc
 		conditions.Set(virtualMachineScope.AzureStackHCIVirtualMachine, metav1.Condition{
 			Type:    infrav1.VMRunningCondition,
 			Status:  metav1.ConditionFalse,
-			Reason:  "DeletionFailed",
+			Reason:  infrav1.DeletionFailedReason,
 			Message: err.Error(),
 		})
 		return reconcile.Result{}, wrappedErr

@@ -274,7 +274,7 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileNormal(lbs *scope.LoadBal
 		conditions.Set(lbs.AzureStackHCILoadBalancer, metav1.Condition{
 			Type:   infrav1.LoadBalancerInfrastructureReadyCondition,
 			Status: metav1.ConditionTrue,
-			Reason: "InfrastructureReady",
+			Reason: infrav1.InfrastructureReadyReason,
 		})
 		r.Recorder.Eventf(lbs.AzureStackHCILoadBalancer, corev1.EventTypeNormal, "LoadBalancerReady", "AzureStackHCILoadBalancer %s infrastructure is ready", lbs.Name())
 	}
@@ -336,7 +336,7 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileDelete(lbs *scope.LoadBal
 		conditions.Set(lbs.AzureStackHCILoadBalancer, metav1.Condition{
 			Type:    infrav1.LoadBalancerInfrastructureReadyCondition,
 			Status:  metav1.ConditionFalse,
-			Reason:  "DeletionFailed",
+			Reason:  infrav1.DeletionFailedReason,
 			Message: err.Error(),
 		})
 		return reconcile.Result{}, err
@@ -347,7 +347,7 @@ func (r *AzureStackHCILoadBalancerReconciler) reconcileDelete(lbs *scope.LoadBal
 		conditions.Set(lbs.AzureStackHCILoadBalancer, metav1.Condition{
 			Type:    infrav1.LoadBalancerInfrastructureReadyCondition,
 			Status:  metav1.ConditionFalse,
-			Reason:  "DeletionFailed",
+			Reason:  infrav1.DeletionFailedReason,
 			Message: err.Error(),
 		})
 		return reconcile.Result{}, err

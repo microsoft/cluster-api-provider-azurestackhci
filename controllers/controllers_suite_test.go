@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -51,11 +51,11 @@ var _ = BeforeSuite(func() {
 	defer resp.Body.Close()
 
 	// Write the CRD to a temporary file
-	tmpfile, err := ioutil.TempFile("", "machine.crd.*.yaml")
+	tmpfile, err := os.CreateTemp("", "machine.crd.*.yaml")
 	Expect(err).NotTo(HaveOccurred())
 	defer os.Remove(tmpfile.Name()) // clean up
 
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := io.ReadAll(resp.Body)
 	Expect(err).NotTo(HaveOccurred())
 
 	_, err = tmpfile.Write(b)
