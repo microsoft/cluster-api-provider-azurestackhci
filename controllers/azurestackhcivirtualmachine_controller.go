@@ -22,6 +22,7 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
+	azurestackhci "github.com/microsoft/cluster-api-provider-azurestackhci/cloud"
 	"github.com/microsoft/cluster-api-provider-azurestackhci/cloud/scope"
 	infrav1util "github.com/microsoft/cluster-api-provider-azurestackhci/pkg/util"
 	mocerrors "github.com/microsoft/moc/pkg/errors"
@@ -263,10 +264,20 @@ func (r *AzureStackHCIVirtualMachineReconciler) getOrCreate(virtualMachineScope 
 					})
 				}
 			default:
+				// MOC unreachable (gRPC codes.Unavailable — e.g. a DNS/transport dial failure to
+				// the MOC agent) lands in this generic bucket because GetErrorCode does not inspect
+				// gRPC status codes. It is deterministic at this call-site (we are dialing MOC), so
+				// surface a typed reason here instead of leaving it as a generic provisioning
+				// failure that downstream consumers would otherwise have to pattern-match from the
+				// error message.
+				reason := infrav1.VMProvisionFailedReason
+				if azurestackhci.MocUnreachable(err) {
+					reason = infrav1.MocUnreachableReason
+				}
 				conditions.Set(virtualMachineScope.AzureStackHCIVirtualMachine, metav1.Condition{
 					Type:    infrav1.VMRunningCondition,
 					Status:  metav1.ConditionFalse,
-					Reason:  infrav1.VMProvisionFailedReason,
+					Reason:  reason,
 					Message: err.Error(),
 				})
 			}
