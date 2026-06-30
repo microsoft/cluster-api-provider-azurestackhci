@@ -18,6 +18,7 @@ limitations under the License.
 package azurestackhci
 
 import (
+	perrors "github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -33,6 +34,21 @@ func ResourceNotFound(err error) bool {
 // ResourceAlreadyExists parses the error to check if its a resource already exists
 func ResourceAlreadyExists(err error) bool {
 	if e, ok := status.FromError(err); ok && e.Code() == codes.AlreadyExists {
+		return true
+	}
+	return false
+}
+
+// MocUnreachable parses the error to check if MOC is unreachable, i.e. the gRPC call to the MOC
+// agent failed with codes.Unavailable (for example a DNS/transport dial failure such as
+// `transport: Error while dialing: dial tcp: lookup <host>: i/o timeout`). The check runs on the
+// unwrapped cause because gRPC status inspection does not see through pkg/errors wrapping, and the
+// MOC client errors reach this layer wrapped by the service/reconciler call chain.
+func MocUnreachable(err error) bool {
+	if err == nil {
+		return false
+	}
+	if e, ok := status.FromError(perrors.Cause(err)); ok && e.Code() == codes.Unavailable {
 		return true
 	}
 	return false

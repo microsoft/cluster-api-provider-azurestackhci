@@ -38,6 +38,11 @@ const (
 	PathNotFoundReason = "PathNotFound"
 	// NotFoundReason used as a generic error reason when a resource is not found.
 	NotFoundReason = "NotFound"
+	// MocUnreachableReason used when the MOC agent is unreachable, i.e. the gRPC call to MOC
+	// failed with codes.Unavailable (for example a DNS/transport dial failure to the MOC host).
+	// This is deterministic at the call-site because the failing call targets MOC, so downstream
+	// consumers can switch on the reason instead of pattern-matching the error message.
+	MocUnreachableReason = "MocUnreachable"
 )
 
 // Conditions and condition Reasons for the AzureStackHCICluster object
