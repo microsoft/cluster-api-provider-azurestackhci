@@ -33,6 +33,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
+	clusterv1 "sigs.k8s.io/cluster-api/api/core/v1beta2"
 	"sigs.k8s.io/cluster-api/util/conditions"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -180,6 +181,13 @@ func (r *AzureStackHCIVirtualMachineReconciler) reconcileNormal(virtualMachineSc
 			Status: metav1.ConditionTrue,
 			Reason: string(infrav1.VMStateSucceeded),
 		})
+		// Also clear the CAPI contract "Ready" condition so a prior terminal failure
+		// (surfaced via setVMProvisionFailure) is reset once the VM comes up. See AB#38511842.
+		conditions.Set(virtualMachineScope.AzureStackHCIVirtualMachine, metav1.Condition{
+			Type:   clusterv1.ReadyCondition,
+			Status: metav1.ConditionTrue,
+			Reason: string(infrav1.VMStateSucceeded),
+		})
 	case infrav1.VMStateUpdating:
 		virtualMachineScope.Info("Machine VM is updating", "name", virtualMachineScope.Name())
 		conditions.Set(virtualMachineScope.AzureStackHCIVirtualMachine, metav1.Condition{
@@ -199,6 +207,29 @@ func (r *AzureStackHCIVirtualMachineReconciler) reconcileNormal(virtualMachineSc
 	}
 
 	return reconcile.Result{}, nil
+}
+
+// setVMProvisionFailure records a terminal VM-provisioning failure on both the legacy
+// VMRunningCondition and the CAPI contract "Ready" condition. The AzureStackHCIMachine
+// controller copies every VM condition onto the AzureStackHCIMachine, and CAPI mirrors the
+// infra machine's contract "Ready" condition into Machine.InfrastructureReadyCondition,
+// carrying the real reason + message that cloud-operator surfaces as an actionable terminal
+// error. Without the "Ready" condition, CAPI falls back to a generic
+// "<Kind> status.initialization.provisioned is false" message and the real SKU/capacity
+// failure is dropped, so the operation stalls with an empty timeout. See AB#38511842.
+func setVMProvisionFailure(virtualMachineScope *scope.VirtualMachineScope, reason, message string) {
+	conditions.Set(virtualMachineScope.AzureStackHCIVirtualMachine, metav1.Condition{
+		Type:    infrav1.VMRunningCondition,
+		Status:  metav1.ConditionFalse,
+		Reason:  reason,
+		Message: message,
+	})
+	conditions.Set(virtualMachineScope.AzureStackHCIVirtualMachine, metav1.Condition{
+		Type:    clusterv1.ReadyCondition,
+		Status:  metav1.ConditionFalse,
+		Reason:  reason,
+		Message: message,
+	})
 }
 
 func (r *AzureStackHCIVirtualMachineReconciler) getOrCreate(virtualMachineScope *scope.VirtualMachineScope, ams *azureStackHCIVirtualMachineService) (*infrav1.VM, error) {
@@ -223,44 +254,19 @@ func (r *AzureStackHCIVirtualMachineReconciler) getOrCreate(virtualMachineScope 
 		if err != nil {
 			switch mocerrors.GetErrorCode(err) {
 			case mocerrors.OutOfMemory.Error():
-				conditions.Set(virtualMachineScope.AzureStackHCIVirtualMachine, metav1.Condition{
-					Type:    infrav1.VMRunningCondition,
-					Status:  metav1.ConditionFalse,
-					Reason:  infrav1.OutOfMemoryReason,
-					Message: err.Error(),
-				})
+				setVMProvisionFailure(virtualMachineScope, infrav1.OutOfMemoryReason, err.Error())
 			case mocerrors.OutOfCapacity.Error():
-				conditions.Set(virtualMachineScope.AzureStackHCIVirtualMachine, metav1.Condition{
-					Type:    infrav1.VMRunningCondition,
-					Status:  metav1.ConditionFalse,
-					Reason:  infrav1.OutOfCapacityReason,
-					Message: err.Error(),
-				})
+				setVMProvisionFailure(virtualMachineScope, infrav1.OutOfCapacityReason, err.Error())
 			case mocerrors.OutOfNodeCapacity.Error():
-				conditions.Set(virtualMachineScope.AzureStackHCIVirtualMachine, metav1.Condition{
-					Type:    infrav1.VMRunningCondition,
-					Status:  metav1.ConditionFalse,
-					Reason:  infrav1.OutOfNodeCapacityReason,
-					Message: err.Error(),
-				})
+				setVMProvisionFailure(virtualMachineScope, infrav1.OutOfNodeCapacityReason, err.Error())
 			case mocerrors.NotFound.Error(): // "NotFound"
 				fallthrough
 			// Internally, NotFound is a legacy error and returns the error string instead.
 			case moccodes.NotFound.String(): // "Not Found"
 				if mocerrors.IsPathNotFound(err) {
-					conditions.Set(virtualMachineScope.AzureStackHCIVirtualMachine, metav1.Condition{
-						Type:    infrav1.VMRunningCondition,
-						Status:  metav1.ConditionFalse,
-						Reason:  infrav1.PathNotFoundReason,
-						Message: err.Error(),
-					})
+					setVMProvisionFailure(virtualMachineScope, infrav1.PathNotFoundReason, err.Error())
 				} else {
-					conditions.Set(virtualMachineScope.AzureStackHCIVirtualMachine, metav1.Condition{
-						Type:    infrav1.VMRunningCondition,
-						Status:  metav1.ConditionFalse,
-						Reason:  infrav1.NotFoundReason,
-						Message: err.Error(),
-					})
+					setVMProvisionFailure(virtualMachineScope, infrav1.NotFoundReason, err.Error())
 				}
 			default:
 				// MOC unreachable (gRPC codes.Unavailable — e.g. a DNS/transport dial failure to
@@ -273,12 +279,7 @@ func (r *AzureStackHCIVirtualMachineReconciler) getOrCreate(virtualMachineScope 
 				if mocerrors.IsGRPCUnavailable(err) {
 					reason = infrav1.MOCUnreachableReason
 				}
-				conditions.Set(virtualMachineScope.AzureStackHCIVirtualMachine, metav1.Condition{
-					Type:    infrav1.VMRunningCondition,
-					Status:  metav1.ConditionFalse,
-					Reason:  reason,
-					Message: err.Error(),
-				})
+				setVMProvisionFailure(virtualMachineScope, reason, err.Error())
 			}
 
 			wrappedErr := errors.Wrapf(err, "failed to create AzureStackHCIVirtualMachine")
