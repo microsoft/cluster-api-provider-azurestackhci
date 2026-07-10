@@ -22,7 +22,6 @@ import (
 )
 
 func (r *AzureStackHCIVirtualMachine) SetupWebhookWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewWebhookManagedBy(mgr).
-		For(r).
+	return ctrl.NewWebhookManagedBy(mgr, r).
 		Complete()
 }

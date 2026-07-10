@@ -23,7 +23,6 @@ import (
 
 // SetupWebhookWithManager will setup and register the webhook with the controller mnager
 func (m *AzureStackHCIMachine) SetupWebhookWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewWebhookManagedBy(mgr).
-		For(m).
+	return ctrl.NewWebhookManagedBy(mgr, m).
 		Complete()
 }
