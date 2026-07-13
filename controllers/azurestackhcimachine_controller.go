@@ -273,15 +273,74 @@ func (r *AzureStackHCIMachineReconciler) reconcileNormal(machineScope *scope.Mac
 			Reason: "VMUpdating",
 		})
 	default:
-		conditions.Set(machineScope.AzureStackHCIMachine, metav1.Condition{
-			Type:    infrav1.VMRunningCondition,
-			Status:  metav1.ConditionFalse,
-			Reason:  infrav1.VMProvisionFailedReason,
-			Message: fmt.Sprintf("AzureStackHCI VM state %q is unexpected", *machineScope.GetVMState()),
-		})
+		conditions.Set(machineScope.AzureStackHCIMachine, fallbackVMRunningCondition(
+			*machineScope.GetVMState(),
+			conditions.Get(machineScope.AzureStackHCIMachine, infrav1.VMRunningCondition),
+		))
+	}
+
+	// Mirror VMRunningCondition into the standard CAPI "Ready" condition (clusterv1.ReadyCondition)
+	// so that CAPI's generic Machine controller (setInfrastructureReadyCondition, which looks
+	// specifically for a condition of Type "Ready" on the InfraMachine via
+	// contract.InfrastructureMachine().ReadyConditionType()) has something real to mirror onto
+	// Machine.Status.Conditions[InfrastructureReadyCondition], instead of always falling back to a
+	// generic message derived only from status.initialization.provisioned. See AB#38717753
+	// investigation ("alternative fix" track) for full analysis.
+	if vmRunning := conditions.Get(machineScope.AzureStackHCIMachine, infrav1.VMRunningCondition); vmRunning != nil {
+		conditions.Set(machineScope.AzureStackHCIMachine, deriveMachineReadyCondition(*vmRunning))
 	}
 
 	return reconcile.Result{}, nil
+}
+
+// deriveMachineReadyCondition mirrors the given VMRunningCondition verbatim into the standard CAPI
+// "Ready" condition type. Status/Reason/Message are copied as-is: on success this reproduces
+// today's correct True/empty-message behavior (see AB#38717753 investigation §9); on failure this
+// is what lets CAPH-specific detail (OutOfCapacity/MocUnreachable/etc.) survive into
+// Machine.Status.Conditions[InfrastructureReadyCondition] via CAPI's mirror, instead of being
+// replaced by a generic boilerplate message.
+//
+// OPEN DESIGN QUESTION -- NOT YET RESOLVED, flagging for review rather than deciding unilaterally:
+// VMUpdating (set while the VM is being routinely updated, e.g. resized) is mirrored here as
+// Ready=False like any other non-success state. Today's CAPI fallback does NOT do this --
+// status.initialization.provisioned stays true through a routine update, so Machine readiness
+// does not flip during normal operations. Mirroring VMUpdating faithfully (as done here) means
+// Ready will flip False during expected, routine VM updates too, which may introduce new flapping
+// for autoscaler / MachineHealthCheck / other automation watching Machine readiness. This
+// prototype intentionally mirrors verbatim to match the "mirror VMRunning into Ready" idea as
+// proposed -- revisit this specific case before considering this fix ready to ship.
+func deriveMachineReadyCondition(vmRunning metav1.Condition) metav1.Condition {
+	return metav1.Condition{
+		Type:    clusterv1.ReadyCondition,
+		Status:  vmRunning.Status,
+		Reason:  vmRunning.Reason,
+		Message: vmRunning.Message,
+	}
+}
+
+// fallbackVMRunningCondition decides the VMRunningCondition to set on the AzureStackHCIMachine
+// when the VM is in a state other than Succeeded/Updating. The VM's own conditions are merged
+// onto the Machine (via conditions.Set) immediately before this runs, so existingCondition
+// reflects whatever the VM controller itself already reported for this reconcile pass.
+//
+// If the VM already reported a specific reason (e.g. OutOfCapacityReason, MocUnreachableReason)
+// for VMRunningCondition=False, that is preserved as-is -- it is the detail that downstream
+// consumers (detector.go regex matching, AKSControlPlaneReadyCondition readers, ICM triage) need.
+// Only when the VM did not already report anything specific do we synthesize the generic
+// "unexpected state" fallback, so we never silently clobber a more informative message.
+//
+// (Ported from PR #314 / zilingzhou/moc-unreachable-reason -- included here too so this
+// alternative-fix prototype isn't undermined by the same overwrite bug it's meant to fix around.)
+func fallbackVMRunningCondition(vmState infrav1.VMState, existingCondition *metav1.Condition) metav1.Condition {
+	if existingCondition != nil && existingCondition.Status == metav1.ConditionFalse && existingCondition.Reason != "" {
+		return *existingCondition
+	}
+	return metav1.Condition{
+		Type:    infrav1.VMRunningCondition,
+		Status:  metav1.ConditionFalse,
+		Reason:  infrav1.VMProvisionFailedReason,
+		Message: fmt.Sprintf("AzureStackHCI VM state %q is unexpected", vmState),
+	}
 }
 
 func (r *AzureStackHCIMachineReconciler) reconcileVirtualMachineNormal(machineScope *scope.MachineScope, clusterScope *scope.ClusterScope) (*infrav1.AzureStackHCIVirtualMachine, error) {
