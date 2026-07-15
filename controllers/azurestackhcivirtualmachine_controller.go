@@ -271,7 +271,7 @@ func (r *AzureStackHCIVirtualMachineReconciler) getOrCreate(virtualMachineScope 
 				// error message.
 				reason := infrav1.VMProvisionFailedReason
 				if mocerrors.IsGRPCUnavailable(err) {
-					reason = infrav1.MocUnreachableReason
+					reason = infrav1.MOCUnreachableReason
 				}
 				conditions.Set(virtualMachineScope.AzureStackHCIVirtualMachine, metav1.Condition{
 					Type:    infrav1.VMRunningCondition,
