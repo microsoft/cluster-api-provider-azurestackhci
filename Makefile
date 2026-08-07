@@ -26,7 +26,7 @@ SHELL:=/usr/bin/env bash
 # Go version
 GO_VERSION := $(shell go env GOVERSION | sed "s/[^[:digit:].-]//g")
 ifeq ($(GO_VERSION),)
-GO_VERSION := 1.25.11
+GO_VERSION := 1.26.5
 endif
 
 # Use GOPROXY environment variable if set
