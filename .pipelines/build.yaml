@@ -48,7 +48,7 @@ jobs:
 
       - task: GoTool@0
         inputs:
-          version: "1.26.9"
+          version: "1.26.10"
         displayName: "Install Go"
 
       - script: |-
