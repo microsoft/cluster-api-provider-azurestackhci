@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # First stage: Use an image that includes shell and utilities
-FROM mcr.microsoft.com/cbl-mariner/base/core:2.0 AS builder
+FROM mcr.microsoft.com/azurelinux/base/core:3.0 AS builder
 
 # Set the working directory and copy the 'manager' binary
 WORKDIR /
@@ -24,7 +24,7 @@ COPY bin/manager .
 RUN chmod +x /manager
 
 # Use distroless as minimal base image to package the manager binary
-FROM  mcr.microsoft.com/cbl-mariner/distroless/debug:2.0
+FROM mcr.microsoft.com/azurelinux/distroless/debug:3.0
 WORKDIR /
 
 # Copy the 'manager' binary from the first stage with the correct permissions
